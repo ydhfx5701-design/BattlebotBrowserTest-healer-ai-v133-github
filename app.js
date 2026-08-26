@@ -143,8 +143,8 @@ Object.assign(ASSET_PATHS, {
   wheel_light: './assets_v7/wheel_light.glb?v=driveclass-102',
   wheel_wide: './assets_v7/wheel_wide.glb?v=driveclass-102',
   track_heavy: './assets_v7/track_heavy.glb?v=driveclass-102',
-  desert_cliff: './assets_v8/desert_cliff.glb?v=red-canyon-113',
-  desert_rock: './assets_v8/desert_rock.glb?v=red-canyon-113',
+  desert_cliff: './assets_v8/desert_cliff_lite.glb?v=red-canyon-mobile-134',
+  desert_rock: './assets_v8/desert_rock_lite.glb?v=red-canyon-mobile-134',
 });
 const MODEL_TRANSFORMS = {
   new_wheel: { scale: [0.56, 0.56, 0.56], rotation: [0, Math.PI / 2, 0] },
