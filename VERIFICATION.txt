@@ -1,0 +1,303 @@
+Battlebot Workshop & Arena 01 Prototype
+Verification date: 2026-08-25 (Asia/Seoul)
+Live URL: http://127.0.0.1:8127/
+
+V98 BLUE/SILVER BLOCKS + PROCEDURAL AI + PHYSICS/DEBRIS PASS
+PASS - Added independent Lv.1 blue and silver 1x1x1 blocks. Workshop catalog exposes both colors, and assembly storage v10 preserves each block's material tier and exact color.
+PASS - AI hull generation now selects from 11 connected archetypes (centipede, turtle, low wedge, bulldozer, hammer tail, asymmetric, heavy short, speedster, stepped, split nose, and multi layer) with blue, silver, or mixed palettes.
+PASS - AI functional layouts vary wheel spacing and weapon placement/angle instead of cloning one fixed body. The 4v4 sample produced 71-87 block robots with six visibly distinct design/palette combinations among seven AI vehicles.
+PASS - AI behavior supports aggressive, cautious, ambusher, survivor, berserker, defensive, flanker, chaser, and brawler traits. Target scoring considers weak enemies, allies already engaging, weak allies needing support, dangerous opponents, retreat thresholds, weapon loss, and wheel loss.
+PASS - Final accelerated Industrial 4v4 ran 184.2 simulated seconds. Robot ground penetration was 0 mm, current vertical standers 0, infinite rollers 0, abnormal vertical stops 0, and maximum airborne interval 0.30 s.
+PASS - Root cause of side/nose floating during posture recovery was fixed: every interpolation step now recomputes the rotated compound-collider support height before applying Y, so rotating bodies cannot pass below the physics floor.
+PASS - Airborne gravity is 1.20x while rising and 1.95x while falling. Detached debris uses 1.45x gravity and actual rotated Box3 bounds for continuous floor correction.
+PASS - Controlled silver critical hit detached four blocks, emitted 20 color-matched fragments, preserved #b9c4cc on every debris renderer, kept debris for 9 seconds, and removed all debris afterward.
+PASS - Debris landing QA after the rotated-bounds fix measured maximum debris penetration 0 mm and minimum active bottom clearance 0.012 m; after expiration, active debris count was 0.
+PASS - Fragment bursts now scale weak 1-3, medium 3-8, strong 8-15, very strong 15-30, and critical 20-30. Fragments include distinct large, medium, and small size classes with 5-12 second lifetimes.
+PASS - The 184.2-second run produced 229 destruction bursts and 1,785 fragments with a maximum 30-fragment burst; all 229 bursts retained the source block color.
+PASS - Final production URL opened visibly in the in-app browser at /?map=industrial01&v=98-final with Industrial Battle Zone 01 4v4 active. Browser console warnings and errors were both 0.
+
+GROUNDING / RE-LAUNCH / SPARK PERFORMANCE HOTFIX V86
+PASS - Root cause reproduced in the user's live 4v4 tab: raw rotary tip speeds reached about 500-700 m/s, the old 200.6-s fight logged 698 launch transitions, and four robots were simultaneously passing through 92.6-109.9-degree poses.
+PASS - Production collision tip-speed ceilings are now saw 72 m/s, drum 88 m/s, and bar 105 m/s. Display/visual RPM is unchanged.
+PASS - A continuous rotary contact retains damage and small contact sparks but applies only 2.5% saw / 4% bar-drum launch force. A new full hit requires at least 0.5 s separation, a grounded target, and 0.45 s since that target's last full rotary impact.
+PASS - Final 216.4-s accelerated 4v4 run: airborneCurrent=0, verticalStandersCurrent=0, abnormalVerticalCurrent=0, infiniteRollersCurrent=0, sideStanding robots=0, maximum airborne interval 0.958 s.
+PASS - Final 23.5-s visible real-time 4v4 run: 1,402 frames, average 16.68 ms; 522 spark-visible frames averaged 16.70 ms. One frame exceeded 33 ms, max 36.10 ms.
+PASS - The same visible run produced 100 spark bursts and 231 maximum simultaneous live particles with zero pool reuse. Maximum launch vertical speed was 0.527 m/s and no robot remained airborne at the measurement point.
+PASS - Spark rendering now packs only live particles into a 420-slot reusable instance pool and uploads the three instance buffers once per rendered frame, not once per 90 Hz physics substep.
+PASS - Controlled AUTO QA remains 41/41 after the grounding and performance changes.
+
+NO-VERTICAL-STAND / POST-LANDING FIX — CONTROLLED QA 41/41 PASS
+PASS - The four new production-path scenarios passed: low 60-degree drop, exact 90-degree side drop, strong bar-spin launch, and weak side nudge.
+PASS - Low 60-degree drop naturally passed the edge and settled roof-down in 3.529 s at 179.40 degrees with 0 rad/s angular speed; no wheel-down target or rotation snap was used.
+PASS - Exact 90-degree near-rest side drop had zero lateral support area, was classified sideStanding=true/stable=false, fell under COM gravity torque, and settled roof-down in 2.717 s at 179.28 degrees with 0 rad/s angular speed.
+PASS - Strong bar case retained post-landing travel and settled wheel-down in 4.104 s; final tilt 0.82 degrees and final angular speed 0.029 rad/s.
+PASS - Weak side nudge settled without extra steering/upright torque; final angular speed 0.126 rad/s.
+PASS - Every landing logged angular state at first contact and +0.1/+0.3/+0.5/+1.0 s. No sample after t=0 repeated landing-impulse torque.
+PASS - No auto-upright or wheel-steering source appeared in any airborne/side-contact landing audit.
+PASS - Sustained saw/rotary contact keeps repeated damage and sparks but limits later launch force to 7%/12%; the large vehicle impulse remains one independent-contact event.
+PASS - Contact-dependent angular damping is air 0.035, unstable edge 1.05, vertical side 0.85, wheel 1.45, stable body 3.4, broad roof/body 2.35-5.8. No direct angular-velocity zero assignment is used.
+PASS - A single wheel contact is not a suspension/drive plane. Two or more correctly oriented wheel contacts are required before drive/steering is allowed.
+PASS - Final corrected v86 4v4 production run reached 216.4 simulated seconds. Frozen vertical standers at finish: 0; infinite rollers at finish: 0; abnormal vertical stops at finish: 0; side-standing robots at finish: 0.
+PASS - Eleven repeated rotary launch impulses were suppressed during the 4v4 run while contact damage/VFX continued.
+PASS - Collider/debug overlay visibly reported Linear Velocity, Angular Velocity, Grounded, 4 wheel contacts, body/broad contact state, Angular Damping 1.45, Applied Torque 0, no torque source, COM, 0.8-degree tilt, and Rolling 0 s.
+
+ARENA 01 MAIN LOBBY
+PASS - 1280x720 (16:9) in-app browser visual inspection completed; the visible top bar, left menu, right cards, and FIGHT panels had zero bounding-box overlaps.
+PASS - Arena 01 is reused as the only lobby background. One saved player robot is shown centre-right with a low close front three-quarter camera; AI robot count is 0 and lobby physicsActive=false.
+PASS - Runtime restores the current battlebot-workshop-assembly-v7 record on every lobby entry; chassis, parts, weapons, support pieces, scale, and rotations are rebuilt from the stored record rather than a separate lobby preset.
+PASS - Exact left menu order is career/workshop/shop/event. QUICK BATTLE text/button count is 0 and the large lower-left FIGHT button count is exactly 1.
+PASS - Profile/rank, two currencies, friends/mail/settings, season banner, daily reward, rookie mission, and the current stored robot are visible.
+PASS - All 11 non-workshop lobby actions opened a non-empty information panel; workshop entered the live 3D editor and its Main Screen button returned to the lobby.
+PASS - FIGHT opened the battle picker, 4v4 + friendly-fire OFF transferred through the short fade, and runtime spawned 4 BLUE + 4 RED robots in Arena 01.
+PASS - The supplied icon sheet is loaded once as assets_ui/menu-icons.png. CSS crop positions expose only the original icon artwork; all Korean names/descriptions are separate live HTML text.
+PASS - Hover/active visual rules and synthesized UI click/confirm sounds are attached to all lobby actions.
+PASS - Final controlled regression retained 41/41 subsystem checks with zero failed checks.
+
+REFERENCE UI REBUILD
+PASS - The supplied 1672x941 target reference and the final 1280x720 capture were directly compared at the same 16:9 aspect.
+PASS - Scaled target profile region is approximately 438x68 at x=24/y=15; final profile/rank panel is 462x70 at x=24/y=15.
+PASS - Four left panels are exactly 326x76 with 8px gaps at x=24; all share one angular right edge and have no border radius.
+PASS - FIGHT is exactly 326x106 at x=24 and shares both left and right edges with the menu column. It is the only FIGHT entry point.
+PASS - Season panel is 340x116 at x=916/y=108. Daily reward and rookie mission are both 224x68, right-aligned with equal 10px gaps.
+PASS - Profile, two currencies, and three 52x52 social buttons retain the reference top-row order and consistent edge spacing.
+PASS - The display robot is now closer and lower with FOV 47, occupying the clear centre-to-right stage without intersecting the left or right UI columns.
+PASS - Rounded capsule styling was removed. Lobby panels use dark navy/black translucent fills, thin low-contrast borders, angular clipped corners, and restrained red/blue accents.
+PASS - CSS backdrop blur was removed from WebGL-overlaid panels after repeated capture inspection, eliminating intermittent compositing gaps while retaining dark translucent backgrounds.
+PASS - The separate current-robot status chip was hidden to match the reference density; saved assembly telemetry remains active and the actual stored robot is still rebuilt for the lobby.
+PASS - DOM verification: QUICK BATTLE count 0, FIGHT count 1, visible menu order career/workshop/shop/event, UI panel intersection list empty.
+PASS - FIGHT click opened the battle-mode picker; career click opened its information panel; active state retains scale(0.96) on FIGHT and scale(0.97) on standard lobby buttons.
+
+GPU-INSTANCED POOLED METAL SPARKS
+PASS - No spark image, sprite sheet, billboard, or spark texture remains in the runtime/package.
+PASS - Runtime telemetry: type=gpu-instanced-active-packed-three-layer-spark-shower, poolSize=420, drawCalls=3, imageAssetsUsed=false, textureCount=0, gravity=0, straightVelocity=true, vfxUpdatesPerRenderFrame=1.
+PASS - Each pooled spark uses one tiny velocity-aligned white/yellow dash, one bright core streak, and one thin orange tail streak; no round head sprite, per-hit material, or object allocation occurs.
+PASS - Contact Point, impact direction, surface Normal, relative velocity, and weapon tangent form the physical base direction. Every particle then randomizes direction, speed, length, brightness, and lifetime.
+PASS - Lifetime range is 0.08-0.29 s; brightness and streak width rapidly decay to zero.
+PASS - Production counts: weak 2-5, medium 6-15, strong 20-40, very strong 35-60, critical 50-90.
+PASS - Saw first contact emits 18-52. Sustained contact emits 6-14 particle ticks and stops after separation.
+PASS - Final isolated reference-scale visual proof: one critical bar contact emitted 110 particles; QA measured 63% short, 33% medium, 14% long, 40 dense-core particles, 47 upward heroes, max speed 53.653 m/s, max trail 4.521 m, and 17.001 m maximum potential travel.
+
+IMPACT SCORE / PROBABILISTIC CRITICAL
+PASS - ImpactScore combines damage, impulse, relative vehicle speed, rotary contact-point speed, weapon mass, target mass ratio, directionality, Contact Point lever arm, source type, and airborne state.
+PASS - Rotary contact-point speed uses angular velocity x radius. Bar/drum/saw each pass the real edge speed and weapon mass into the common impact path.
+PASS - Critical chance is piecewise by ImpactScore, from zero for weak impacts up to 65% for top weapon contacts.
+PASS - No fight-duration quota, total-count correction, target cooldown, or global critical cooldown exists.
+PASS - A sustained saw contact cannot reroll critical each frame; a separated/re-contacted hit can roll again.
+PASS - Non-critical force scale remains strong: weak 0.82, medium 1.00, strong 1.35, very strong 1.70; critical is 2.15.
+PASS - Torque is applied from Contact Point minus Center of Mass. Centre hit has little yaw; corner/side hits rotate; underbody hits add lift and pitch.
+PASS - Destruction remains separate from critical: HP depletion plus destructive impulse threshold is required for detachment.
+PASS - Strong player-related hits add only a 0.028-0.055 s hit stop; physics impulse remains the primary response.
+
+CONTROLLED AUTO QA 41/41 PASS
+- W: z +3.440 m, wheel -6.471 rad.
+- S: z -3.440 m, wheel +6.471 rad.
+- W+A: x -0.459 m, yaw -0.515 rad, front steer -0.450 rad.
+- W+D: x +0.459 m, yaw +0.515 rad, front steer +0.450 rad.
+- S+A: x -0.459 m, yaw +0.515 rad, front steer -0.450 rad.
+- S+D: x +0.459 m, yaw -0.515 rad, front steer +0.450 rad.
+- Mobile up/down/left/right mapping passed.
+- Four wheel-hub outward dots [1,1,1,1].
+- Hammer hinge error 0.000; hammer outward dot 0.517.
+- Two independently installed saws reached 4200 physical RPM and both made contact.
+- Procedural spark structure/lifetime/straight-flight checks passed.
+- Impact response: centre linearZ 2.870/yaw 0; corner yaw -0.391; side yaw +0.318; drum underbody lift +0.569/pitch -0.281.
+- Critical probability rule check passed: weak score has 0 chance, strong/top scores rise, sustained contact has 0 reroll chance.
+- Six ground orientations resolved with bottom clearance 0.000 and no penetration.
+- Static support classification passed: upright and roof are stable; exact left/right 90-degree side stands and nose/rear edges are unstable.
+- Passive overturn isolation passed with AI/input/weapons disabled for 10.5 s per case: 70 degrees settled at 4.179 s to 1.28 degrees, 90 degrees settled at 4.625 s to 0.93 degrees, and 100 degrees settled at 3.946 s to 179.22 degrees. All three had zero passive wakeups and zero forbidden torque sources.
+- Compound profile check passed: chamfered MainChassisCollider 12 vertices, FrontConvexCollider 6, RearConvexCollider 6; exact 90-degree side support area is 0 and legacy colliderHalfExtents is absent.
+- Two controlled hit events produced exactly two random impact samples.
+- Arena rectangle, source assets, structure order, ground contact, and symmetric 4v4 spawn checks all passed.
+- Strong horizontal-spinner ballistic case launched at 23.664 m/s horizontal and 2.366 m/s vertical, traveled 21.253 m, rose 1.481 m, retained 18.155 rad/s combined angular motion, and landed after 0.425 s.
+- Four-metre free fall landed after 0.658 s and reached 11.948 m/s downward speed.
+- Flipper floor reaction produced 6.800 m/s upward and 2.844 rad/s angular velocity, then physically returned to wheel contact; no rotation snap or automatic upright was used.
+- Flipped AI disabled drive/steering, requested its real flipper, and used the same floor-reaction physics path.
+
+ARENA 01 MAP / ASSET VERIFICATION
+PASS - Exact inner combat rectangle is 104 x 76; outer indoor structure is 160 x 132; all four corners are 90 degrees.
+PASS - Layer order is tiled visual floor -> separate thick physics floor -> 4 low inner collision walls -> 42 safety-fence modules -> 14 stand modules -> 4 outer walls.
+PASS - Visual floor uses a 16 x 12 repeat grid. Physics floor count is 1, tile gap is 0, inner-wall corner gap is 0.
+PASS - Both ramp source IDs have zero runtime loads, zero placements, zero collision triggers, and zero package files. runtimeRamps=[] and removedFromArena01=true.
+PASS - Four low bumpers remain at the outer corners as Static box colliders; measured ground gap is 0.003 m. Floating object count is 0.
+PASS - Fence sides are north 12, south 12, east 9, west 9 with uniform scale and zero spacing error. Stands are north 4, south 4, east 3, west 3 with uniform scale.
+PASS - Fence height is 6.515 m (4.07x robot reference), stand height 10.306 m (6.44x), and clear fence-to-stand safety gap 5.901 m.
+PASS - Central-clear fraction is 0.66. No floor saw, fire trap, ceiling geometry, or dark ceiling mesh remains in Arena 01.
+PASS - BLUE spawns are (-15,-26), (-5,-26), (5,-26), (15,-26); RED spawns mirror them at z=+26.
+PASS - Normal low third-person play camera and V/ARENA TOP vertical overview were both visually inspected. Floor, all four boundaries, bumpers, fence loop, enlarged stands, and dark outer walls were visible.
+PASS - 83.6-s visible 4v4 run kept all eight robot positions inside +/-52 x +/-38. abnormalVerticalCurrent=0 and maxAbnormalVerticalConcurrent=0.
+PASS - Focused warm key/cool fill lighting, no ceiling mesh, no ramp, no floating bumper, and the four exact rectangular sides were visually confirmed.
+
+LIVE 4V4 OBSERVATION
+PASS - Friendly fire OFF; player and AI use the same mass, impact, torque, damage, spark, audio, rotary, and ground paths.
+PASS - The former 591-700 m/s raw rotary collision speed was removed. Production contact calculation uses per-weapon tip ceilings plus at most 18 m/s relative tangential speed.
+PASS - Sustained contacts cannot reroll critical, cannot create another full launch while airborne, and emit only 4-10 lightweight rotary-contact sparks after the independent hit.
+PASS - 23.5-s visible run: 100 bursts, 231 maximum simultaneous active particles, zero pool reuse, 16.68 ms overall average frame and 16.70 ms spark-frame average.
+PASS - Production critical bursts use 50-90 particles in a 420-particle reusable active-packed pool; controlled reference QA observed 110 without allocation or pool reuse.
+
+STATIC STABILITY / LONG 4V4
+PASS - Final no-ramp / corrected-impact production-path run lasted 216.4 simulated seconds with eight robots.
+PASS - verticalStandersCurrent=0, abnormalVerticalCurrent=0, infiniteRollersCurrent=0, sideStanding count=0, and airborne count=0 at finish. Transient 65-115 degree crossings remained unstable and rotating; the production run produced no frozen side/nose/rear balance.
+PASS - Roof-down overturn remains legal. Exact 90-degree narrow-side rests and nose/rear edge contacts are unstable, wheel support is disabled above 60 degrees, and no wheel-up auto-upright is used.
+
+BALLISTIC / LANDING / SELF-RIGHT PHYSICS
+PASS - One impact event applies one Contact Point impulse plus one lever-arm torque. No persistent post-hit force, animation path, transform correction, air drive, air steering, suspension force, hover, or automatic upright exists.
+PASS - Bar/horizontal spinner vertical impulse is capped at 6.5-10% of the horizontal component. Strong upward impulse is limited to flippers and drum underbody contacts.
+PASS - Air gravity multipliers are 1.18 during ascent and 1.85 during descent. Air yaw damping is 0.07; air pitch/roll damping is 0.035. Horizontal terminal speed is 36 m/s while active and 44 m/s when disabled; downward terminal speed is 38 m/s.
+PASS - Swept ground crossing prevents high-speed floor tunnelling. Heavy landing keeps horizontal inertia, applies a low restitution floor response at the support centroid, and emits one separate landing sound, dust, tiny sparks, and short player camera shake.
+PASS - Assembly part world positions are transformed back into chassis-local mass points; high and lateral weapon mass shifts the actual Center of Mass without moving it below the floor.
+PASS - Hammer and flipper remain operable while overturned. Their real contact point must reach the floor before reaction impulse/torque is accepted; orientation is never assigned by the self-right code.
+PASS - AI makes exactly one explicit weapon attempt per overturn episode after a 0.9 s candidate delay. It cannot re-arm while rocking between roof/side poses and resets only after 3.0 s of secure sub-60-degree wheel-down contact. A success is recorded only after a pending real floor reaction returns the wheel collider to the floor.
+PASS - Final corrected 4v4 production-path run reached 216.4 simulated seconds: 335 small airborne transitions, 393 landings, 0 hard landings, maximum fall speed 6.920 m/s, maximum launch vertical speed 0.540 m/s, and maximum airborne interval 0.958 s.
+PASS - Final visible 30.5-s production run kept attemptsThisFlip at 0 for seven robots and 1 for UNDERBITE B2. UNDERBITE remained roof-down after the single attempt; no robot re-armed or entered a self-right/re-overturn loop.
+PASS - Final ground minimum bottom clearance was 0.000 m. All high-speed impacts continued through the 90 Hz production physics substep and swept floor path.
+
+MASTER VOLUME
+PASS - Visible 0-100% slider applies to impact, hammer, flipper, and saw loop audio.
+PASS - Browser test changed 80% to 35%, mute changed it to 0%, unmute restored 35%, and reload preserved 35%.
+PASS - Current saw loop and currently playing one-shot sources are updated immediately; new sources inherit master volume.
+
+RUNTIME / PACKAGE
+PASS - app.js syntax check passed with Node.js.
+PASS - 14 runtime GLBs (11 functional robot parts + 3 Arena 01), arena floor texture, 5 existing audio samples, and 2 random impact samples are packaged. Finished chassis GLBs are not loaded.
+PASS - The 3 Arena 01 GLBs total 3,084,448 bytes after source-mesh simplification, 1024 px texture resize, and Meshopt compression.
+PASS - Output copies of ramp 1 and ramp 2 were removed. The user's original Desktop GLBs remain untouched.
+PASS - Old spark asset folder and old spark proof images were removed from the deliverable. The user's original Desktop source was not modified.
+
+This is a browser Three.js prototype using custom contact physics. It does not claim a separate Unity Rigidbody/Collider run.
+
+V87 PASSIVE SETTLE / ONE-SHOT SELF-RIGHT REGRESSION
+PASS - Live v86 diagnosis captured UNDERBITE B2 at 90.1 degrees with `edge-equilibrium-gravity-assist` and `wall-impact` in the same torque frame plus six AI self-right attempts. The artificial edge-assist implementation and its re-entry state were deleted.
+PASS - Force/torque telemetry now records source, caller, vector, magnitude, before/after angular velocity, and exact pitch/yaw/roll sign reversals per named robot. Current force/torque sources and bounded trace tails are exposed in `#qa-state`.
+PASS - Drive, steering, tyre support, and suspension remain disabled at 60 degrees or more. Rotary visuals may spin, but they cannot create wheel traction while overturned.
+PASS - Hammer/flipper floor reaction requires an explicit player/AI weapon action, an actual tip contact between -0.03 and 0.20 m, chassis contact within 0.08 m of the support height, and one unused reaction latch. One attack cannot apply repeated floor reactions.
+PASS - All world-space gravity, landing, impact, and weapon-reaction torques are projected onto the actual YXZ Euler derivative axes: yaw-rotated Pitch and yaw+pitch-rotated Roll.
+PASS - Narrow side-edge Angular Damping is 0.12; no directional assist torque, rotation snap, transform correction, angularVelocity zeroing, or wheel-up target exists. Broad roof/body contact still uses 2.35-5.8 damping.
+PASS - Controlled AUTO QA remains 41/41 after the change. Passive 70/90/100-degree cases all settled and stayed quiet for the final three seconds; maximum final-window angular speeds were 0.0157, 0.0029, and 0.0000 rad/s.
+PASS - Final visible 4v4 same-name sampling ran for 30.5 s at 250 ms intervals. All eight robots had maxSideSeconds=0, passiveWakeups=0, forbiddenSources=[], and maxAttemptsThisFlip<=1. Final telemetry reported verticalStandersCurrent=0 and infiniteRollersCurrent=0.
+
+V89 SMALL FREE-GRID BLOCK WORKSHOP
+PASS - GRID_UNIT is 0.45. Generated world-space bounds are cube 0.45x0.45x0.45, long2 0.45x0.45x0.90, long3 0.45x0.45x1.35, plate 0.45x0.225x0.45, and plate2 0.45x0.225x0.90. The reference chassis width fits 6.44 cubes.
+PASS - Entering block mode showed exactly one small Core Block and hid the legacy finished chassis plus all functional GLB parts. Selecting the cube catalogue left blockCount at 1, candidate.previewAttached=false, targetId=null, and the install action disabled.
+PASS - Direct canvas Face Normal raycast reports all six supported faces x+/x-/y+/y-/z+/z-. Controlled six-face candidates were valid and the raised Core gives 1.075 m bottom-face world clearance for underside assembly.
+PASS - Three real in-app mouse drags placed 20 new cube instances without using the hidden QA installer. Final live count was 21 including Core, connectedToCore=21, uniqueOccupiedHalfCells=true, noOverlap=true, and visibleGapMm=0.
+PASS - The cube tool remained selected after every click/drag. Duplicate occupied cells were rejected. A rotated wedge was selected without auto-placement, changed from [0,0,0] through R/X/Y/Z to [1,1,1], and installed only after a valid face was pointed at and clicked.
+PASS - Delete mode removed exactly one clicked block (22 to 21), remained ON for repeated use, protected Core, and recalculated the Core connection graph.
+PASS - Temporary v8 JSON save/load restored all 21 live blocks exactly. The deleted Cell was freed, saveLoadExact=true, and no player's persistent assembly key was overwritten by the test.
+PASS - Empty-space drag orbited the live block assembly and mouse-wheel zoom changed distance. At a 760x430 landscape viewport the catalogue, 3D canvas, inspector, and bottom actions remained usable; touch assembly/orbit uses PointerEvent and pinchZoom is enabled.
+PASS - Browser console error log was empty after catalogue selection, 21 live placements, rotation, deletion, camera movement, responsive resize, and round-trip validation.
+
+V91 BLOCK BODY / GRAPH DESTRUCTION / ORIGINAL-COLOR DEBRIS
+PASS - Runtime asset and assembly scans contain no spinnerChassis, lowChassis, CHASSIS_CONFIGS, chassisPart, workingAssembly.chassis, or MainChassisCollider path. The player structure is Core + independent blocks + functional parts only; legacyChassisMeshes=0.
+PASS - Output-only `new_chassis.glb`, `low_profile_chassis.glb`, and `spinner_chassis.glb` copies were removed after resolved-path validation. The user's source assets outside this deliverable were not modified.
+PASS - The live in-app workshop mouse run reached 42 small blocks. connectedToCore=42, disconnectedIds=[], uniqueOccupiedHalfCells=true, noOverlap=true, and visibleGapMm=0. A wedge preview rotated to [0,1,0] before its click installation.
+PASS - Four wheel instances and a weapon support/rotary chain were mounted directly to real block IDs. attachedParts=4 at the wheel checkpoint, floatingParts=0, invalidParts=[], and maximum mount gap was 4 mm.
+PASS - The production test hull contains 52 independently tracked blocks and 52 named BlockCollider components. It also carries four block-mounted wheels and a block-mounted bar-spinner chain without any completed chassis mesh.
+PASS - Contact Point hit `ai-bar-block-0-0-4` exactly. Its HP changed 138 -> 113.96 while every other block stayed unchanged; hitBlockId matched the target block.
+PASS - Repeated medium hits accumulated on the same block: 113.96 -> 76.72 -> 39.48 -> 2.24 -> 0. The fifth hit detached exactly that one block as a size-1 Rigidbody debris object.
+PASS - A critical front hit destroyed the primary wedge and distance-falloff damaged 28 nearby blocks while leaving 23 blocks untouched. The Core remained alive at 173.61/180 instead of applying uniform global chassis damage.
+PASS - Cutting `qa-bridge` on the six-block chain left only Core active, detached the four-block tail as one `core-disconnected` chunk, and detached its dependent wheel. maximumBlocksDetachedAtOnce=4.
+PASS - Destroying block-core set Core HP to 0 and dead=true immediately; blockHits=1 and coreHits=1.
+PASS - Intact and damaged target Material remained the same UUID and `#39afe7` color while HP changed 138 -> 113.96. No color, opacity, emissive, or outline mutation is used for HP visualization.
+PASS - The destroyed block reused the exact same Mesh Material UUID and `#39afe7` color in its debris object. A four-block disconnected chunk reported four `#39afe7` materials, each identical to its pre-detach material; generic gray/black shard creation was deleted.
+PASS - After an immediate 2 s deterministic physics advance the block debris was grounded at 0.012 m clearance with `#39afe7`, opacity 1, and the original UUID. The policy reports blockLifetimeSeconds=6, fadeSeconds=0.75, maximumActive=140.
+PASS - After a 6.5 s deterministic advance all block and disconnected-chunk debris objects were removed. Newly spawned debris is retained for its full lifetime; only the oldest object is removed when the 140-object cap is exceeded.
+PASS - Final app.js Node syntax check passed and the in-app browser console error log was empty for block placement, exact hit, accumulated damage, critical damage, bridge cut, Core destruction, debris landing, and expiry runs.
+PASS - A normal 4v4 production run advanced to 33.4 seconds with seven AI robots using 52 active blocks and 52/52 Core-connected block structures each. It recorded 103 impacts (11 weak, 77 medium, 6 strong, 7 very strong, 2 critical), verticalStandersCurrent=0, infiniteRollersCurrent=0, and no browser console errors.
+
+V94 INDUSTRIAL BATTLE ZONE 01 LARGE-SCALE REGRESSION
+PASS - Actual traversable world is 500 x 400. The previous 224 x 176 Industrial layout was expanded 2.23x in width, 2.27x in length, and 5.07x in area without changing the production camera FOV or follow distance.
+PASS - The visual floor repeats the original map tile 63 x 50 times; stretched=false, physicsColliderCount=1, and gaps=0. The expanded perimeter is closed by 202 reused Arena 01 safety-fence modules.
+PASS - The empty central combat plaza measures 160 x 112 and reports obstacleCount=0 with simultaneousRobotCapacity=8.
+PASS - Twenty-six source `컨테이너.glb` instances measure 18.00 x 6.54 x 5.03 m each and act as full line-of-sight blockers. Thirty source `콘크리트 방벽.glb` instances measure 7.80 x 1.32 x 2.36 m and remain low path deflectors.
+PASS - Industrial navigation contains 87 nodes and 224 links; all 87 nodes are connected and obstacle-aware repathing is enabled.
+PASS - A canonical medium wheeled robot crossed from z=-190 to z=190 on the clear central route in 15.82 simulated seconds, inside the requested 15-25 second target.
+PASS - The regional production-physics route visited all 8 requested Industrial waypoints, travelled 2,463.9 m including obstacle-aware turns, and finished with zero out-of-bounds robots.
+PASS - FFA 4 advanced 31.3 s: 4/4 active, 3/3 AI moving, 0 stuck, 0 outside, 20.00 ms average frame time.
+PASS - FFA 8 advanced 31.2 s: 8/8 active, 7/7 AI moving and pathing, 0 stuck, 0 outside, 20.32 ms average frame time.
+PASS - 4v4 advanced 42.0 s: 8/8 active, all 7 AI retained paths, 0 stuck, 0 outside, 17.38 ms average frame time.
+PASS - 6v6 advanced 31.4 s: 12/12 active, all 11 AI retained paths, 0 stuck, 0 outside, 22.06 ms average frame time.
+PASS - 8v8 advanced 30.8 s: 16/16 active, all 15 AI retained paths, 0 stuck, 0 outside, three combat clusters, 28.94 ms average frame time at pixel ratio 1.
+PASS - All five requested population tests passed together with straight-crossing, regional-route, AI avoidance, closed-fence, and debris-floor checks.
+
+V95 BLOCK COMBAT / SMART AI / CURRENT-POSITION RECOVERY / RESPAWN
+PASS - A live 4v4 browser start created eight robots and seven AI with deterministic trait coverage: Aggressive, Defensive, Flanker, Chaser, and Brawler. Enemy nameplates used `combat-nameplate enemy`; allies used `combat-nameplate ally`.
+PASS - After one second, the intentionally weakened AI entered RETREAT while the flanker entered FLANK and the other active bots continued CHASE. Production state routing also contains ATTACK, AMBUSH, REENTRY, and RECOVER branches.
+PASS - The real mobile `SELF RIGHT` button was clicked while the player was roof-down. It completed one request and one recovery with upDot -1 -> 1, X/Z -92/-170 -> -92/-170, and maximumHorizontalDrift=0.
+PASS - A forced side-down AI first entered the normal overturn path, then completed `ai-current-position` recovery. Its recovery audit recorded identical start/end X/Z and maximumHorizontalDrift=0; after recovery it resumed driving instead of remaining out of the match.
+PASS - Killing an AI set dead=true. Five seconds later the four-second respawn had recreated all 52/52 blocks, Core ratio 1.0, atSpawn=true, respawnCount=1, and 0.88 seconds of the 2.2-second Spawn Protection remained.
+PASS - Isolated sky-blue critical damage produced 23 and 28 fragment samples in the required 15-30 band. Each reported color `#39afe7`, colorMatches=1, spawnedBeforeDetach=true; the detached original block retained `#39afe7`, six-second life, nonzero linear/angular launch velocity, and the original material.
+PASS - Production 4v4 red-team critical damage produced 28 red `#d94f42` fragments before the original red block detached. A separate snapshot included simultaneous blue `#39afe7` and red `#d94f42` fragment bursts without gray fallback material.
+PASS - In the isolated expiry run, one block debris and its fragment burst were still active after two seconds with 3.751 seconds of debris life remaining and unchanged `#39afe7`; after another 6.5 seconds both arrays were empty.
+PASS - A real mouse Face-Normal preview placed one cube adjacent to Core. Selecting that installed block and clicking X/Y/Z +90 changed the stored rotation to 90/90/90 degrees.
+PASS - Delete mode rendered a red outline only around the hovered non-Core block and the subsequent canvas click changed the count 2 -> 1. Hovering Core rendered amber; clicking left Core intact and displayed `Core 시작 블록은 삭제할 수 없습니다.`
+PASS - Opposite wheel alignment reused the first wheel axis group and produced heightError=0, longitudinalError=0, parallelAxisDot=1, outwardHubs=true, with left/right normals -X/+X and hubFlipped true/false.
+PASS - Final app.js Node syntax check passed and the browser error log remained empty through 4v4 AI, player/AI recovery, death/respawn, block VFX, assembly rotation, exact deletion, and wheel-pair runs.
+
+V96 FULL ATTACHMENT AUDIT / MISSING-ITEM COMPLETION
+PASS - The exact block-combat QA sequence is colored-fragments -> metal-sparks -> block-detach. Both blue and yellow samples reported spawnedBeforeDetach=true.
+PASS - A yellow #ffd23f critical emitted 28 same-color micro-fragments and detached four real blocks. Every detached object preserved #ffd23f, its original Material UUID, nonzero linear velocity, and nonzero angular velocity.
+PASS - A blue #39afe7 critical emitted 30 same-color fragments and detached four real blocks. All debris and surviving block materials remained #39afe7.
+PASS - Medium impact emitted 6 fragments and destroyed zero blocks; critical impact emitted 30 fragments and destroyed three neighbouring/front blocks. Critical neighbour transmission now depends on ImpactEnergy, Armor, HP, distance falloff, and Connection Strength instead of a fixed-count rule.
+PASS - A separate five-tier run measured weak=2, medium=5, strong=10, veryStrong=17, critical=20 fragments, all inside the requested 1-2 / 3-6 / 6-12 / 10-20 / 15-30 bands.
+PASS - At +2 s the colored fragment burst and four original-color block debris objects were still active. At +8.5 s both arrays were empty.
+PASS - All eight non-Core Lv.1 block types passed the real X/Y/Z +90-degree control path. Cube/long2/long3/plate/plate2/wedge/cornerWedge reached [1,1,1]; invertedWedge correctly changed its default [0,0,2] to [1,1,3].
+PASS - An already installed cube changed from 0/0/0 to 90/90/90 degrees through the visible X/Y/Z buttons.
+PASS - A 20-cube line was face-connected with no overlap. In actual delete mode, red hover outline selected one canvas block and the click removed exactly qa-visible-cube-3 (20 -> 19) while Core remained. A Core hover displayed the protected message and its click left the block count unchanged (17 -> 17).
+PASS - Opposite wheel QA measured heightError=0, longitudinalError=0, parallelAxisDot=1, outwardHubs=true, with mirrored -X/+X normals.
+PASS - Actual production AI scenarios passed SEARCH, CHASE, ATTACK, RETREAT, FLANK, AMBUSH, and REENTRY. AMBUSH used the Flanker trait, an ally-engaged target, and rearDot=-1. REENTRY appeared after the timed retreat expired.
+PASS - The 4v4 start covered Aggressive, Defensive, Flanker, Chaser, and Brawler. Enemy nameplates computed #ff5148 and allies #55b6ff.
+PASS - Player SELF RIGHT was enabled only while roof-down and completed upDot -1 -> 1 at X/Z -92/-170 with maximumHorizontalDrift=0. AI fallback recovery also recorded identical recovery start/end X/Z and drift=0 before resuming movement.
+PASS - A full 52-block/6-functional-part player blueprint died and respawned after four seconds at its original spawn with 52/52 blocks, 6/6 functional parts, Core ratio 1.0, and respawnCount=1. AI uses the same replacement path and separately restored 52/52 blocks.
+PASS - A critical hit during the remaining 0.82-second Spawn Protection returned protected=true, kept target HP 150 -> 150, and incremented protectionBlocks.
+PASS - A 46.2-second production 4v4 regression kept eight robots active, 6 AI moving, 0 stuck, 0 vertical standers, 0 infinite rollers, and 0 abnormal vertical robots. It produced 18 colored block-fragment bursts / 195 fragments with 18/18 color matches.
+PASS - Final app.js Node syntax check passed and the browser error log was empty.
+
+V97 FLOOR PENETRATION / FITTED OBSTACLE COLLISION / LOW-BOUNCE REGRESSION
+PASS - Industrial uses one visual floor plus one separate 500 x 400 x 1.2 m static PhysicsFloor box. Its top is exactly Y=0, gaps=0, collision mode is continuous-swept, and production simulation remains 90 Hz.
+PASS - Wheel support telemetry reports PhysicsFloor-only. Same-robot block, wheel, mount, and weapon collider pairs remain ignored; no obstacle can be interpreted as wheel ground.
+PASS - Obstacle collision no longer uses the robot's oversized circumscribed radius. The active block Compound Collider and slim wheel cylinders are projected to a convex footprint and resolved against each rotated obstacle OBB with SAT.
+PASS - Container and barrier colliders are fitted to final GLB bounds with a 0.012 m inset. The old wall path that also called applyImpactAtPoint was removed; static obstacles add no attack impulse, no explosion knockback, and no vertical velocity.
+PASS - Static contact uses restitution 0.018 for concrete barriers and 0.025 for containers/fence, plus tangential friction and a capped contact-lever yaw response. No pitch/roll launch impulse is generated.
+PASS - Non-uniform final Y scale is used for object seating. Containers, barriers, north/south fence, and east/west fence all report groundGap=-0.006 m, satisfying the requested 0.5-1 cm maximum embed and eliminating visible floating gaps.
+PASS - Upright, 90-degree side, and upside-down 4.5 m drop tests ran through production Robot.updatePhysics at 240 Hz QA sampling. All three measured maximum floor penetration 0.000 mm and minimum clearance 0.000 mm or greater.
+PASS - Concrete barrier impacts at 3, 9, and 24 m/s reached contact after 1.999 m of the expected 2.000 m free travel (1 mm contact error), retained zero overlap, added zero vertical speed, and rebounded at only 0.037, 0.125, and 0.347 m/s.
+PASS - The 12 m/s container impact reached contact after 1.999 m, retained zero overlap, added zero vertical speed, and rebounded at 0.236 m/s.
+PASS - The combined environment QA returned allPass=true. Runtime telemetry reported a 1.2 m thick single floor, mesh-bounds-fitted OBB obstacles, 61 environment debug colliders, 0 mm live robot penetration, and zero browser console errors/warnings.
+PASS - Final app.js Node syntax check passed.
+
+V99 AI SILHOUETTES / NAMEPLATE ANCHORS / COMBAT TEMPO REGRESSION
+PASS - AI generation now exposes 19 named silhouette archetypes and six blue/silver material distributions. A visible eight-AI lineup produced 8 unique archetypes and 8 unique design signatures in the same match.
+PASS - Tested lineup dimensions ranged from the long centipede/disc/arrow/stepped/brute shapes to the multi-layer tank and predator jaw; one independently positioned main weapon remained on each robot.
+PASS - AI wheel centres are Y=0.58 m, matching their 0.58 m physics radius. The lineup settled at 0.000-0.012 m bottom clearance with 0.000 mm maximum robot-floor penetration.
+PASS - Every AI owns a child NameplateAnchor. Bounds-based world-top sampling plus WorldToScreen used the live 1280x720 canvas rect and kept all eight nameplates visible. A tilted flying AI at Y=3.83 retained its label at Y=5.41 above the actual rotated bounds.
+PASS - Three isolated strong hits reduced the target to 80.8% durability, destroyed four independent blocks, and emitted 35 original-colour fragments over three bursts; the largest burst was 14, within the 8-15 strong-hit target.
+PASS - Production 4v4 advanced beyond three minutes to 195.4 s with 8/8 robots active, 7 unique AI archetypes, 0 stuck AI, 0.000 mm maximum robot-floor penetration, and no deep floor/FSM recovery intervention.
+PASS - The same 4v4 run recorded 40 medium, 23 strong, 34 very-strong, and 22 critical impacts with maximum single damage 274.30. Nine AI blocks were visibly destroyed/detached across four different designs.
+PASS - Final app.js Node syntax check passed after the V99 changes.
+
+V100 MEASURED WHEEL GROUNDING / STEERING HIERARCHY / COMBAT DENSITY REGRESSION
+PASS - Twelve independently generated AI archetypes were placed by completed-robot bounds and measured wheel geometry. Every tested driving wheel reported 0.006 m ground distance, the minimum chassis clearance was 0.1233 m, maximum visual/physics wheel-centre error was 0, and live floor penetration was 0.000 mm.
+PASS - Each wheel now uses independent WheelRoot, SteeringPivot, MountOrientation, SpinPivot, and WheelVisualOrientation nodes. Right steering reported +0.45/+0.45 on every front pair; left steering reported -0.45/-0.45; centre returned 0/0.
+PASS - All 52 tested wheel hubs reported outward dot=1.0 across the 4-wheel and 6-wheel designs. Left/right mount rotation is separated from steering and roll; no negative-scale physics transform is used.
+PASS - AI nameplates use live rotated robot bounds, remain camera-facing, and hide when offscreen. A forced airborne/tilted robot kept its label above the actual moving bounds rather than at a stale screen coordinate.
+PASS - A forced 0.18 m AI floor intrusion was corrected to measured support Y=0.1233 m. It added exactly one floor recovery and one FSM recovery, restored every wheel to 0.006 m, rebuilt its target/path, released the brake, and resumed CHASE at throttle 0.984.
+PASS - Angular CCD corner correction and true pre-existing floor intrusion are audited separately, so ordinary pitching/rolling no longer causes repeated AI FSM resets.
+PASS - Industrial Battle Zone 01 changed from 500 x 400 to 350 x 280: width/length scale=0.70, area scale=0.49, and object scale=1. Containers, barriers, floor tile scale, robot scale, and fence module scale remain unchanged.
+PASS - Team spawns were re-seated for the smaller battlefield. In a fresh 4v4 run the first physical impact occurred at 4.549 s; at 10.2 s all eight robots were active, stuckAI=0, combatClusters=1, outsideRobots=0, and maximum robot-floor penetration=0.000 mm.
+PASS - The same final-code 4v4 continued to 74.2 s with 8/8 active, 7/7 AI moving/pathing, 0 stuck, two simultaneous combat clusters, 98 recorded impacts, zero deep floor recoveries, zero AI FSM floor recoveries, and no out-of-bounds robots.
+PASS - Final app.js Node syntax check passed after the V100 changes.
+
+V101 4v4+ PERFORMANCE / AI LOD / INSTANCED BLOCK BODY / DYNAMIC VFX BUDGET
+PASS - Same-map real-browser baselines before this pass measured 2v2=17.68 ms, 4v4=31.94 ms, and 6v6=54.37 ms average frame time. The 6v6 baseline exceeded 33.4 ms on 327/332 sampled frames.
+PASS - Block chassis rendering now preserves every logical Block ID, HP, material, connection, and detach object while batching intact visuals by geometry/color with InstancedMesh. Final draw calls measured 78 in 2v2, 147 in 4v4, and 218 in 6v6.
+PASS - Rigid-body support/collision geometry is a maximum-six-slice compound hull instead of one decorated collider per block. Individual block destruction remains graph-driven; detached blocks restore their original object/material before becoming debris.
+PASS - AI high-level decisions are staggered and distance-LOD controlled (0.18 s near, 0.32 s mid, up to 0.59 s in a 12-bot far-field case). A central alive/target cache is rebuilt once per physics step; obstacle paths use staggered 0.46-0.94 s repath windows.
+PASS - Robot pair broadphase rejects distant pairs with scalar squared-distance checks before the allocating narrow phase. The 149.9 s 4v4 run made 502,852 pair checks but only 23,063 narrow-phase calls.
+PASS - Physics uses 90 Hz for 2v2, 72 Hz for 4v4, and 60 Hz for 6v6 on Medium. Floor correction remained continuous-swept and all final runs measured 0.000 mm maximum penetration, zero vertical standers, and zero infinite rollers.
+PASS - Spark particles remain GPU-instanced with three visual layers. Quality/population budgets retain strong/critical minimum showers while limiting simultaneous particles; block fragments and full debris sleep after settling, fade, and are capped by the active preset.
+PASS - Low/Medium/High controls are visible beside volume, persist locally, and change pixel ratio, shadows, spark limit, fragment limit, debris limit, UI frequency, and nameplate frequency. The final browser is restored to Medium.
+PASS - Detailed QA JSON moved from every render frame to 0.5 s (1.0 s for 12 robots), combat cards to 6-10 Hz, and nameplates to 12-20 Hz. DOM descendants are cached and resize only updates when the canvas dimensions actually change.
+PASS - Normal play no longer allocates force/torque trace payloads unless collider debug or an explicit physics QA URL is active. Live profiling reports stage totals, average update/render CPU time, median frame time, 1% low FPS, AI decisions, path replans, collision broadphase, draw calls, triangles, sparks, debris, and fragments.
+PASS - Post-optimization real-browser results on Medium: 2v2=16.79 ms / 59.5 FPS 1% low, 4v4=16.81 ms / 59.5 FPS 1% low, 6v6=16.93 ms / 59.2 FPS 1% low. The 6v6 test had 6 frames over 33.4 ms across 1,273 frames versus 327/332 before.
+PASS - A production 4v4 ran continuously for 149.9 s (8,963 frames). Average frame time stayed 16.80 ms, median 16.70 ms, 1% low 59.5 FPS, and only 20 frames exceeded 33.4 ms. Seven AI remained pathing, seven were moving, stuckAI=0, maximum active sparks=52, and 165 fragment bursts were created/reclaimed without progressive slowdown.
+PASS - Final app.js Node syntax check passed and the browser console contained zero errors or warnings.

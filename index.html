@@ -1,0 +1,288 @@
+<!doctype html>
+<html lang="ko">
+  <head>
+    <meta charset="utf-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
+    <title>Battlebot Workshop & Arena</title>
+    <link rel="icon" href="data:," />
+    <link rel="stylesheet" href="./styles.css?v=20260826-red-canyon-conquest-120" />
+    <script type="importmap">
+      {
+        "imports": {
+          "three": "https://cdn.jsdelivr.net/npm/three@0.168.0/build/three.module.js",
+          "three/addons/": "https://cdn.jsdelivr.net/npm/three@0.168.0/examples/jsm/"
+        }
+      }
+    </script>
+  </head>
+  <body class="lobby-mode">
+    <canvas id="game" aria-label="3D battlebot test arena"></canvas>
+
+    <main id="lobby-ui" class="lobby-ui" aria-label="배틀봇 멀티맵 메인 로비">
+      <div class="lobby-vignette" aria-hidden="true"></div>
+      <header class="lobby-topbar">
+        <section class="lobby-profile lobby-panel" aria-label="플레이어 프로필">
+          <span class="lobby-icon icon-robot" aria-hidden="true"></span>
+          <div class="profile-identity"><b>BOT DESTROYER</b><small>LEVEL 12</small><i><span></span><em>2,650 / 5,400</em></i></div>
+          <strong class="profile-level">12</strong>
+          <div class="profile-rank"><span class="lobby-icon icon-achievement" aria-hidden="true"></span><span><small>RANK</small><b>SILVER II</b><em>1,850</em></span></div>
+        </section>
+        <section class="lobby-currency" aria-label="보유 재화">
+          <div class="currency-chip"><span class="lobby-icon icon-achievement" aria-hidden="true"></span><b>12,450</b><button type="button" data-lobby-action="gold">+</button></div>
+          <div class="currency-chip premium"><span class="lobby-icon icon-upgrade" aria-hidden="true"></span><b>1,280</b><button type="button" data-lobby-action="premium">+</button></div>
+        </section>
+        <nav class="lobby-social" aria-label="소셜 및 설정">
+          <button type="button" data-lobby-action="friends" aria-label="친구"><span class="lobby-icon icon-friends" aria-hidden="true"></span></button>
+          <button type="button" data-lobby-action="mail" aria-label="우편"><span class="lobby-icon icon-mail" aria-hidden="true"></span><i class="notification-dot"></i></button>
+          <button type="button" data-lobby-action="settings" aria-label="설정"><span class="lobby-icon icon-settings" aria-hidden="true"></span></button>
+        </nav>
+      </header>
+
+      <nav class="lobby-main-menu" aria-label="메인 메뉴">
+        <button type="button" data-lobby-action="career"><span class="lobby-icon icon-career" aria-hidden="true"></span><span><b>커리어</b><small>스토리 / 진행 모드</small></span></button>
+        <button type="button" data-lobby-action="workshop"><span class="lobby-icon icon-build" aria-hidden="true"></span><span><b>로봇 제작</b><small>로봇 조립 및 수정</small></span></button>
+        <button type="button" data-lobby-action="shop"><span class="lobby-icon icon-shop" aria-hidden="true"></span><span><b>상점</b><small>부품 및 아이템 구매</small></span></button>
+        <button type="button" data-lobby-action="event"><span class="lobby-icon icon-event" aria-hidden="true"></span><span><b>이벤트</b><small>기간 한정 콘텐츠</small></span></button>
+      </nav>
+
+      <button id="lobby-fight" class="lobby-fight" type="button"><b>FIGHT!</b><span>전투 시작</span></button>
+
+      <aside class="lobby-sidecards" aria-label="시즌과 미션">
+        <button type="button" class="season-card" data-lobby-action="season"><span>SEASON 01</span><b>STEEL CIRCUIT</b><small>ARENA 01 · 4 vs 4</small><i class="lobby-icon icon-weapon" aria-hidden="true"></i></button>
+        <button type="button" class="side-card reward" data-lobby-action="reward"><span class="lobby-icon icon-achievement" aria-hidden="true"></span><span><b>일일 보상</b><small>수령 가능</small></span><i class="notification-dot"></i></button>
+        <button type="button" class="side-card" data-lobby-action="mission"><span class="lobby-icon icon-mission" aria-hidden="true"></span><span><b>초보자 미션</b><small>3 / 7 완료</small></span></button>
+      </aside>
+
+      <section class="lobby-robot-sync lobby-panel" aria-label="현재 전시 로봇">
+        <span class="lobby-icon icon-robot" aria-hidden="true"></span>
+        <span><small>CURRENT ROBOT</small><b id="lobby-robot-label">ROBOT 01</b><em id="lobby-robot-spec">저장 조립 데이터 동기화</em></span>
+      </section>
+
+      <section id="lobby-modal" class="lobby-modal lobby-panel" aria-modal="true" role="dialog" aria-labelledby="lobby-modal-title" hidden>
+        <button id="lobby-modal-close" class="modal-close" type="button" aria-label="닫기">닫기</button>
+        <span id="lobby-modal-icon" class="lobby-icon icon-mission" aria-hidden="true"></span>
+        <h2 id="lobby-modal-title">전투 선택</h2>
+        <p id="lobby-modal-copy">Arena 01에서 싸울 모드를 선택하세요.</p>
+        <div id="lobby-battle-options" class="lobby-battle-options">
+          <label>맵<select id="lobby-battle-map"><option value="arena01">Arena 01</option><option value="industrial01">Industrial Battle Zone 01</option><option value="desert01">Red Canyon Conquest 01</option></select></label>
+          <label>모드<select id="lobby-battle-mode"><option value="ffa4">개인전 4대</option><option value="ffa8">개인전 8대</option><option value="2v2">2 vs 2</option><option value="3v3">3 vs 3</option><option value="4v4" selected>4 vs 4</option><option value="6v6">6 vs 6</option><option value="8v8">8 vs 8</option><option value="10v10">10 vs 10 점령전</option></select></label>
+          <label><input id="lobby-friendly-fire" type="checkbox" /> 아군 피해</label>
+          <button id="lobby-enter-battle" type="button">ARENA 01 출전</button>
+        </div>
+      </section>
+      <div id="lobby-fade" class="lobby-fade" aria-hidden="true"></div>
+    </main>
+
+    <header class="hud glass">
+      <div class="brand">
+        <p class="eyebrow">BATTLEBOT // MULTI-MAP COMBAT</p>
+        <h1 id="screen-title">3D 로봇 작업장</h1>
+      </div>
+        <div class="player-readout">
+        <div class="meter-label"><span>BLOCK STRUCTURE</span><strong id="player-health-text">100%</strong></div>
+        <div class="meter"><i id="player-health"></i></div>
+        <div class="substatus"><span id="player-core">CORE 100%</span><span id="player-blocks">BLOCKS 1/1</span><span id="player-weapon">무기 없음</span><span id="player-mobility">이동장치 없음</span></div>
+      </div>
+      <div class="speed"><strong id="speed">0.0</strong><span>km/h</span></div>
+      <button id="workshop-toggle" class="mode-button" type="button">작업장</button>
+    </header>
+
+    <section id="conquest-hud" class="conquest-hud" hidden aria-label="10 대 10 점령전 진행 상황">
+      <div class="conquest-team blue"><b>BLUE TEAM</b><span id="conquest-blue-count">10</span><div id="conquest-blue-icons" class="conquest-icons"></div></div>
+      <div class="conquest-centre"><strong id="conquest-timer">10:00</strong><div class="capture-points"><span id="capture-a" class="active">A</span><i id="capture-progress"><em></em></i><span id="capture-b" class="locked">B</span></div><small id="capture-state">A 거점 공격</small></div>
+      <div class="conquest-team red"><b>RED TEAM</b><span id="conquest-red-count">10</span><div id="conquest-red-icons" class="conquest-icons"></div></div>
+    </section>
+    <aside id="conquest-minimap" class="conquest-minimap" hidden aria-label="Red Canyon 전술 미니맵">
+      <header><b>RED CANYON</b><span>TACTICAL MAP</span></header>
+      <canvas id="conquest-minimap-canvas" width="220" height="286" aria-label="아군, 탐지된 적군, A/B 거점과 시작 지점"></canvas>
+      <footer><span class="blue">BLUE SPAWN</span><span class="red">RED SPAWN</span></footer>
+    </aside>
+
+    <button id="pause-toggle" class="pause-toggle" type="button" aria-label="일시정지 및 설정" aria-pressed="false">Ⅱ</button>
+    <section id="pause-panel" class="pause-panel glass" hidden aria-label="일시정지 설정">
+      <header><strong>일시정지</strong><small>오디오 · 그래픽 · 조작</small></header>
+      <section class="audio-control" aria-label="게임 음량 조절">
+        <button id="audio-mute" class="audio-mute" type="button" aria-pressed="false" title="음소거">음소거</button>
+        <label class="mixer-control">전체 <input id="master-volume" type="range" min="0" max="100" step="1" value="80" aria-label="전체 음량" /></label>
+        <label class="mixer-control">음악 <input id="music-volume" type="range" min="0" max="100" step="1" value="58" aria-label="음악 음량" /></label>
+        <label class="mixer-control">효과 <input id="effects-volume" type="range" min="0" max="100" step="1" value="100" aria-label="효과음 음량" /></label>
+        <output id="volume-value" for="master-volume">80%</output>
+        <label class="quality-control">그래픽
+          <select id="quality-preset" aria-label="그래픽 품질">
+            <option value="low">낮음</option>
+            <option value="medium" selected>중간</option>
+            <option value="high">높음</option>
+          </select>
+        </label>
+        <label class="quality-control">대시
+          <select id="dash-key" aria-label="대시 키 설정">
+            <option value="ControlLeft" selected>Ctrl</option>
+            <option value="AltLeft">Alt</option>
+            <option value="KeyF">F</option>
+          </select>
+        </label>
+      </section>
+      <div class="pause-actions"><button id="pause-resume" type="button">계속하기</button><button id="pause-lobby" type="button">메인 화면</button></div>
+    </section>
+
+    <section class="help glass">
+      <button id="self-test" class="qa-button" type="button">AUTO QA</button>
+      <button id="collider-debug" class="qa-button" type="button" aria-pressed="false">COLLIDERS</button>
+      <button id="arena-top" class="qa-button" type="button" aria-pressed="false">ARENA TOP</button>
+    </section>
+
+    <aside id="blue-roster" class="team-roster blue glass" hidden><b>BLUE TEAM</b><div id="blue-team-list"></div></aside>
+    <aside id="red-roster" class="team-roster red glass" hidden><b>RED TEAM</b><div id="red-team-list"></div></aside>
+
+
+    <div id="status" class="status glass">GLB 부품을 불러오는 중…</div>
+
+    <main id="workshop-ui" class="workshop-ui" aria-label="3D 로봇 작업장">
+      <section class="garage-panel catalog-panel glass">
+        <div class="garage-heading"><span>01</span><div><b>조립 카탈로그</b><small>기능 부품 · Lv.1 차체 블록</small></div></div>
+        <div class="assembly-mode-tabs" aria-label="조립 모드">
+          <button id="parts-mode" class="active" type="button">기능 부품</button>
+          <button id="blocks-mode" type="button">Lv.1 블록</button>
+        </div>
+        <div id="functional-catalog">
+          <div class="block-tier-chip functional-chip"><i></i><span><b>기능 부품</b><small>블록 표면에 직접 연결</small></span></div>
+          <div class="catalog-grid">
+            <button type="button" data-catalog="wheel" data-wheel-model="wheel_light"><b>경량급 바퀴</b><small>고속 · 빠른 가속</small></button>
+            <button type="button" data-catalog="wheel" data-wheel-model="new_wheel"><b>중량급 바퀴</b><small>균형형</small></button>
+            <button type="button" data-catalog="wheel" data-wheel-model="wheel_wide"><b>초중량 광폭</b><small>고중량 · 접지</small></button>
+            <button type="button" data-catalog="wheel" data-wheel-model="track_heavy"><b>초중량 궤도</b><small>스키드 조향</small></button>
+            <button type="button" data-catalog="pivotMount"><b>범용 지지대</b><small>자유 배치</small></button>
+            <button type="button" data-catalog="sawSupport"><b>톱날 축 지지대</b><small>중심 구멍</small></button>
+            <button type="button" data-catalog="sawMount"><b>수평 톱 지지대</b><small>축 중심</small></button>
+            <button type="button" data-catalog="spinner"><b>톱날</b><small>자유 회전</small></button>
+            <button type="button" data-catalog="barAxis"><b>바 스피너 축</b><small>신규 고정축</small></button>
+            <button type="button" data-catalog="barSpinner"><b>바 스피너</b><small>고속 회전</small></button>
+            <button type="button" data-catalog="drumSpinner"><b>드럼 스피너</b><small>상향 타격</small></button>
+            <button type="button" data-catalog="armorFlat"><b>평평한 장갑판</b><small>고내구 외장</small></button>
+            <button type="button" data-catalog="armorCurved"><b>곡면 장갑판</b><small>곡면 보호</small></button>
+            <button type="button" data-catalog="hornStraight"><b>직선형 뿔</b><small>스파이크</small></button>
+            <button type="button" data-catalog="hornCurved"><b>곡선형 금속 뿔</b><small>외형 변형</small></button>
+            <button type="button" data-catalog="exhaustVertical"><b>수직 배기</b><small>약한 장식</small></button>
+            <button type="button" data-catalog="exhaustTriple"><b>3연장 배기구</b><small>약한 장식</small></button>
+          </div>
+          <p class="catalog-note">기존 완성 차체 슬롯은 없습니다. 플레이어가 만든 블록 면을 직접 가리켜 바퀴·이동장치·무기를 연결합니다.</p>
+        </div>
+        <div id="block-catalog" hidden>
+          <div class="block-tier-chip"><i></i><span><b>LEVEL 1</b><small>하늘색 기본 차체 세트</small></span></div>
+          <div class="catalog-grid block-grid">
+            <button type="button" data-block-type="cube"><span class="block-icon cube"></span><b>블루 기본 큐브</b><small>1 × 1 × 1</small></button>
+            <button type="button" data-block-type="silverCube"><span class="block-icon cube silver"></span><b>실버 기본 큐브</b><small>1 × 1 × 1</small></button>
+            <button type="button" data-block-type="long2"><span class="block-icon long"></span><b>긴 블록</b><small>1 × 1 × 2</small></button>
+            <button type="button" data-block-type="long3"><span class="block-icon long large"></span><b>긴 블록 대형</b><small>1 × 1 × 3</small></button>
+            <button type="button" data-block-type="plate"><span class="block-icon plate"></span><b>평판 블록</b><small>1 × 1 × 0.5</small></button>
+            <button type="button" data-block-type="plate2"><span class="block-icon plate long"></span><b>긴 평판</b><small>1 × 2 × 0.5</small></button>
+            <button type="button" data-block-type="wedge"><span class="block-icon wedge"></span><b>기본 경사</b><small>1 Grid 쐐기</small></button>
+            <button type="button" data-block-type="cornerWedge"><span class="block-icon corner"></span><b>코너 경사</b><small>1 Grid 모서리</small></button>
+            <button type="button" data-block-type="invertedWedge"><span class="block-icon wedge inverted"></span><b>역경사</b><small>경사 Mesh 재사용</small></button>
+          </div>
+          <p class="catalog-note">면 위를 가리키면 가장 가까운 유효 Grid에 스냅됩니다. 하늘색은 설치 가능, 빨간색은 겹침 또는 연결 불가입니다.</p>
+        </div>
+      </section>
+
+      <section class="garage-panel inspector-panel glass">
+        <div class="garage-heading"><span>02</span><div><b id="inspector-title">자유 변형 도구</b><small id="selection-name">부품을 선택하세요</small></div></div>
+        <div id="functional-inspector">
+          <label class="field-label" for="part-list">설치 부품</label>
+          <select id="part-list"><option value="">선택 없음</option></select>
+        </div>
+        <div id="block-inspector" hidden>
+          <label class="field-label" for="block-list">설치 블록</label>
+          <select id="block-list"><option value="block-core">Core · 기본 큐브</option></select>
+          <div class="block-data-card"><b id="block-data-title">CORE / 1×1×1</b><span id="block-data-copy">Grid 0, 0, 0 · Lv.1 · Box Collider</span></div>
+        </div>
+        <div id="functional-transform-controls">
+        <div class="transform-mode-row" aria-label="변형 도구">
+          <button type="button" data-transform-mode="move" class="active">이동</button>
+          <button type="button" data-transform-mode="scale">크기 드래그</button>
+        </div>
+        <output id="transform-readout" class="transform-readout">위치 0.00 / 0.00 / 0.00</output>
+        <label class="field-label">방향 프리셋</label>
+        <div class="orientation-row" aria-label="방향 프리셋">
+          <button type="button" data-orientation="horizontal" class="active">가로</button>
+          <button type="button" data-orientation="vertical">세로</button>
+          <button type="button" data-orientation="flip">반전</button>
+        </div>
+        <p class="size-edit-help">크기 모드: 부품 중심에서 바깥쪽으로 드래그하면 확대, 중심 쪽으로 드래그하면 축소됩니다.</p>
+        <label class="clearance-toggle"><input id="weapon-auto-cut" type="checkbox" /> 무기 회전 공간만 최소 자동 절삭</label>
+        <div id="mount-status" class="mount-status neutral"><i></i><span>카탈로그에서 부품을 선택하세요.</span></div>
+        <div class="free-actions">
+          <button id="duplicate-part" type="button">복제</button>
+          <button id="align-axis" type="button">축 맞추기</button>
+          <button id="flip-wheel" type="button">바깥면 뒤집기</button>
+          <button id="remove-part" type="button">삭제/취소</button>
+          <button id="remove-all-weapons" type="button">무기 전체 제거</button>
+        </div>
+        <div class="confirm-actions">
+          <button id="install-part" type="button">현재 위치에 설치</button>
+        </div>
+        </div>
+        <div id="block-transform-controls" hidden>
+          <label class="field-label">90° Grid 회전</label>
+          <div class="block-rotate-row">
+            <button type="button" data-block-rotate="x">X +90°</button>
+            <button type="button" data-block-rotate="y">Y +90°</button>
+            <button type="button" data-block-rotate="z">Z +90°</button>
+          </div>
+          <div id="block-status" class="mount-status neutral"><i></i><span>블록 종류를 선택하세요.</span></div>
+          <div class="block-actions">
+            <button id="block-cancel" type="button">프리뷰 취소</button>
+            <button id="block-delete" type="button">선택 블록 삭제</button>
+            <button id="block-delete-mode" type="button">삭제 모드 OFF</button>
+            <button id="block-install" class="primary" type="button">Grid에 설치</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="garage-toolbar glass">
+        <div class="garage-summary"><b id="garage-count">부품 0개</b><span id="garage-mass">총 질량 0kg</span><span id="save-state">저장 전</span></div>
+        <div class="battle-setup" aria-label="전투 설정">
+          <label>맵<select id="battle-map"><option value="arena01">Arena 01</option><option value="industrial01">Industrial Battle Zone 01</option><option value="desert01">Red Canyon Conquest 01</option></select></label>
+          <label>모드<select id="battle-mode"><option value="ffa4">개인전 4대</option><option value="ffa8">개인전 8대</option><option value="2v2">2 vs 2</option><option value="3v3">3 vs 3</option><option value="4v4">4 vs 4</option><option value="6v6">6 vs 6</option><option value="8v8">8 vs 8</option><option value="10v10">10 vs 10 점령전</option></select></label>
+          <label class="friendly-fire"><input id="friendly-fire" type="checkbox" /> 아군 피해</label>
+        </div>
+        <div class="garage-actions">
+          <button id="return-lobby" type="button">메인화면</button>
+          <button id="undo-garage" type="button">되돌리기</button>
+          <button id="save-garage" type="button">저장</button>
+          <button id="test-drive" type="button">테스트 주행</button>
+          <button id="enter-battle" class="primary" type="button">전투 출전</button>
+        </div>
+      </section>
+      <div id="workshop-hint" class="orbit-hint">부품 드래그: 실제 표면 밀착 · 가로/세로/반전: 방향 프리셋 · 크기: 중심 기준 드래그 · 빈 공간: 카메라 · 축 무기는 구멍 스냅 우선</div>
+    </main>
+
+    <div id="joystick" class="joystick" aria-label="이동 조이스틱">
+      <div id="knob" class="knob"></div>
+    </div>
+
+    <div class="mobile-actions">
+      <button id="dash" class="dash" type="button"><b>DASH</b><small>READY</small></button>
+      <button id="brake" type="button"><b>BRAKE</b><small>HOLD</small></button>
+      <button id="self-right" type="button" disabled><b>SELF RIGHT</b><small>T · 현재 위치</small></button>
+      <button id="combat-respawn" type="button" hidden><b>RESPAWN</b><small>10초 후 복귀</small></button>
+      <button id="reset" type="button"><b>RESET</b><small>R</small></button>
+    </div>
+
+    <div id="message" class="message"></div>
+    <output id="physics-debug" class="physics-debug" hidden></output>
+    <output id="qa-state" hidden></output>
+    <output id="garage-state" hidden></output>
+    <footer class="notice">W/조이스틱 위 = 무기가 향한 전방 · 충돌점 기반 반응 · 부품별 파괴</footer>
+
+    <script>
+      window.__battlebotBootErrors = [];
+      window.addEventListener('error', (event) => window.__battlebotBootErrors.push({
+        type: 'error', message: event.message, source: event.filename, line: event.lineno, column: event.colno,
+      }));
+      window.addEventListener('unhandledrejection', (event) => window.__battlebotBootErrors.push({
+        type: 'rejection', message: String(event.reason?.stack || event.reason || 'unknown rejection'),
+      }));
+    </script>
+  <script type="module" src="./app.js?v=20260827-healer-ai-133"></script>
+  </body>
+</html>
