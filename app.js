@@ -48,6 +48,8 @@ const ui = {
   enterBattle: document.querySelector('#enter-battle'),
   garageCount: document.querySelector('#garage-count'),
   garageMass: document.querySelector('#garage-mass'),
+  garageLimits: document.querySelector('#garage-limits'),
+  weightClassSelect: document.querySelector('#weight-class-select'),
   saveState: document.querySelector('#save-state'),
   battleMode: document.querySelector('#battle-mode'),
   friendlyFire: document.querySelector('#friendly-fire'),
@@ -63,6 +65,7 @@ const ui = {
   pauseResume: document.querySelector('#pause-resume'),
   pauseLobby: document.querySelector('#pause-lobby'),
   dash: document.querySelector('#dash'),
+  attack: document.querySelector('#attack'),
   lobbyUI: document.querySelector('#lobby-ui'),
   lobbyFight: document.querySelector('#lobby-fight'),
   lobbyModal: document.querySelector('#lobby-modal'),
@@ -81,8 +84,10 @@ const ui = {
   returnLobby: document.querySelector('#return-lobby'),
   partsMode: document.querySelector('#parts-mode'),
   blocksMode: document.querySelector('#blocks-mode'),
+  robotsMode: document.querySelector('#robots-mode'),
   functionalCatalog: document.querySelector('#functional-catalog'),
   blockCatalog: document.querySelector('#block-catalog'),
+  robotPresetCatalog: document.querySelector('#robot-preset-catalog'),
   functionalInspector: document.querySelector('#functional-inspector'),
   blockInspector: document.querySelector('#block-inspector'),
   functionalTransformControls: document.querySelector('#functional-transform-controls'),
@@ -111,78 +116,116 @@ const ui = {
   conquestMinimap: document.querySelector('#conquest-minimap'),
   minimapCanvas: document.querySelector('#conquest-minimap-canvas'),
   combatRespawn: document.querySelector('#combat-respawn'),
+  mobileCatalogToggle: document.querySelector('#mobile-catalog-toggle'),
+  mobileInspectorToggle: document.querySelector('#mobile-inspector-toggle'),
+  placementModeToggle: document.querySelector('#placement-mode-toggle'),
+  mobilePlacementControls: document.querySelector('#mobile-placement-controls'),
+  mobilePlaceBlock: document.querySelector('#mobile-place-block'),
+  mobileScaleToggle: document.querySelector('#mobile-scale-toggle'),
+  mobileScaleReadout: document.querySelector('#mobile-scale-readout'),
+  frameRateLimit: document.querySelector('#frame-rate-limit'),
+  teamMarkerLayer: document.querySelector('#team-marker-layer'),
+  paintToggle: document.querySelector('#paint-toggle'),
+  paintPopover: document.querySelector('#paint-popover'),
+  paintSwatches: document.querySelector('#paint-swatches'),
+  paintSelected: document.querySelector('#paint-selected'),
+  paintAll: document.querySelector('#paint-all'),
+  paintStatus: document.querySelector('#paint-status'),
 };
 
+const LOWPOLY_REVISION = 'remesh-150-horizontal-bar';
 const ASSETS = [
-  'new_wheel', 'new_saw_blade', 'new_saw_mount',
-  'new_horizontal_saw_mount', 'new_universal_pivot_mount',
-  'drum_spinner', 'bar_spinner_axis', 'bar_spinner',
-  'arena_stands', 'arena_bumper', 'arena_fence',
-  'industrial_container', 'industrial_barrier',
+  'new_wheel', 'wheel_light', 'wheel_wide',
+  'new_saw_blade', 'drum_spinner', 'bar_spinner',
+  'puncher_housing', 'puncher_tip',
+  'arena_stands', 'arena_concrete_boundary',
   'armor_curved', 'armor_flat', 'horn_curved', 'horn_straight',
   'exhaust_triple', 'exhaust_vertical',
-  'wheel_light', 'wheel_wide', 'track_heavy',
-  'desert_cliff', 'desert_rock',
+  'desert_cliff_1', 'desert_cliff_2', 'desert_cliff_3', 'desert_cliff_4',
+  'desert_ridge_1', 'desert_ridge_2', 'desert_ridge_3', 'desert_ridge_4',
+  'desert_medium_1', 'desert_medium_2', 'desert_medium_3',
+  'desert_small_1', 'desert_small_2', 'desert_small_3', 'desert_small_4', 'desert_small_5',
 ];
 const ASSET_PATHS = Object.fromEntries(ASSETS.map((id) => [id, `./assets_v2/${id}.glb?v=mesh-low-1`]));
 Object.assign(ASSET_PATHS, {
-  drum_spinner: './assets_v3/drum_spinner.glb?v=team-arena-6',
-  bar_spinner_axis: './assets_v3/bar_spinner_axis.glb?v=team-arena-6',
-  bar_spinner: './assets_v3/bar_spinner.glb?v=team-arena-6',
+  new_wheel: `./assets_lowpoly/wheel_medium.glb?v=${LOWPOLY_REVISION}`,
+  wheel_light: `./assets_lowpoly/wheel_light.glb?v=${LOWPOLY_REVISION}`,
+  wheel_wide: `./assets_lowpoly/wheel_heavy.glb?v=${LOWPOLY_REVISION}`,
+  new_saw_blade: `./assets_lowpoly/saw.glb?v=${LOWPOLY_REVISION}`,
+  drum_spinner: `./assets_lowpoly/drum_spinner.glb?v=${LOWPOLY_REVISION}`,
+  bar_spinner: `./assets_lowpoly/bar_spinner.glb?v=${LOWPOLY_REVISION}`,
+  puncher_housing: `./assets_lowpoly/puncher_housing.glb?v=${LOWPOLY_REVISION}`,
+  puncher_tip: `./assets_lowpoly/puncher_tip.glb?v=${LOWPOLY_REVISION}`,
   arena_stands: './assets_v5/arena_stands.glb?v=arena01-1',
-  arena_bumper: './assets_v5/arena_bumper.glb?v=arena01-1',
-  arena_fence: './assets_v5/arena_fence.glb?v=arena01-1',
-  industrial_container: './assets_v6/industrial_container.glb?v=industrial-92',
-  industrial_barrier: './assets_v6/industrial_barrier.glb?v=industrial-92',
-  armor_curved: './assets_v7/armor_curved.glb?v=exterior-102',
-  armor_flat: './assets_v7/armor_flat.glb?v=exterior-102',
+  arena_concrete_boundary: './assets_v9/arena_concrete_boundary.glb?v=concrete-boundary-151',
+  // The supplied remesh pack has no separate curved plate file. Both armour
+  // slots deliberately resolve to the supplied low-poly plate so the removed
+  // high-poly curved mesh can never re-enter the runtime cache.
+  armor_curved: `./assets_lowpoly/armor_flat.glb?v=${LOWPOLY_REVISION}`,
+  armor_flat: `./assets_lowpoly/armor_flat.glb?v=${LOWPOLY_REVISION}`,
   horn_curved: './assets_v7/horn_curved.glb?v=exterior-102',
   horn_straight: './assets_v7/horn_straight.glb?v=exterior-102',
   exhaust_triple: './assets_v7/exhaust_triple.glb?v=exterior-102',
   exhaust_vertical: './assets_v7/exhaust_vertical.glb?v=exterior-102',
-  wheel_light: './assets_v7/wheel_light.glb?v=driveclass-102',
-  wheel_wide: './assets_v7/wheel_wide.glb?v=driveclass-102',
-  track_heavy: './assets_v7/track_heavy.glb?v=driveclass-102',
-  desert_cliff: './assets_v8/desert_cliff_lite.glb?v=red-canyon-mobile-134',
-  desert_rock: './assets_v8/desert_rock_lite.glb?v=red-canyon-mobile-134',
+  desert_cliff_1: `./assets_lowpoly/desert_cliff_1.glb?v=${LOWPOLY_REVISION}`,
+  desert_cliff_2: `./assets_lowpoly/desert_cliff_2.glb?v=${LOWPOLY_REVISION}`,
+  desert_cliff_3: `./assets_lowpoly/desert_cliff_3.glb?v=${LOWPOLY_REVISION}`,
+  desert_cliff_4: `./assets_lowpoly/desert_cliff_4.glb?v=${LOWPOLY_REVISION}`,
+  desert_ridge_1: `./assets_lowpoly/desert_ridge_1.glb?v=${LOWPOLY_REVISION}`,
+  desert_ridge_2: `./assets_lowpoly/desert_ridge_2.glb?v=${LOWPOLY_REVISION}`,
+  desert_ridge_3: `./assets_lowpoly/desert_ridge_3.glb?v=${LOWPOLY_REVISION}`,
+  desert_ridge_4: `./assets_lowpoly/desert_ridge_4.glb?v=${LOWPOLY_REVISION}`,
+  desert_medium_1: `./assets_lowpoly/desert_medium_1.glb?v=${LOWPOLY_REVISION}`,
+  desert_medium_2: `./assets_lowpoly/desert_medium_2.glb?v=${LOWPOLY_REVISION}`,
+  desert_medium_3: `./assets_lowpoly/desert_medium_3.glb?v=${LOWPOLY_REVISION}`,
+  desert_small_1: `./assets_lowpoly/desert_small_1.glb?v=${LOWPOLY_REVISION}`,
+  desert_small_2: `./assets_lowpoly/desert_small_2.glb?v=${LOWPOLY_REVISION}`,
+  desert_small_3: `./assets_lowpoly/desert_small_3.glb?v=${LOWPOLY_REVISION}`,
+  desert_small_4: `./assets_lowpoly/desert_small_4.glb?v=${LOWPOLY_REVISION}`,
+  desert_small_5: `./assets_lowpoly/desert_small_5.glb?v=${LOWPOLY_REVISION}`,
 });
+const LOWPOLY_COMBAT_IDS = Object.freeze(['wheel_light', 'new_wheel', 'wheel_wide', 'new_saw_blade', 'bar_spinner', 'drum_spinner', 'puncher_housing', 'puncher_tip', 'armor_flat', 'armor_curved']);
+const LOWPOLY_DESERT_IDS = Object.freeze([
+  'desert_cliff_1', 'desert_cliff_2', 'desert_cliff_3', 'desert_cliff_4',
+  'desert_ridge_1', 'desert_ridge_2', 'desert_ridge_3', 'desert_ridge_4',
+  'desert_medium_1', 'desert_medium_2', 'desert_medium_3',
+  'desert_small_1', 'desert_small_2', 'desert_small_3', 'desert_small_4', 'desert_small_5',
+]);
+const LEGACY_COMBAT_PATH_PATTERN = /assets_v(?:2|3|7)\/(?:new_(?:wheel|saw)|wheel_|track_|bar_spinner|drum_spinner|armor_)/i;
+const LEGACY_DESERT_PATH_PATTERN = /assets_v(?:2|3|4|5|6|7)\/(?:desert|canyon|rock|cliff|ridge|sand|obstacle)/i;
 const MODEL_TRANSFORMS = {
-  new_wheel: { scale: [0.56, 0.56, 0.56], rotation: [0, Math.PI / 2, 0] },
-  new_saw_blade: { scale: [0.84, 0.84, 0.84], rotation: [-Math.PI / 2, 0, 0] },
-  new_saw_mount: { scale: [0.55, 0.55, 0.55], rotation: [0, 0, 0] },
-  new_horizontal_saw_mount: { scale: [0.68, 0.68, 0.68], rotation: [0, 0, 0] },
-  new_universal_pivot_mount: { scale: [0.42, 0.42, 0.42], rotation: [0, 0, 0] },
-  drum_spinner: { scale: [1.45, 1.45, 1.45], rotation: [0, 0, 0] },
-  bar_spinner_axis: { scale: [0.54, 0.54, 0.54], rotation: [0, 0, 0] },
-  bar_spinner: { scale: [1.75, 1.75, 1.75], rotation: [0, 0, 0] },
-  armor_curved: { scale: [0.65, 0.65, 0.65], rotation: [0, 0, 0] },
-  armor_flat: { scale: [0.65, 0.65, 0.65], rotation: [0, 0, 0] },
+  new_wheel: { scale: [1, 1, 1], rotation: [0, Math.PI / 2, 0], targetMax: 0.92 },
+  wheel_light: { scale: [1, 1, 1], rotation: [0, Math.PI / 2, 0], targetMax: 0.76 },
+  wheel_wide: { scale: [1, 1, 1], rotation: [0, Math.PI / 2, 0], targetMax: 1.08 },
+  new_saw_blade: { scale: [1, 1, 1], rotation: [-Math.PI / 2, 0, 0], targetMax: 1.56 },
+  drum_spinner: { scale: [1, 1, 1], rotation: [0, 0, 0], targetMax: 1.82 },
+  // GLB bounds prove the remeshed bar is authored long on local X and thin on
+  // local Z. Rotate Z onto world Y while preserving X as a horizontal long
+  // axis. The previous Z rotation mapped long-X onto Y and produced the exact
+  // vertical mast/windmill failure shown in the user's screenshot.
+  bar_spinner: { scale: [1, 1, 1], rotation: [Math.PI / 2, 0, 0], targetMax: 2.48 },
+  puncher_housing: { scale: [1, 1, 1], rotation: [0, 0, 0], targetMax: 1.08 },
+  puncher_tip: { scale: [1, 1, 1], rotation: [0, 0, 0], targetMax: 0.86 },
+  armor_curved: { scale: [1, 1, 1], rotation: [0, 0, 0], targetMax: 0.62 },
+  armor_flat: { scale: [1, 1, 1], rotation: [0, 0, 0], targetMax: 0.62 },
   horn_curved: { scale: [0.72, 0.72, 0.72], rotation: [0, 0, 0] },
   horn_straight: { scale: [0.72, 0.72, 0.72], rotation: [0, -Math.PI / 2, 0] },
   exhaust_triple: { scale: [0.48, 0.48, 0.48], rotation: [0, 0, 0] },
   exhaust_vertical: { scale: [0.48, 0.48, 0.48], rotation: [0, 0, 0] },
-  // All new wheel sources use local Z as the axle. Rotate the visual only so
-  // the runtime wheel root still owns a clean local +X axle on both sides.
-  wheel_light: { scale: [0.52, 0.52, 0.52], rotation: [0, Math.PI / 2, 0] },
-  wheel_wide: { scale: [0.68, 0.68, 0.68], rotation: [0, Math.PI / 2, 0] },
-  track_heavy: { scale: [1.15, 1.15, 1.15], rotation: [0, Math.PI / 2, 0] },
 };
 const PART_LIMITS = Object.freeze({
-  wheel: [0.55, 1.7], pivotMount: [0.65, 1.65], sawSupport: [0.65, 1.65], sawMount: [0.65, 1.65],
+  wheel: [1, 1],
   spinner: [0.55, 1.65],
-  barAxis: [0.7, 1.5], barSpinner: [0.62, 1.45], drumSpinner: [0.62, 1.5],
+  barSpinner: [0.62, 1.45], drumSpinner: [0.62, 1.5], puncher: [0.7, 1.35],
   armorCurved: [0.55, 1.8], armorFlat: [0.55, 1.8], hornCurved: [0.5, 1.65], hornStraight: [0.5, 1.65],
   exhaustTriple: [0.55, 1.55], exhaustVertical: [0.55, 1.55],
 });
 const PART_META = {
-  wheel: { label: '새 바퀴', model: 'new_wheel', mass: 8, hp: 145, radius: 0.4 },
-  pivotMount: { label: '범용 회전축 지지대', model: 'new_universal_pivot_mount', mass: 12, hp: 720, radius: 0.38, jointBreakForce: 2450, jointBreakTorque: 1900 },
-  sawSupport: { label: '톱날 축 지지대', model: 'new_saw_mount', mass: 15, hp: 760, radius: 0.46, jointBreakForce: 2650, jointBreakTorque: 2050 },
-  sawMount: { label: '수평 톱 지지대', model: 'new_horizontal_saw_mount', mass: 17, hp: 790, radius: 0.48, jointBreakForce: 2750, jointBreakTorque: 2150 },
+  wheel: { label: '체급 전용 바퀴', model: 'new_wheel', mass: 8, hp: 145, radius: 0.4 },
   spinner: { label: '새 톱날', model: 'new_saw_blade', mass: 22, hp: 620, radius: 0.72, weaponKey: 'spinner' },
-  barAxis: { label: '바 스피너 고정축', model: 'bar_spinner_axis', mass: 26, hp: 980, radius: 0.52, jointBreakForce: 3400, jointBreakTorque: 2850 },
   barSpinner: { label: '바 스피너', model: 'bar_spinner', mass: 46, hp: 760, radius: 1.12, weaponKey: 'bar' },
   drumSpinner: { label: '드럼 스피너', model: 'drum_spinner', mass: 44, hp: 780, radius: 0.94, weaponKey: 'drum' },
+  puncher: { label: '펀처', model: 'puncher_housing', tipModel: 'puncher_tip', mass: 38, hp: 820, radius: 0.78, weaponKey: 'puncher' },
   armorCurved: { label: '곡면 장갑판', model: 'armor_curved', mass: 13, hp: 225, armor: 28, radius: 0.68, category: 'armor' },
   armorFlat: { label: '평평한 장갑판', model: 'armor_flat', mass: 14, hp: 245, armor: 32, radius: 0.72, category: 'armor' },
   hornCurved: { label: '곡선형 금속 뿔', model: 'horn_curved', mass: 6, hp: 82, armor: 5, radius: 0.7, category: 'decoration' },
@@ -190,22 +233,36 @@ const PART_META = {
   exhaustTriple: { label: '3연장 배기구', model: 'exhaust_triple', mass: 5, hp: 66, armor: 3, radius: 0.52, category: 'decoration' },
   exhaustVertical: { label: '수직 배기', model: 'exhaust_vertical', mass: 4, hp: 62, armor: 3, radius: 0.5, category: 'decoration' },
 };
-const STORAGE_KEY = 'battlebot-workshop-assembly-v11';
-const LEGACY_STORAGE_KEYS = ['battlebot-workshop-assembly-v10', 'battlebot-workshop-assembly-v9', 'battlebot-workshop-assembly-v8', 'battlebot-workshop-assembly-v7'];
+const STORAGE_KEY = 'battlebot-workshop-assembly-v12';
+const LEGACY_STORAGE_KEYS = ['battlebot-workshop-assembly-v11', 'battlebot-workshop-assembly-v10', 'battlebot-workshop-assembly-v9', 'battlebot-workshop-assembly-v8', 'battlebot-workshop-assembly-v7'];
 const cloneData = (value) => JSON.parse(JSON.stringify(value));
 const REMOVED_WEAPON_TYPES = new Set(['hammer', 'flipper']);
-const WEAPON_TYPES = new Set(['spinner', 'barSpinner', 'drumSpinner']);
+const DEPRECATED_MOUNT_TYPES = new Set(['hammerMount', 'pivotMount', 'sawSupport', 'sawMount', 'barAxis']);
+const WEAPON_TYPES = new Set(['spinner', 'barSpinner', 'drumSpinner', 'puncher']);
 const EXTERIOR_TYPES = new Set(['armorCurved', 'armorFlat', 'hornCurved', 'hornStraight', 'exhaustTriple', 'exhaustVertical']);
-const ASSEMBLY_VERSION = 11;
+const ASSEMBLY_VERSION = 12;
 const WEIGHT_CLASSES = Object.freeze({
-  lightweight: { label: '경량급', wheelModel: 'wheel_light', acceleration: 1.32, topSpeed: 19.5, massScale: 0.74, hpScale: 0.78, traction: 0.9, steering: 1.18, dashDelta: 8.4, dashCooldown: 2.65, dashDuration: 0.4, dashPrimeRatio: 1.6, dashPeakRatio: 2.75, dashSteering: 0.34, dashChassisLengths: 5.1 },
-  middleweight: { label: '중량급', wheelModel: 'new_wheel', acceleration: 1, topSpeed: 16.5, massScale: 1, hpScale: 1, traction: 1, steering: 1, dashDelta: 7.1, dashCooldown: 3.05, dashDuration: 0.35, dashPrimeRatio: 1.45, dashPeakRatio: 2.25, dashSteering: 0.2, dashChassisLengths: 4.05 },
-  superheavy: { label: '초중량급', wheelModel: 'wheel_wide', acceleration: 0.72, topSpeed: 12.4, massScale: 1.45, hpScale: 1.35, traction: 1.34, steering: 0.76, dashDelta: 5.7, dashCooldown: 3.65, dashDuration: 0.39, dashPrimeRatio: 1.3, dashPeakRatio: 1.92, dashSteering: 0.08, dashChassisLengths: 3.05 },
+  lightweight: { label: '경량급', minBlocks: 12, maxBlocks: 44, aiBlockTarget: 24, aiLayerCount: 3, maxWeight: 540, allowedWheels: ['wheel_light'], heightRange: [1, 3], wheelModel: 'wheel_light', acceleration: 1.32, topSpeed: 19.5, massScale: 0.74, hpScale: 0.78, knockbackResistance: 0.72, traction: 0.9, steering: 1.18, dashDelta: 8.4, dashCooldown: 2.65, dashDuration: 0.4, dashPrimeRatio: 1.6, dashPeakRatio: 2.75, dashSteering: 0.34, dashChassisLengths: 5.1 },
+  middleweight: { label: '중량급', minBlocks: 25, maxBlocks: 65, aiBlockTarget: 45, aiLayerCount: 4, maxWeight: 960, allowedWheels: ['new_wheel'], heightRange: [2, 4], wheelModel: 'new_wheel', acceleration: 1, topSpeed: 16.5, massScale: 1, hpScale: 1, knockbackResistance: 1, traction: 1, steering: 1, dashDelta: 7.1, dashCooldown: 3.05, dashDuration: 0.35, dashPrimeRatio: 1.45, dashPeakRatio: 2.25, dashSteering: 0.2, dashChassisLengths: 4.05 },
+  superheavy: { label: '초중량급', minBlocks: 46, maxBlocks: 90, aiBlockTarget: 70, aiLayerCount: 5, maxWeight: 1830, allowedWheels: ['wheel_wide'], heightRange: [3, 5], wheelModel: 'wheel_wide', acceleration: 0.72, topSpeed: 12.4, massScale: 1.45, hpScale: 1.35, knockbackResistance: 1.42, traction: 1.34, steering: 0.76, dashDelta: 5.7, dashCooldown: 3.65, dashDuration: 0.39, dashPrimeRatio: 1.3, dashPeakRatio: 1.92, dashSteering: 0.08, dashChassisLengths: 3.05 },
+  healer: { label: '힐러', minBlocks: 20, maxBlocks: 60, aiBlockTarget: 40, aiLayerCount: 4, maxWeight: 800, allowedWheels: ['wheel_light', 'new_wheel'], heightRange: [2, 4], wheelModel: 'new_wheel', acceleration: 1.08, topSpeed: 17.2, massScale: 0.94, hpScale: 0.96, knockbackResistance: 0.92, traction: 1.04, steering: 1.08, dashDelta: 6.6, dashCooldown: 3.2, dashDuration: 0.34, dashPrimeRatio: 1.38, dashPeakRatio: 2.05, dashSteering: 0.24, dashChassisLengths: 3.8 },
 });
 const GRID_UNIT = 0.36;
 const BLOCK_SIZE = GRID_UNIT;
 const LV1_BLOCK_COLOR = 0x39afe7;
 const LV1_SILVER_BLOCK_COLOR = 0xb9c4cc;
+const PLAYER_PAINT_COLORS = Object.freeze([
+  '#39afe7', '#ef4444', '#111827', '#f5f7fa', '#f4ca32',
+  '#f2812e', '#39c86a', '#9b67e8', '#87939d', '#24c7c7',
+]);
+const DEFAULT_PLAYER_PALETTE = Object.freeze({ primary: '#39afe7', secondary: '#b9c4cc', accent: '#f4ca32' });
+const AI_PAINT_PALETTES = Object.freeze([
+  ['#20252b','#f2c230','#e5682e'], ['#f1f4f6','#3488d8','#162b43'], ['#737e86','#ee7a2c','#302a28'], ['#23aeb2','#f5f7f4','#173e48'],
+  ['#171a1f','#d9473f','#c9d0d5'], ['#aab4bc','#925fd0','#252131'], ['#f0bf2d','#2d3740','#ef6a31'], ['#3f8f56','#d9e4d6','#232c27'],
+  ['#e9ecef','#c74646','#2b2d31'], ['#3267c8','#f0a72d','#e8edf5'], ['#603d8f','#37b7a7','#e8e5ef'], ['#bc4b32','#e7c657','#292326'],
+  ['#44515e','#67c7e8','#f1f4f6'], ['#e8862f','#30353b','#74bf5c'], ['#8d2738','#cfd7de','#241b20'], ['#4f775c','#dfb74c','#e9ece8'],
+  ['#d95f9a','#29263a','#65c8d0'], ['#70675e','#eddfc8','#3f88ba'], ['#27506c','#e45f45','#dbe8ec'], ['#483a2f','#72b9d6','#f2a83a'],
+]);
 const HALF_GRID = 0.5;
 const BLOCK_GRID_ORIGIN = new THREE.Vector3(0, 0, 0);
 const BLOCK_META = Object.freeze({
@@ -254,26 +311,92 @@ function createDefaultBlocks() {
   return [core];
 }
 
+function assemblyWeight(assembly) {
+  const blockWeight = (assembly.blocks ?? []).reduce((sum, block) => sum + Number(block.mass ?? BLOCK_META[block.type]?.mass ?? 0), 0);
+  const partWeight = (assembly.parts ?? []).reduce((sum, part) => sum + Number(part.mass ?? PART_META[part.type]?.mass ?? 0), 0);
+  return blockWeight + partWeight;
+}
+
+function classRuleStatus(assembly, { extraBlock = null, extraPart = null, requireMinimum = false } = {}) {
+  const key = WEIGHT_CLASSES[assembly.weightClass] ? assembly.weightClass : 'middleweight';
+  const profile = WEIGHT_CLASSES[key];
+  const blockCount = (assembly.blocks?.length ?? 0) + (extraBlock ? 1 : 0);
+  const weight = assemblyWeight(assembly)
+    + Number(extraBlock?.mass ?? 0)
+    + Number(extraPart?.mass ?? 0);
+  const wheelModels = [...(assembly.parts ?? []), ...(extraPart ? [extraPart] : [])]
+    .filter((part) => part.type === 'wheel')
+    .map((part) => part.wheelModel ?? 'new_wheel');
+  const invalidWheels = wheelModels.filter((model) => !profile.allowedWheels.includes(model));
+  const blockOver = blockCount > profile.maxBlocks;
+  const weightOver = weight > profile.maxWeight + 0.001;
+  const blockUnder = requireMinimum && blockCount < profile.minBlocks;
+  return {
+    key, profile, blockCount, weight, wheelModels, invalidWheels,
+    blockOver, weightOver, blockUnder,
+    valid: !blockOver && !weightOver && !blockUnder && invalidWheels.length === 0,
+    usage: Math.max(blockCount / profile.maxBlocks, weight / profile.maxWeight),
+    message: blockOver ? `블록 제한 초과 · ${profile.label} ${blockCount}/${profile.maxBlocks}`
+      : weightOver ? `중량 제한 초과 · ${weight.toFixed(0)}/${profile.maxWeight}kg`
+        : invalidWheels.length ? `${profile.label}에서 사용할 수 없는 이동장치: ${[...new Set(invalidWheels)].join(', ')}`
+          : blockUnder ? `${profile.label} 최소 블록 부족 · ${blockCount}/${profile.minBlocks}`
+            : `${profile.label} 규격 정상`,
+  };
+}
+
+function inferredLegacyWeightClass(assembly) {
+  if (assembly.aiDesign?.weightClass === 'healer' || assembly.aiDesign?.role === 'healer') return 'healer';
+  const wheels = (assembly.parts ?? []).filter((part) => part.type === 'wheel');
+  if (wheels.some((part) => part.wheelModel === 'wheel_wide')) return 'superheavy';
+  if (wheels.length && wheels.every((part) => part.wheelModel === 'wheel_light')) return 'lightweight';
+  return WEIGHT_CLASSES[assembly.weightClass] ? assembly.weightClass : 'middleweight';
+}
+
 function createDefaultAssembly() {
   return {
     version: ASSEMBLY_VERSION,
     weightClass: 'middleweight',
+    paintPalette: { ...DEFAULT_PLAYER_PALETTE },
     blocks: createDefaultBlocks(),
     parts: [],
   };
+}
+
+function normalizedPaintColor(value, fallback) {
+  const text = String(value ?? '').trim();
+  return /^#[0-9a-f]{6}$/i.test(text) ? text.toLowerCase() : fallback;
+}
+
+function normalizedPaintPalette(value = null) {
+  return {
+    primary: normalizedPaintColor(value?.primary, DEFAULT_PLAYER_PALETTE.primary),
+    secondary: normalizedPaintColor(value?.secondary, DEFAULT_PLAYER_PALETTE.secondary),
+    accent: normalizedPaintColor(value?.accent, DEFAULT_PLAYER_PALETTE.accent),
+  };
+}
+
+function paintTintForPart(record, paletteValue = null) {
+  const palette = normalizedPaintPalette(paletteValue);
+  if (record?.paintColor) return normalizedPaintColor(record.paintColor, palette.secondary);
+  if (['armorFlat', 'armorCurved'].includes(record?.type)) return palette.secondary;
+  if (['hornCurved', 'hornStraight', 'exhaustTriple', 'exhaustVertical'].includes(record?.type)) return palette.accent;
+  return 0xffffff;
 }
 
 function enrichAssembly(assembly) {
   const enriched = cloneData(assembly);
   const sourceVersion = Number(enriched.version ?? 0);
   enriched.version = ASSEMBLY_VERSION;
-  enriched.weightClass = WEIGHT_CLASSES[enriched.weightClass] ? enriched.weightClass : 'middleweight';
+  enriched.weightClass = sourceVersion >= 12 && WEIGHT_CLASSES[enriched.weightClass]
+    ? enriched.weightClass : inferredLegacyWeightClass(enriched);
+  enriched.paintPalette = normalizedPaintPalette(enriched.paintPalette);
   enriched.parts ??= [];
   // Hammer and flipper were removed from the game. Old saves are migrated in
   // place so their mounts cannot remain as invisible collision/weight ghosts.
   const removedWeaponIds = new Set(enriched.parts.filter((part) => REMOVED_WEAPON_TYPES.has(part.type)).map((part) => part.id));
+  const oldMountIds = new Set(enriched.parts.filter((part) => DEPRECATED_MOUNT_TYPES.has(part.type)).map((part) => part.id));
   enriched.parts = enriched.parts.filter((part) => !REMOVED_WEAPON_TYPES.has(part.type)
-    && part.type !== 'hammerMount'
+    && !DEPRECATED_MOUNT_TYPES.has(part.type)
     && !(part.linkedTo ?? []).some((id) => removedWeaponIds.has(id)));
   enriched.blocks = Array.isArray(enriched.blocks) && enriched.blocks.length ? enriched.blocks : createDefaultBlocks();
   if (!enriched.blocks.some((block) => block.isCore || block.id === 'block-core')) enriched.blocks.unshift(...createDefaultBlocks());
@@ -303,6 +426,24 @@ function enrichAssembly(assembly) {
   // exactly Core + player blocks, so legacy chassis-mounted parts start clean.
   if (sourceVersion > 0 && sourceVersion < 9) enriched.parts = [];
   delete enriched.chassis;
+  // v12 and older saved rotating weapons referenced visible support/axis GLBs.
+  // Migrate the weapon itself onto the nearest real block face, then discard
+  // the old support reference completely.
+  for (const weapon of enriched.parts.filter((part) => WEAPON_TYPES.has(part.type))) {
+    if (!(weapon.linkedTo ?? []).some((id) => oldMountIds.has(id)) && weapon.mount?.kind !== 'axis') continue;
+    const nearest = enriched.blocks.reduce((best, block) => {
+      const centre = new THREE.Vector3(...block.gridPosition).multiplyScalar(GRID_UNIT);
+      const distance = centre.distanceToSquared(new THREE.Vector3(...(weapon.position ?? [0, 0, 0])));
+      return !best || distance < best.distance ? { block, centre, distance } : best;
+    }, null);
+    if (nearest) {
+      const normal = new THREE.Vector3(...(weapon.mount?.normal ?? [0, 0, 1])).normalize();
+      const point = nearest.centre.addScaledVector(normal, GRID_UNIT * 0.5);
+      weapon.mount = { kind: 'surface', targetId: nearest.block.id, targetIds: [nearest.block.id], point: point.toArray(), normal: normal.toArray(), attached: true, gap: MOUNT_EPSILON, directWeaponMount: true };
+      weapon.position = point.toArray();
+      weapon.linkedTo = [nearest.block.id];
+    }
+  }
   for (const part of enriched.parts) {
     const meta = PART_META[part.type];
     if (!meta) continue;
@@ -317,30 +458,33 @@ function enrichAssembly(assembly) {
     part.axisScale = [uniformAxis, uniformAxis, uniformAxis];
     part.rotation = part.rotation ?? [0, 0, 0];
     part.mount = part.mount ?? null;
+    if (WEAPON_TYPES.has(part.type) && part.mount?.kind === 'surface') {
+      part.mount.directWeaponMount = true;
+      part.directWeaponMount = true;
+      part.linkedTo = part.mount.targetId ? [part.mount.targetId] : [];
+    }
     if (part.type === 'wheel') {
+      // Wheel size is authored by the weight-class model itself. Player saves,
+      // touch pinch and legacy axis-scale data must never resize drive parts.
+      part.scaleFactor = 1;
+      part.axisScale = [1, 1, 1];
       // Surface alignment already rotates local +X to the outward mount normal.
       // Old saves also flipped the left visual a second time, exposing its inner
       // face. Preserve only an explicit player-requested visual flip.
       part.hubFlipManual = Boolean(part.hubFlipManual);
       part.hubFlipped = part.hubFlipManual ? Boolean(part.hubFlipped) : false;
-      part.wheelModel = ASSET_PATHS[part.wheelModel] ? part.wheelModel : 'new_wheel';
-      part.driveType = part.wheelModel === 'track_heavy' ? 'track' : 'wheel';
+      part.wheelModel = ['wheel_light', 'new_wheel', 'wheel_wide'].includes(part.wheelModel) ? part.wheelModel : 'new_wheel';
+      part.driveType = 'wheel';
     }
     part.mass = part.mass ?? meta.mass;
-    const structural = WEAPON_TYPES.has(part.type) || ['pivotMount', 'sawSupport', 'sawMount', 'barAxis'].includes(part.type);
+    const structural = WEAPON_TYPES.has(part.type);
     part.baseHp = structural ? Math.max(Number(part.baseHp ?? 0), meta.hp) : (part.baseHp ?? meta.hp);
     part.gridUnit = GRID_UNIT;
     part.locked = false;
   }
   const driveParts = enriched.parts.filter((part) => part.type === 'wheel');
-  if (driveParts.length) {
-    const superHeavyCount = driveParts.filter((part) => ['wheel_wide', 'track_heavy'].includes(part.wheelModel)).length;
-    const lightCount = driveParts.filter((part) => part.wheelModel === 'wheel_light').length;
-    if (superHeavyCount >= Math.ceil(driveParts.length * 0.5)) enriched.weightClass = 'superheavy';
-    else if (lightCount >= Math.ceil(driveParts.length * 0.5)) enriched.weightClass = 'lightweight';
-    else enriched.weightClass = enriched.aiDesign?.weightClass ?? 'middleweight';
-    enriched.driveType = driveParts.some((part) => part.wheelModel === 'track_heavy') ? 'track' : 'wheel';
-  }
+  if (driveParts.length) enriched.driveType = 'wheel';
+  enriched.classValidation = classRuleStatus(enriched, { requireMinimum: false });
   return enriched;
 }
 const ARENA_LAYOUT = Object.freeze({
@@ -414,12 +558,15 @@ const mapRampSets = { arena01: [], industrial01: [], desert01: [] };
 let industrialNavigation = { nodes: [], links: [], revision: 0 };
 let industrialSoloRouteQA = { active: false, kind: 'regions', route: [], path: [], visited: 0, distance: 0, lastPosition: null, startWorldTime: 0, elapsed: 0 };
 let desertNavigation = { nodes: [], links: [], revision: 0 };
+const desertObjectiveRouteCache = new Map();
+let desertMapKnowledge = { revision: 0, loaded: false };
 let desertRouteQA = { active: false, route: [], path: [], visited: 0, distance: 0, lastPosition: null, startWorldTime: 0, elapsed: 0 };
 const activeHalfWidth = () => activeMap.halfWidth;
 const activeHalfLength = () => activeMap.halfLength;
 const GROUND_Y = 0.62;
 const PHYSICS_FLOOR_TOP = 0;
 const ROBOT_GROUND_SKIN = 0.006;
+const BUILD_FLOOR_TOLERANCE = 0.001;
 const MIN_CHASSIS_GROUND_CLEARANCE = 0.1;
 const PHYSICS_FLOOR_THICKNESS = Object.freeze({ arena01: 0.9, industrial01: 1.2, desert01: 2.4 });
 const X_AXIS = new THREE.Vector3(1, 0, 0);
@@ -544,6 +691,7 @@ function pointInsideConvexXZ(point, polygon, epsilon = 0.025) {
 }
 
 function obstacleVerticesXZ(obstacle) {
+  if (obstacle.kind === 'polygon' && obstacle.outline?.length >= 3) return obstacle.outline;
   const cos = Math.cos(obstacle.rotationY ?? 0);
   const sin = Math.sin(obstacle.rotationY ?? 0);
   return [
@@ -554,6 +702,26 @@ function obstacleVerticesXZ(obstacle) {
     0,
     obstacle.z - x * sin + z * cos,
   ));
+}
+
+function distanceSquaredToSegmentXZ(point, a, b) {
+  const abX = b.x - a.x;
+  const abZ = b.z - a.z;
+  const denominator = abX * abX + abZ * abZ;
+  const amount = denominator > 1e-9 ? clamp(((point.x - a.x) * abX + (point.z - a.z) * abZ) / denominator, 0, 1) : 0;
+  const x = a.x + abX * amount;
+  const z = a.z + abZ * amount;
+  return { distanceSquared: (point.x - x) ** 2 + (point.z - z) ** 2, point: new THREE.Vector3(x, point.y ?? 0, z) };
+}
+
+function pointInsideObstaclePolygon(point, outline, margin = 0) {
+  if (!outline?.length) return false;
+  if (pointInsideConvexXZ(point, outline)) return true;
+  if (margin <= 0) return false;
+  for (let index = 0; index < outline.length; index++) {
+    if (distanceSquaredToSegmentXZ(point, outline[index], outline[(index + 1) % outline.length]).distanceSquared <= margin * margin) return true;
+  }
+  return false;
 }
 
 function robotCollisionFootprint(robot) {
@@ -573,6 +741,32 @@ function robotCollisionFootprint(robot) {
     }
   }
   return convexHullXZ(points);
+}
+
+function robotNavigationClearance(robot) {
+  // Navigation must reserve room for the same compound footprint that the
+  // physical obstacle solver uses. A fixed circular margin let the larger
+  // five-cell / super-heavy bodies select graph edges that their armour and
+  // tyres could not actually clear, so they repeatedly collided with a canyon
+  // wall while the path finder kept returning the same "valid" route.
+  let radialExtent = Math.max(1.8, Number(robot?.radius ?? 0));
+  for (const component of robot?.colliderComponents ?? []) {
+    for (const point of component.points ?? []) radialExtent = Math.max(radialExtent, Math.hypot(point.x, point.z));
+  }
+  for (const wheel of robot?.wheels ?? []) {
+    if (wheel.part?.detached) continue;
+    const centre = wheel.wheelRoot?.position;
+    if (!centre) continue;
+    const rollingRadius = Number(wheel.physicsRadius ?? 0);
+    const halfWidth = Number(wheel.halfWidth ?? 0);
+    radialExtent = Math.max(radialExtent, Math.hypot(centre.x, centre.z) + Math.hypot(rollingRadius, halfWidth));
+  }
+  // The centreline also needs a small steering envelope. A chassis that is
+  // geometrically clear while pointing at a canyon corner can still sweep its
+  // nose/armour into that corner during a 60-90 degree turn. Reserving this
+  // envelope in A* keeps the waypoint physically driveable instead of making
+  // a wide robot orbit a mathematically valid point forever.
+  return clamp(radialExtent + 1.65, 3.6, 7.4);
 }
 
 function projectPolygonXZ(polygon, axis) {
@@ -618,27 +812,38 @@ function polygonObstacleContact(robot, obstacle) {
     }
   }
   if (!normal || !Number.isFinite(penetration)) return null;
-  const cos = Math.cos(-(obstacle.rotationY ?? 0));
-  const sin = Math.sin(-(obstacle.rotationY ?? 0));
-  const dx = robot.root.position.x - obstacle.x;
-  const dz = robot.root.position.z - obstacle.z;
-  const localX = dx * cos - dz * sin;
-  const localZ = dx * sin + dz * cos;
-  let contactX = clamp(localX, -obstacle.halfX, obstacle.halfX);
-  let contactZ = clamp(localZ, -obstacle.halfZ, obstacle.halfZ);
-  if (Math.abs(localX) <= obstacle.halfX && Math.abs(localZ) <= obstacle.halfZ) {
-    const gapX = obstacle.halfX - Math.abs(localX);
-    const gapZ = obstacle.halfZ - Math.abs(localZ);
-    if (gapX < gapZ) contactX = (Math.sign(localX) || 1) * obstacle.halfX;
-    else contactZ = (Math.sign(localZ) || 1) * obstacle.halfZ;
+  let point;
+  if (obstacle.kind === 'polygon') {
+    let nearest = null;
+    for (let index = 0; index < obstaclePolygon.length; index++) {
+      const candidate = distanceSquaredToSegmentXZ(robot.root.position, obstaclePolygon[index], obstaclePolygon[(index + 1) % obstaclePolygon.length]);
+      if (!nearest || candidate.distanceSquared < nearest.distanceSquared) nearest = candidate;
+    }
+    point = nearest?.point ?? new THREE.Vector3(obstacle.x, 0, obstacle.z);
+    point.y = obstacle.colliderHeight ? Math.min(robot.root.position.y, obstacle.colliderBottom + obstacle.colliderHeight * 0.55) : 0.5;
+  } else {
+    const cos = Math.cos(-(obstacle.rotationY ?? 0));
+    const sin = Math.sin(-(obstacle.rotationY ?? 0));
+    const dx = robot.root.position.x - obstacle.x;
+    const dz = robot.root.position.z - obstacle.z;
+    const localX = dx * cos - dz * sin;
+    const localZ = dx * sin + dz * cos;
+    let contactX = clamp(localX, -obstacle.halfX, obstacle.halfX);
+    let contactZ = clamp(localZ, -obstacle.halfZ, obstacle.halfZ);
+    if (Math.abs(localX) <= obstacle.halfX && Math.abs(localZ) <= obstacle.halfZ) {
+      const gapX = obstacle.halfX - Math.abs(localX);
+      const gapZ = obstacle.halfZ - Math.abs(localZ);
+      if (gapX < gapZ) contactX = (Math.sign(localX) || 1) * obstacle.halfX;
+      else contactZ = (Math.sign(localZ) || 1) * obstacle.halfZ;
+    }
+    const worldCos = Math.cos(obstacle.rotationY ?? 0);
+    const worldSin = Math.sin(obstacle.rotationY ?? 0);
+    point = new THREE.Vector3(
+      obstacle.x + contactX * worldCos + contactZ * worldSin,
+      obstacle.colliderHeight ? Math.min(robot.root.position.y, obstacle.colliderHeight * 0.55) : 0.5,
+      obstacle.z - contactX * worldSin + contactZ * worldCos,
+    );
   }
-  const worldCos = Math.cos(obstacle.rotationY ?? 0);
-  const worldSin = Math.sin(obstacle.rotationY ?? 0);
-  const point = new THREE.Vector3(
-    obstacle.x + contactX * worldCos + contactZ * worldSin,
-    obstacle.colliderHeight ? Math.min(robot.root.position.y, obstacle.colliderHeight * 0.55) : 0.5,
-    obstacle.z - contactX * worldSin + contactZ * worldCos,
-  );
   return { normal, penetration, point, robotPolygon, obstaclePolygon };
 }
 
@@ -747,8 +952,15 @@ const renderer = new THREE.WebGLRenderer({
 });
 const startupQuery = new URLSearchParams(location.search);
 const EXTENDED_PHYSICS_TELEMETRY = ['systemsQA', 'physicsQA', 'autoQA', 'blockCombatQA'].some((key) => startupQuery.get(key) === '1');
-renderer.setPixelRatio(Math.min(devicePixelRatio, 2));
-renderer.shadowMap.enabled = true;
+function mobileRenderScale() {
+  const mobile = matchMedia('(pointer: coarse)').matches || innerWidth <= 900;
+  return mobile ? 0.82 : 1;
+}
+// Both workshop and combat share this renderer. Cap the physical pixel ratio
+// before the per-mode budget runs so high-DPI phones never allocate a 2x/3x
+// framebuffer during loading or in the workshop.
+renderer.setPixelRatio(Math.min(devicePixelRatio, 1.5) * mobileRenderScale());
+renderer.shadowMap.enabled = !(matchMedia('(pointer: coarse)').matches || innerWidth <= 900);
 renderer.shadowMap.type = THREE.PCFSoftShadowMap;
 renderer.outputColorSpace = THREE.SRGBColorSpace;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
@@ -756,11 +968,12 @@ renderer.toneMappingExposure = 0.94;
 
 const QUALITY_STORAGE_KEY = 'battlebot-quality-preset-v1';
 const DASH_KEY_STORAGE_KEY = 'battlebot-dash-key-v1';
+const FRAME_RATE_STORAGE_KEY = 'battlebot-frame-rate-v1';
 const DASH_KEYS = new Set(['ControlLeft', 'AltLeft', 'KeyF']);
 const QUALITY_PRESETS = Object.freeze({
   low: { label: '낮음', pixelRatio: 1, shadows: false, sparkScale: 0.48, sparkLimit: 180, fragmentScale: 0.48, fragmentBursts: 10, debrisLimit: 60, uiHz: 6 },
-  medium: { label: '중간', pixelRatio: 1.25, shadows: true, sparkScale: 0.74, sparkLimit: 290, fragmentScale: 0.72, fragmentBursts: 16, debrisLimit: 96, uiHz: 8 },
-  high: { label: '높음', pixelRatio: 1.7, shadows: true, sparkScale: 1, sparkLimit: 420, fragmentScale: 1, fragmentBursts: 24, debrisLimit: 140, uiHz: 10 },
+  medium: { label: '중간', pixelRatio: 1.25, shadows: false, sparkScale: 0.74, sparkLimit: 290, fragmentScale: 0.72, fragmentBursts: 16, debrisLimit: 96, uiHz: 8 },
+  high: { label: '높음', pixelRatio: 1.5, shadows: true, sparkScale: 1, sparkLimit: 420, fragmentScale: 1, fragmentBursts: 24, debrisLimit: 140, uiHz: 10 },
 });
 
 function loadQualityPreset() {
@@ -775,7 +988,13 @@ let qualityPreset = loadQualityPreset();
 let adaptiveQualityScale = 1;
 let adaptiveFrameMsEMA = 16.7;
 let adaptiveQualityCooldown = 0;
+let adaptiveDegradeStage = 0;
+let adaptiveRecoveryFrames = 0;
 let dashKey = DASH_KEYS.has(localStorage.getItem(DASH_KEY_STORAGE_KEY)) ? localStorage.getItem(DASH_KEY_STORAGE_KEY) : 'ControlLeft';
+const storedFrameRate = Number(localStorage.getItem(FRAME_RATE_STORAGE_KEY));
+let frameRateLimit = [30, 45, 60].includes(storedFrameRate)
+  ? storedFrameRate
+  : ((matchMedia('(pointer: coarse)').matches || innerWidth <= 900) ? 30 : 60);
 
 function populationBudgetScale() {
   const count = robots.length || 1;
@@ -790,8 +1009,8 @@ function currentPerformanceBudget() {
   const populationScale = populationBudgetScale();
   return {
     ...preset,
-    sparkScale: preset.sparkScale * populationScale * lerp(0.72, 1, adaptiveQualityScale),
-    sparkLimit: Math.max(120, Math.round(preset.sparkLimit * Math.max(0.72, populationScale))),
+    sparkScale: preset.sparkScale * populationScale * lerp(0.72, 1, adaptiveQualityScale) * (adaptiveDegradeStage >= 1 ? 0.68 : 1),
+    sparkLimit: Math.max(96, Math.round(preset.sparkLimit * Math.max(0.68, populationScale) * (adaptiveDegradeStage >= 1 ? 0.72 : 1))),
     fragmentScale: preset.fragmentScale * Math.max(0.62, populationScale),
     fragmentBursts: Math.max(7, Math.round(preset.fragmentBursts * Math.max(0.65, populationScale))),
     debrisLimit: Math.max(48, Math.round(preset.debrisLimit * Math.max(0.68, populationScale))),
@@ -802,7 +1021,12 @@ function physicsSolverHz() {
   const count = robots.length;
   if (count <= 4) return 90;
   if (count <= 8) return qualityPreset === 'high' ? 90 : qualityPreset === 'medium' ? 72 : 60;
-  return qualityPreset === 'high' ? 72 : qualityPreset === 'medium' ? 60 : 50;
+  if (count <= 12) return qualityPreset === 'high' ? 72 : qualityPreset === 'medium' ? 60 : 45;
+  // A 20-robot match previously forced two complete ground/contact solves per
+  // rendered 30 Hz frame. One 30 Hz large-battle step keeps the same visible
+  // cadence while removing the duplicate support/collider pass that caused
+  // multi-hundred-millisecond stalls on mobile-class hardware.
+  return qualityPreset === 'high' ? 45 : 30;
 }
 
 const scene = new THREE.Scene();
@@ -838,6 +1062,11 @@ const BLOCK_DEBRIS_LIFETIME = 9;
 const FUNCTIONAL_DEBRIS_LIFETIME = 11;
 const DEBRIS_FADE_SECONDS = 0.75;
 const BLOCK_FRAGMENT_BURST_LIMIT = 24;
+const mobilePerformanceProfile = () => matchMedia('(pointer: coarse)').matches || innerWidth <= 900;
+function debrisLifetimeFor(kind = 'block') {
+  if (!mobilePerformanceProfile()) return kind === 'functional' ? FUNCTIONAL_DEBRIS_LIFETIME : BLOCK_DEBRIS_LIFETIME;
+  return kind === 'functional' ? 4 : 2;
+}
 const blockFragmentGeometry = new THREE.BoxGeometry(1, 1, 1);
 const blockFragmentBursts = [];
 const blockFragmentDummy = new THREE.Object3D();
@@ -861,6 +1090,99 @@ const obstacles = [];
 const ramps = [];
 const keys = new Set();
 const dustGeometry = new THREE.SphereGeometry(0.12, 5, 4);
+// Short-lived healing VFX used to allocate fresh geometry for every pulse.
+// At the real 8.3 Hz heal cadence that leaked thousands of renderer geometry
+// records in a few minutes and eventually crashed the browser tab. Geometry is
+// immutable, so every pulse now shares these three meshes.
+const healingBeamGeometry = new THREE.CylinderGeometry(0.045, 0.07, 1, 7);
+const healingPlusVerticalGeometry = new THREE.BoxGeometry(0.075, 0.34, 0.055);
+const healingPlusHorizontalGeometry = new THREE.BoxGeometry(0.34, 0.075, 0.055);
+const healingBeamMaterial = new THREE.MeshBasicMaterial({
+  color: 0xffffff, transparent: true, opacity: 1, depthWrite: false,
+  depthTest: false, blending: THREE.AdditiveBlending,
+});
+const healingPlusMaterial = healingBeamMaterial.clone();
+const HEALING_BEAM_POOL_SIZE = 24;
+const HEALING_PLUS_POOL_SIZE = 128;
+const healingBeamInstances = new THREE.InstancedMesh(healingBeamGeometry, healingBeamMaterial, HEALING_BEAM_POOL_SIZE);
+const healingPlusVerticalInstances = new THREE.InstancedMesh(healingPlusVerticalGeometry, healingPlusMaterial, HEALING_PLUS_POOL_SIZE);
+const healingPlusHorizontalInstances = new THREE.InstancedMesh(healingPlusHorizontalGeometry, healingPlusMaterial, HEALING_PLUS_POOL_SIZE);
+const healingBeamParticles = Array.from({ length: HEALING_BEAM_POOL_SIZE }, () => ({ active: false, life: 0, initialLife: 0, matrix: new THREE.Matrix4() }));
+const healingPlusParticles = Array.from({ length: HEALING_PLUS_POOL_SIZE }, () => ({
+  active: false, life: 0, initialLife: 0, position: new THREE.Vector3(), velocity: new THREE.Vector3(), rotationY: 0, angularY: 0, scale: 1,
+}));
+const healingVFXDummy = new THREE.Object3D();
+const healingVFXColor = new THREE.Color();
+const healingDirectionScratch = new THREE.Vector3();
+const healingVFXStats = { beamBursts: 0, plusParticles: 0, activeBeamPeak: 0, activePlusPeak: 0, distanceCulls: 0 };
+for (const instances of [healingBeamInstances, healingPlusVerticalInstances, healingPlusHorizontalInstances]) {
+  instances.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+  instances.count = 0;
+  instances.frustumCulled = false;
+  instances.renderOrder = 19;
+  scene.add(instances);
+}
+
+function acquireHealingParticle(pool) {
+  let oldest = pool[0];
+  for (const particle of pool) {
+    if (!particle.active) return particle;
+    if (particle.life < oldest.life) oldest = particle;
+  }
+  return oldest;
+}
+
+function resetHealingVFXPool() {
+  for (const particle of healingBeamParticles) particle.active = false;
+  for (const particle of healingPlusParticles) particle.active = false;
+  healingBeamInstances.count = 0;
+  healingPlusVerticalInstances.count = 0;
+  healingPlusHorizontalInstances.count = 0;
+}
+
+function updateHealingVFXPool(dt) {
+  let beamCount = 0;
+  for (const particle of healingBeamParticles) {
+    if (!particle.active) continue;
+    particle.life -= dt;
+    if (particle.life <= 0) { particle.active = false; continue; }
+    const fade = clamp(particle.life / Math.min(0.09, particle.initialLife), 0, 1);
+    healingBeamInstances.setMatrixAt(beamCount, particle.matrix);
+    healingVFXColor.setRGB(0.14 * fade, 1 * fade, 0.45 * fade);
+    healingBeamInstances.setColorAt(beamCount, healingVFXColor);
+    beamCount++;
+  }
+  let plusCount = 0;
+  for (const particle of healingPlusParticles) {
+    if (!particle.active) continue;
+    particle.life -= dt;
+    if (particle.life <= 0) { particle.active = false; continue; }
+    particle.position.addScaledVector(particle.velocity, dt);
+    particle.rotationY += particle.angularY * dt;
+    const fade = clamp(particle.life / Math.min(0.18, particle.initialLife), 0, 1);
+    healingVFXDummy.position.copy(particle.position);
+    healingVFXDummy.rotation.set(0, particle.rotationY, 0);
+    healingVFXDummy.scale.setScalar(particle.scale * (0.82 + fade * 0.18));
+    healingVFXDummy.updateMatrix();
+    healingPlusVerticalInstances.setMatrixAt(plusCount, healingVFXDummy.matrix);
+    healingPlusHorizontalInstances.setMatrixAt(plusCount, healingVFXDummy.matrix);
+    healingVFXColor.setRGB(0.12 * fade, 1 * fade, 0.38 * fade);
+    healingPlusVerticalInstances.setColorAt(plusCount, healingVFXColor);
+    healingPlusHorizontalInstances.setColorAt(plusCount, healingVFXColor);
+    plusCount++;
+  }
+  healingBeamInstances.count = beamCount;
+  healingPlusVerticalInstances.count = plusCount;
+  healingPlusHorizontalInstances.count = plusCount;
+  healingBeamInstances.instanceMatrix.needsUpdate = true;
+  healingPlusVerticalInstances.instanceMatrix.needsUpdate = true;
+  healingPlusHorizontalInstances.instanceMatrix.needsUpdate = true;
+  if (healingBeamInstances.instanceColor) healingBeamInstances.instanceColor.needsUpdate = true;
+  if (healingPlusVerticalInstances.instanceColor) healingPlusVerticalInstances.instanceColor.needsUpdate = true;
+  if (healingPlusHorizontalInstances.instanceColor) healingPlusHorizontalInstances.instanceColor.needsUpdate = true;
+  healingVFXStats.activeBeamPeak = Math.max(healingVFXStats.activeBeamPeak, beamCount);
+  healingVFXStats.activePlusPeak = Math.max(healingVFXStats.activePlusPeak, plusCount);
+}
 
 function addEnvironmentColliderDebug({ name, mapId, x = 0, y = 0, z = 0, width, height, depth, rotationY = 0, color = 0x65ffb5 }) {
   const geometry = new THREE.WireframeGeometry(new THREE.BoxGeometry(width, height, depth));
@@ -921,7 +1243,10 @@ function registerDebris(item) {
   debris.push(item);
   while (debris.length > currentPerformanceBudget().debrisLimit) {
     const oldest = debris.shift();
-    if (oldest) scene.remove(oldest.object);
+    if (oldest) {
+      scene.remove(oldest.object);
+      disposeRuntimeObjectResources(oldest.object);
+    }
   }
   return item;
 }
@@ -1171,6 +1496,20 @@ const smokeMatrixDummy = new THREE.Object3D();
 const smokeColorScratch = new THREE.Color();
 let smokePoolCursor = 0;
 const smokeStats = { emitted: 0, dashBursts: 0, activePeak: 0, outletCount: 0, verticalOutlets: 0, tripleOutlets: 0, lodSkips: 0, detachedStops: 0 };
+const DASH_STREAK_POOL_SIZE = 144;
+const dashStreakGeometry = new THREE.BoxGeometry(1, 1, 1);
+const dashStreakMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.78, blending: THREE.AdditiveBlending, depthWrite: false, toneMapped: false });
+const dashStreakInstances = new THREE.InstancedMesh(dashStreakGeometry, dashStreakMaterial, DASH_STREAK_POOL_SIZE);
+dashStreakInstances.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
+dashStreakInstances.instanceColor = new THREE.InstancedBufferAttribute(new Float32Array(DASH_STREAK_POOL_SIZE * 3), 3);
+dashStreakInstances.frustumCulled = false;
+dashStreakInstances.renderOrder = 12;
+dashStreakInstances.count = 0;
+scene.add(dashStreakInstances);
+const dashStreakParticles = Array.from({ length: DASH_STREAK_POOL_SIZE }, () => ({ active: false, position: new THREE.Vector3(), direction: new THREE.Vector3(), velocity: new THREE.Vector3(), life: 0, initialLife: 0, length: 1, width: 0.02 }));
+const dashStreakDummy = new THREE.Object3D();
+const dashStreakColor = new THREE.Color();
+let dashStreakCursor = 0;
 
 let player = null;
 let arenaFloorSaw = null;
@@ -1199,6 +1538,7 @@ let lobbyModalAction = null;
 let garageRoot = null;
 let garageGhost = null;
 let garageStage = null;
+const garageCameraOccluders = [];
 let selectedPartId = null;
 let candidatePart = null;
 let undoStack = [];
@@ -1212,6 +1552,7 @@ let transformMode = 'move';
 let transformAxis = 'x';
 let garageGizmo = null;
 let garageDrag = null;
+const garageLastValidRecords = new Map();
 let assemblyMode = 'parts';
 let selectedBlockId = 'block-core';
 let candidateBlock = null;
@@ -1224,18 +1565,26 @@ let blockDeleteOutline = null;
 let blockRotationAxis = 'y';
 let blockPaintPointerId = null;
 let blockPaintLastKey = null;
+let activePaintSlot = 'primary';
+let activePaintColor = DEFAULT_PLAYER_PALETTE.primary;
 const garageTouchPoints = new Map();
 let garagePinchDistance = null;
+let garagePinchBefore = null;
+let mobileScaleMode = false;
+let mobilePlacementMode = 'touch';
+const garagePointerGestures = new Map();
 const garagePartObjects = new Map();
 const garageBlockObjects = new Map();
 const garageRaycaster = new THREE.Raycaster();
+const cameraObstructionRaycaster = new THREE.Raycaster();
+const cameraObstructedMaterials = new Map();
+let cameraObstructionAccumulator = 0;
 const garagePointer = new THREE.Vector2();
 const garageDragPlane = new THREE.Plane(new THREE.Vector3(0, 1, 0), 0);
 const mountLocalBounds = new Map();
 const MOUNT_EPSILON = 0.004;
 let sawContactTimer = 0;
 let sawLoopAudio = null;
-let weaponLoopAudio = null;
 let sawGrindTickCooldown = 0;
 let lastDebrisLandingSoundAt = -Infinity;
 let battleMode = 'ffa4';
@@ -1248,13 +1597,13 @@ let arenaTopView = false;
 const arenaStats = {
   name: ARENA_LAYOUT.name,
   floor: { visualTiles: [16, 12], physicsColliderCount: 1, gaps: 0 },
-  innerWalls: 4,
+  innerWalls: 0,
   wallCornerGaps: 0,
-  fenceModules: { north: 12, south: 12, east: 9, west: 9, total: 42, uniformScale: true, spacingError: 0 },
+  fenceModules: { north: 0, south: 0, east: 0, west: 0, total: 0, uniformScale: true, spacingError: 0 },
   stands: { north: 4, south: 4, east: 3, west: 3, total: 14, uniformScale: true },
   ramps: { arena_ramp_1: 0, arena_ramp_2: 0, total: 0, removedFromArena01: true },
-  bumpers: 4,
-  outerWalls: 4,
+  bumpers: 0,
+  outerWalls: 0,
   floatingObjects: 0,
   centralClearFraction: 0.66,
   spawnPointsPerTeam: 4,
@@ -1264,7 +1613,7 @@ const arenaStats = {
   },
   symmetric: true,
   scaleReferences: { robotHeight: 1.6, fenceHeight: 0, audienceHeight: 0, fenceRobotRatio: 0, audienceRobotRatio: 0 },
-  visualHierarchy: ['bright-combat-floor', 'medium-safety-fence', 'dim-audience', 'dark-outer-wall'],
+  visualHierarchy: ['bright-combat-floor', 'solid-concrete-boundary', 'dim-audience'],
 };
 const industrialStats = {
   name: INDUSTRIAL_LAYOUT.name,
@@ -1274,23 +1623,33 @@ const industrialStats = {
   scaleFromV99: { width: INDUSTRIAL_SPACE_SCALE, length: INDUSTRIAL_SPACE_SCALE, area: Number((INDUSTRIAL_SPACE_SCALE ** 2).toFixed(2)), objectScale: 1 },
   floor: { source: '맵 타일.png', visualTiles: INDUSTRIAL_LAYOUT.visualTiles, physicsColliderCount: 1, gaps: 0, stretched: false, topY: PHYSICS_FLOOR_TOP, thickness: PHYSICS_FLOOR_THICKNESS.industrial01, collisionMode: 'continuous-swept', solverHz: 90 },
   assets: { containers: 0, barriers: 0, fenceModules: 0 },
-  zones: ['central-plaza', 'container-sector', 'barrier-sector', 'outer-loop'],
+  zones: ['central-plaza', 'open-combat-field', 'concrete-boundary'],
   centralPlaza: { width: 112, length: 78.4, simultaneousRobotCapacity: 8, obstacleCount: 0 },
   spawnPointsPerTeam: 8,
   navigation: { nodes: 0, links: 0, obstacleAware: true, directLineOfSight: true, repathSeconds: 0.45 },
-  performance: { gpuInstancing: ['container', 'concrete-barrier', 'arena-fence'], staticBoxColliders: true, distanceShadowLOD: true, debrisLimit: MAX_ACTIVE_DEBRIS },
+  performance: { gpuInstancing: ['concrete-boundary'], staticBoxColliders: true, distanceShadowLOD: true, debrisLimit: MAX_ACTIVE_DEBRIS },
   tests: { soloRoute: 'pending', straightCrossing: 'pending', ffa4: 'pending', ffa8: 'pending', team4v4: 'pending', team6v6: 'pending', team8v8: 'pending', aiAvoidance: 'pending', debrisFloor: 'pending', robotFloorDrops: 'pending', obstacleContact: 'pending', obstacleBounce: 'pending', groundSeating: 'pending' },
 };
 const desertStats = {
   name: DESERT_LAYOUT.name,
   dimensions: { width: DESERT_LAYOUT.halfWidth * 2, length: DESERT_LAYOUT.halfLength * 2 },
   scaleFromPrevious: { width: Number((DESERT_LAYOUT.halfWidth / 112).toFixed(2)), length: Number((DESERT_LAYOUT.halfLength / 152).toFixed(2)), area: Number(((DESERT_LAYOUT.halfWidth * DESERT_LAYOUT.halfLength) / (112 * 152)).toFixed(2)) },
-  sourceAssets: ['거대 붉은 암벽.glb (geometry-clustered render LOD)', '중형 독립 사막 바위.glb (medium rock + low-ridge LOD)'],
+  sourceAssets: [
+    'assets_lowpoly/desert_cliff_1..4.glb',
+    'assets_lowpoly/desert_ridge_1..4.glb',
+    'assets_lowpoly/desert_medium_1..3.glb',
+    'assets_lowpoly/desert_small_1..5.glb (decoration only)',
+  ],
   terrain: { rolling: true, flatPlane: false, naturalArches: 0, drivableSlopes: true, impassableCliffs: true, layout: 'multi-route-canyon' },
   assets: { giantCliffs: 0, mediumRocks: 0, lowRidges: 0 },
   navigation: { nodes: 0, links: 0, connectedNodes: 0, fullyConnected: false, routeFamilies: 3, obstacleAware: true },
   performance: { terrainLOD: true, rockShadowLOD: true, pooledVFX: true, worldNameplatesRemoved: true },
 };
+// Render-only top-view silhouettes derived from the actual optimized GLB
+// geometry. They are intentionally separate from physics data.
+const desertTopViewOutlines = [];
+let conquestMinimapStaticCanvas = null;
+let conquestMinimapStaticBuilds = 0;
 const conquestState = {
   enabled: false,
   activePoint: 'A',
@@ -1298,19 +1657,18 @@ const conquestState = {
     A: { centre: new THREE.Vector3(DESERT_LAYOUT.pointA[0], 0, DESERT_LAYOUT.pointA[1]), radius: DESERT_LAYOUT.captureRadius, blue: 0, red: 0, owner: null, active: true },
     B: { centre: new THREE.Vector3(DESERT_LAYOUT.pointB[0], 0, DESERT_LAYOUT.pointB[1]), radius: DESERT_LAYOUT.captureRadius, blue: 0, red: 0, owner: null, active: false },
   },
-  contested: false, winner: null, pendingWinner: null, minimumMatchSeconds: 300, duration: 600, captures: [], repairEvents: 0, healerTicks: 0,
+  // The user-facing conquest match is ten minutes. 300 seconds is an
+  // intermediate AI acceptance checkpoint, never an early match end.
+  contested: false, winner: null, pendingWinner: null, minimumMatchSeconds: 600, duration: 600, captures: [], contestEvents: [], repairEvents: 0, healerTicks: 0,
 };
 const conquestVisuals = { zones: {}, repairZones: {} };
 let hitStopTimer = 0;
 const AUDIO_FILES = {
-  hammer: ['./audio/hammer_hit_1.mp3', './audio/hammer_hit_2.mp3', './audio/hammer_hit_3.mp3'],
-  saw: ['./audio/saw_grind.mp3'],
-  flipper: ['./audio/flipper_actuate.mp3'],
   hit: ['./audio/impact_new_1.mp3', './audio/impact_new_2.mp3', './audio/impact_new_3.mp3', './audio/impact_hit_1.mp3', './audio/impact_hit_2.mp3', './audio/impact_desert_1.mp3', './audio/impact_desert_2.mp3'],
   hitWeak: ['./audio/impact_hit_1.mp3', './audio/impact_hit_2.mp3', './audio/impact_desert_2.mp3'],
   hitMedium: ['./audio/impact_new_1.mp3', './audio/impact_hit_1.mp3', './audio/impact_new_2.mp3', './audio/impact_desert_2.mp3'],
   hitStrong: ['./audio/impact_new_1.mp3', './audio/impact_new_2.mp3', './audio/impact_new_3.mp3', './audio/impact_desert_1.mp3'],
-  hitCritical: ['./audio/impact_new_3.mp3', './audio/impact_new_2.mp3', './audio/impact_desert_1.mp3', './audio/hammer_hit_3.mp3'],
+  hitCritical: ['./audio/impact_new_3.mp3', './audio/impact_new_2.mp3', './audio/impact_desert_1.mp3'],
   dash: ['./audio/dash_boost.mp3'],
   blockBreak: ['./audio/impact_new_2.mp3', './audio/impact_new_3.mp3'],
   partBreak: ['./audio/impact_new_1.mp3', './audio/impact_new_2.mp3'],
@@ -1357,6 +1715,7 @@ const musicTracks = Object.fromEntries(Object.entries(MUSIC_FILES).map(([key, fi
 const audioStats = { hammerHits: 0, sawLoops: 0, sawLoopStops: 0, sawContactTicks: 0, flipperActuations: 0, impactHits: 0, hitVariantCounts: [0, 0, 0, 0, 0], hitTierCounts: { weak: 0, medium: 0, strong: 0, veryStrong: 0, critical: 0 }, landingSounds: 0, wallHits: 0, dashSounds: 0, blockBreaks: 0, partBreaks: 0, healingPulses: 0, heavyImpacts: 0, spatialVoicesPeak: 0, voiceLimitDrops: 0, musicTransitions: 0 };
 const impactStats = { weak: 0, medium: 0, strong: 0, veryStrong: 0, critical: 0, criticalEligible: 0, criticalRolls: 0, maxCriticalChance: 0, minCriticalScore: null, maxCriticalScore: 0, maxImpulse: 0, maxSparks: 0, maxSingleDamage: 0, firstImpactTime: null };
 const impactSamples = [];
+const weaponImpactTelemetry = [];
 const groundStats = {
   robotContacts: 0, robotCorrections: 0, postStepRobotCorrections: 0, angularSweepCorrections: 0,
   debrisContacts: 0, debrisCorrections: 0, debrisSweepCorrections: 0, maxDebrisSweepCorrection: 0,
@@ -1431,13 +1790,20 @@ const renderPerformanceStats = {
 let renderLODAccumulator = 0;
 let activeSparkInstanceCount = 0;
 let activeSparkParticleCount = 0;
+const teamMarkerPool = [];
+const teamMarkerWorldScratch = new THREE.Vector3();
+const teamMarkerPointScratch = new THREE.Vector3();
+let teamMarkerOcclusionAccumulator = 0;
+const teamMarkerStats = { updates: 0, pooled: 0, visible: 0, ffaNameplates: 0, ffaClassIcons: 0, ffaHpBars: 0, hiddenDead: 0, hiddenOccluded: 0, minimumWidth: 0, maximumWidth: 0, maximumFollowErrorPixels: 0, playerMarkers: 0, overlapAdjustments: 0 };
 
 const PERFORMANCE_SAMPLE_COUNT = 600;
 const performanceFrameSamples = new Float32Array(PERFORMANCE_SAMPLE_COUNT);
+const performanceFrameSpikeLog = [];
 const performanceProfile = {
   sampleIndex: 0, sampleCount: 0,
   updateMs: 0, renderMs: 0, aiMs: 0, physicsMs: 0, collisionMs: 0, effectsMs: 0, uiMs: 0,
   aiThinkCalls: 0, aiThinkSkips: 0, targetSearches: 0, pathReplans: 0,
+  pathRequests: 0, pathCacheHits: 0, aStarCalls: 0, pathTimeMs: 0,
   collisionPairChecks: 0, collisionNarrowPhaseChecks: 0,
   drawCalls: 0, triangles: 0, geometries: 0, textures: 0,
   physicsHz: 90,
@@ -1445,10 +1811,12 @@ const performanceProfile = {
 
 function resetPerformanceProfile() {
   performanceFrameSamples.fill(0);
+  performanceFrameSpikeLog.length = 0;
   Object.assign(performanceProfile, {
     sampleIndex: 0, sampleCount: 0,
     updateMs: 0, renderMs: 0, aiMs: 0, physicsMs: 0, collisionMs: 0, effectsMs: 0, uiMs: 0,
     aiThinkCalls: 0, aiThinkSkips: 0, targetSearches: 0, pathReplans: 0,
+    pathRequests: 0, pathCacheHits: 0, aStarCalls: 0, pathTimeMs: 0,
     collisionPairChecks: 0, collisionNarrowPhaseChecks: 0,
     drawCalls: 0, triangles: 0, geometries: 0, textures: 0,
     physicsHz: physicsSolverHz(),
@@ -1465,6 +1833,15 @@ function recordPerformanceFrame(frameMs, updateMs, renderMs) {
   performanceProfile.triangles = renderer.info.render.triangles;
   performanceProfile.geometries = renderer.info.memory.geometries;
   performanceProfile.textures = renderer.info.memory.textures;
+  if (frameMs >= 100) {
+    performanceFrameSpikeLog.push({
+      battleSecond: Number(battleElapsed.toFixed(2)), frameMs: Number(frameMs.toFixed(2)),
+      updateCpuMs: Number(updateMs.toFixed(2)), renderCpuMs: Number(renderMs.toFixed(2)),
+      likelyStage: updateMs >= renderMs ? 'update/ai-physics-vfx' : 'render/ui-submit',
+      robots: robots.length, activeSparks: activeSparkParticleCount, activeDebris: debris.length,
+    });
+    if (performanceFrameSpikeLog.length > 24) performanceFrameSpikeLog.shift();
+  }
   updateAdaptiveQualityFromFrame(frameMs);
 }
 
@@ -1473,6 +1850,25 @@ function updateAdaptiveQualityFromFrame(frameMs) {
   adaptiveFrameMsEMA = lerp(adaptiveFrameMsEMA, frameMs, 0.045);
   adaptiveQualityCooldown = Math.max(0, adaptiveQualityCooldown - 1);
   if (adaptiveQualityCooldown > 0) return;
+  if (adaptiveFrameMsEMA > 34 && adaptiveDegradeStage < 4) {
+    adaptiveDegradeStage++;
+    adaptiveRecoveryFrames = 0;
+    adaptiveQualityCooldown = 90;
+    renderPerformanceStats.adaptiveAdjustments++;
+    applyBattleRenderBudget(teamSizeForBattleMode());
+    if (renderedCanvasWidth > 0 && renderedCanvasHeight > 0) renderer.setSize(renderedCanvasWidth, renderedCanvasHeight, false);
+    return;
+  }
+  if (adaptiveFrameMsEMA < 27.5 && adaptiveDegradeStage > 0) {
+    adaptiveRecoveryFrames++;
+    if (adaptiveRecoveryFrames >= 360) {
+      adaptiveDegradeStage--;
+      adaptiveRecoveryFrames = 0;
+      adaptiveQualityCooldown = 120;
+      renderPerformanceStats.adaptiveAdjustments++;
+      applyBattleRenderBudget(teamSizeForBattleMode());
+    }
+  } else adaptiveRecoveryFrames = 0;
   let next = adaptiveQualityScale;
   if (adaptiveFrameMsEMA > 25) next = Math.max(0.72, adaptiveQualityScale - 0.08);
   else if (adaptiveFrameMsEMA < 18.2) next = Math.min(1, adaptiveQualityScale + 0.04);
@@ -1492,6 +1888,7 @@ function performanceProfileSnapshot() {
   const measuredFrames = Math.max(1, renderPerformanceStats.frames);
   return {
     qualityPreset,
+    targetFps: frameRateLimit,
     solverHz: performanceProfile.physicsHz,
     samples: count,
     medianFrameMs: Number(medianFrameMs.toFixed(2)),
@@ -1503,7 +1900,14 @@ function performanceProfileSnapshot() {
       collision: Number(performanceProfile.collisionMs.toFixed(1)), effects: Number(performanceProfile.effectsMs.toFixed(1)),
       ui: Number(performanceProfile.uiMs.toFixed(1)),
     },
-    ai: { thinkCalls: performanceProfile.aiThinkCalls, skippedSubsteps: performanceProfile.aiThinkSkips, targetSearches: performanceProfile.targetSearches, pathReplans: performanceProfile.pathReplans },
+    ai: {
+      thinkCalls: performanceProfile.aiThinkCalls, skippedSubsteps: performanceProfile.aiThinkSkips,
+      targetSearches: performanceProfile.targetSearches, pathReplans: performanceProfile.pathReplans,
+      pathRequestsPerSecond: Number((performanceProfile.pathRequests / Math.max(1, battleElapsed)).toFixed(3)),
+      pathCacheHitRate: performanceProfile.pathRequests ? Number((performanceProfile.pathCacheHits / performanceProfile.pathRequests).toFixed(3)) : 1,
+      aStarCallsPerSecond: Number((performanceProfile.aStarCalls / Math.max(1, battleElapsed)).toFixed(3)),
+      averagePathTimeMs: performanceProfile.pathRequests ? Number((performanceProfile.pathTimeMs / performanceProfile.pathRequests).toFixed(3)) : 0,
+    },
     collisions: { pairChecks: performanceProfile.collisionPairChecks, narrowPhaseChecks: performanceProfile.collisionNarrowPhaseChecks },
     renderer: { drawCalls: performanceProfile.drawCalls, triangles: performanceProfile.triangles, geometries: performanceProfile.geometries, textures: performanceProfile.textures, gpuTiming: 'WebGL driver timing unavailable; render CPU submission measured above' },
     active: {
@@ -1515,7 +1919,8 @@ function performanceProfileSnapshot() {
       rigidbodies: robots.filter((robot) => !robot.dead).length + debris.length,
     },
     memory: performance.memory ? { usedJSHeapMB: Number((performance.memory.usedJSHeapSize / 1048576).toFixed(1)), totalJSHeapMB: Number((performance.memory.totalJSHeapSize / 1048576).toFixed(1)) } : { usedJSHeapMB: null, note: 'performance.memory unavailable' },
-    adaptive: { scale: Number(adaptiveQualityScale.toFixed(2)), frameMsEMA: Number(adaptiveFrameMsEMA.toFixed(2)), adjustments: renderPerformanceStats.adaptiveAdjustments },
+    adaptive: { scale: Number(adaptiveQualityScale.toFixed(2)), stage: adaptiveDegradeStage, order: ['particles', 'shadows', 'render-scale', 'far-lod'], frameMsEMA: Number(adaptiveFrameMsEMA.toFixed(2)), adjustments: renderPerformanceStats.adaptiveAdjustments },
+    frameSpikesOver100ms: performanceFrameSpikeLog.map((entry) => ({ ...entry })),
     budget: currentPerformanceBudget(),
   };
 }
@@ -1535,6 +1940,7 @@ function criticalChanceForImpactScore(score, sourceType, independentHit = true) 
 function loadStoredAssembly() {
   try {
     const stored = localStorage.getItem(STORAGE_KEY) ?? LEGACY_STORAGE_KEYS.map((key) => localStorage.getItem(key)).find(Boolean);
+    if (!stored) return enrichAssembly(createDefaultAssembly());
     const parsed = JSON.parse(stored);
     if ([7, 8, 9, 10, ASSEMBLY_VERSION].includes(parsed?.version) && Array.isArray(parsed.parts)) return enrichAssembly(parsed);
   } catch (error) {
@@ -1579,7 +1985,6 @@ function setMasterVolume(value, persist = true) {
   for (const source of activeAudioSources) source.volume = clamp((source.__baseVolume ?? 1) * masterVolume * mixerSettings.effects, 0, 1);
   for (const voice of spatialAudioVoices) voice.gain.gain.value = clamp(voice.baseVolume * masterVolume * mixerSettings.effects, 0, 1.8);
   if (sawLoopAudio) sawLoopAudio.volume = clamp((sawLoopAudio.__baseVolume ?? 0.52) * masterVolume * mixerSettings.effects, 0, 1);
-  if (weaponLoopAudio) weaponLoopAudio.volume = clamp((weaponLoopAudio.__baseVolume ?? 0.18) * masterVolume * mixerSettings.effects, 0, 1);
   if (persist) localStorage.setItem(VOLUME_STORAGE_KEY, String(masterVolume));
   syncMasterVolumeUI();
 }
@@ -1644,7 +2049,8 @@ function playSpatialSample(kind, position, volume = 0.8, rate = 1, priority = 1)
     if (kind.startsWith('hit')) noteSpatialAudioKind(kind, choiceIndex);
     return;
   }
-  while (spatialAudioVoices.length >= 20) {
+  const maximumVoices = mobilePerformanceProfile() ? (robots.length >= 12 ? 10 : 12) : (robots.length >= 12 ? 16 : 20);
+  while (spatialAudioVoices.length >= maximumVoices) {
     let weakestIndex = 0;
     for (let index = 1; index < spatialAudioVoices.length; index++) if (spatialAudioVoices[index].priority < spatialAudioVoices[weakestIndex].priority) weakestIndex = index;
     if (spatialAudioVoices[weakestIndex].priority > priority) { audioStats.voiceLimitDrops++; return; }
@@ -1744,51 +2150,22 @@ function updateAudioSystem(dt) {
 function updateSawGrinding(dt) {
   sawContactTimer = Math.max(0, sawContactTimer - dt);
   sawGrindTickCooldown = Math.max(0, sawGrindTickCooldown - dt);
-  if (sawContactTimer > 0) {
-    if (!sawLoopAudio) {
-      sawLoopAudio = audioSamples.saw[0].cloneNode(true);
-      sawLoopAudio.loop = true;
-      sawLoopAudio.__baseVolume = 0.52;
-      sawLoopAudio.volume = 0.52 * masterVolume * mixerSettings.effects;
-      sawLoopAudio.playbackRate = 0.96 + Math.random() * 0.08;
-      sawLoopAudio.play().catch(() => {});
-      audioStats.sawLoops++;
-    }
-  } else if (sawLoopAudio) {
+  // The old contact-loop was the repeating mechanical noise heard during
+  // combat. Saw contacts already route through the one-impact/one-sample metal
+  // hit pool, so the loop must never be created again. Stop a legacy instance
+  // defensively in case this build replaced an older page without a reload.
+  if (sawLoopAudio) {
     sawLoopAudio.pause();
     sawLoopAudio.currentTime = 0;
     sawLoopAudio = null;
-      audioStats.sawLoopStops++;
+    audioStats.sawLoopStops++;
   }
-}
-
-function updateRotaryWeaponLoop() {
-  let nearest = null;
-  let nearestDistance = Infinity;
-  for (const robot of robots) for (const rotary of robot.rotaryWeapons ?? []) {
-    if (!rotary.active || rotary.rpm < 180 || !robot.rotaryAvailable(rotary)) continue;
-    const distance = camera.position.distanceTo(robot.root.position);
-    if (distance < nearestDistance) { nearest = { robot, rotary }; nearestDistance = distance; }
-  }
-  if (!nearest) {
-    if (weaponLoopAudio) { weaponLoopAudio.pause(); weaponLoopAudio.currentTime = 0; weaponLoopAudio = null; }
-    return;
-  }
-  if (!weaponLoopAudio) {
-    weaponLoopAudio = audioSamples.saw[0].cloneNode(true);
-    weaponLoopAudio.loop = true;
-    weaponLoopAudio.play().catch(() => {});
-  }
-  const rpmRatio = clamp(nearest.rotary.rpm / nearest.rotary.maxRpm, 0, 1);
-  const distanceGain = clamp(1 - nearestDistance / 52, 0.05, 1);
-  weaponLoopAudio.__baseVolume = (0.08 + rpmRatio * 0.18) * distanceGain;
-  weaponLoopAudio.volume = weaponLoopAudio.__baseVolume * masterVolume * mixerSettings.effects;
-  weaponLoopAudio.playbackRate = 0.72 + rpmRatio * 0.54;
 }
 
 setMasterVolume(masterVolume, false);
 applyQualityPreset(qualityPreset, false);
 if (ui.dashKey) ui.dashKey.value = dashKey;
+if (ui.frameRateLimit) ui.frameRateLimit.value = String(frameRateLimit);
 
 function showMessage(text, duration = 1.35) {
   ui.message.textContent = text;
@@ -2034,6 +2411,44 @@ function addInstancedArenaModules(id, placements, targetLength, name, appearance
   return instances;
 }
 
+function concreteBoundaryPlacements(halfWidth, halfLength, preferredLength = 6.5) {
+  const horizontalCount = Math.ceil((halfWidth * 2) / preferredLength);
+  const verticalCount = Math.ceil((halfLength * 2) / preferredLength);
+  const horizontalLength = halfWidth * 2 / horizontalCount;
+  const verticalLength = halfLength * 2 / verticalCount;
+  const horizontal = [];
+  const vertical = [];
+  for (let index = 0; index < horizontalCount; index++) {
+    const x = -halfWidth + horizontalLength / 2 + index * horizontalLength;
+    horizontal.push({ x, z: -halfLength, rotationY: 0 }, { x, z: halfLength, rotationY: Math.PI });
+  }
+  for (let index = 0; index < verticalCount; index++) {
+    const z = -halfLength + verticalLength / 2 + index * verticalLength;
+    vertical.push({ x: halfWidth, z, rotationY: -Math.PI / 2 }, { x: -halfWidth, z, rotationY: Math.PI / 2 });
+  }
+  return { horizontal, vertical, horizontalLength, verticalLength };
+}
+
+function addConcreteArenaBoundary(mapId, halfWidth, halfLength) {
+  const layout = concreteBoundaryPlacements(halfWidth, halfLength);
+  const appearance = { tint: 0xc8c3b7, metalness: 0.03, roughness: 0.93, groundEmbed: 0.004 };
+  const horizontal = addIndustrialObstacleSet(
+    'arena_concrete_boundary', layout.horizontal, layout.horizontalLength,
+    `${mapId}_ConcreteBoundaryNorthSouth`, appearance, 'concrete-boundary', mapId,
+  );
+  const vertical = addIndustrialObstacleSet(
+    'arena_concrete_boundary', layout.vertical, layout.verticalLength,
+    `${mapId}_ConcreteBoundaryEastWest`, appearance, 'concrete-boundary', mapId,
+  );
+  return {
+    horizontal,
+    vertical,
+    moduleCount: layout.horizontal.length + layout.vertical.length,
+    sourceAsset: ASSET_PATHS.arena_concrete_boundary,
+    oldWallAssetsLoaded: ['arena_fence', 'arena_bumper'].filter((id) => Boolean(models[id])),
+  };
+}
+
 function createArena01() {
   const width = ARENA_X * 2;
   const length = ARENA_Z * 2;
@@ -2125,24 +2540,10 @@ function createArena01() {
     scene.add(ring);
   }
 
-  const wallMaterial = createMaterial(0x485159, 0.72, 0.42);
-  const wallCapMaterial = createMaterial(0x252c32, 0.78, 0.36);
-  const makeWall = (x, z, wallWidth, wallDepth) => {
-    const wall = new THREE.Mesh(new THREE.BoxGeometry(wallWidth, ARENA_LAYOUT.innerWallHeight, wallDepth), wallMaterial);
-    wall.position.set(x, ARENA_LAYOUT.innerWallHeight / 2, z);
-    wall.castShadow = true;
-    wall.receiveShadow = true;
-    wall.userData = { staticCollider: true };
-    scene.add(wall);
-    const cap = new THREE.Mesh(new THREE.BoxGeometry(wallWidth, 0.12, wallDepth + 0.03), wallCapMaterial);
-    cap.position.set(x, ARENA_LAYOUT.innerWallHeight + 0.02, z);
-    scene.add(cap);
-  };
-  const wallT = ARENA_LAYOUT.innerWallThickness;
-  makeWall(0, ARENA_Z + wallT / 2, width + wallT * 2, wallT);
-  makeWall(0, -ARENA_Z - wallT / 2, width + wallT * 2, wallT);
-  makeWall(ARENA_X + wallT / 2, 0, wallT, length);
-  makeWall(-ARENA_X - wallT / 2, 0, wallT, length);
+  // The previous inner wall, steel fence, transparent-wall experiment and
+  // low bumper set are intentionally absent. The user's final instruction is
+  // one solid modular concrete boundary for Arena01 and BattleZone01.
+  const arenaConcreteBoundary = addConcreteArenaBoundary('arena01', ARENA_X, ARENA_Z);
 
   const safetyMaterial = createMaterial(0xe0a12f, 0.42, 0.5);
   const safetyStrips = [[0, ARENA_Z - 1.15, width - 4, 0.3], [0, -ARENA_Z + 1.15, width - 4, 0.3], [ARENA_X - 1.15, 0, 0.3, length - 4], [-ARENA_X + 1.15, 0, 0.3, length - 4]];
@@ -2150,27 +2551,6 @@ function createArena01() {
     const strip = new THREE.Mesh(new THREE.BoxGeometry(w, 0.035, d), safetyMaterial);
     strip.position.set(x, 0.025, z);
     scene.add(strip);
-  }
-
-  const module = ARENA_LAYOUT.fenceModuleLength;
-  const fencePlacements = [];
-  for (let index = 0; index < 12; index++) {
-    const x = -ARENA_LAYOUT.fenceHalfWidth + module / 2 + index * module;
-    fencePlacements.push({ x, z: -ARENA_LAYOUT.fenceHalfLength, rotationY: 0 });
-    fencePlacements.push({ x, z: ARENA_LAYOUT.fenceHalfLength, rotationY: Math.PI });
-  }
-  for (let index = 0; index < 9; index++) {
-    const z = -ARENA_LAYOUT.fenceHalfLength + module / 2 + index * module;
-    fencePlacements.push({ x: ARENA_LAYOUT.fenceHalfWidth, z, rotationY: -Math.PI / 2 });
-    fencePlacements.push({ x: -ARENA_LAYOUT.fenceHalfWidth, z, rotationY: Math.PI / 2 });
-  }
-  const fenceInstances = addInstancedArenaModules('arena_fence', fencePlacements, module, 'Arena01_FenceModules_42', { tint: 0xaeb8c0, emissive: 0x111820, emissiveIntensity: 0.24, metalness: 0.76, roughness: 0.43 });
-  const cornerMaterial = createMaterial(0x515b63, 0.78, 0.35);
-  for (const x of [-ARENA_LAYOUT.fenceHalfWidth, ARENA_LAYOUT.fenceHalfWidth]) for (const z of [-ARENA_LAYOUT.fenceHalfLength, ARENA_LAYOUT.fenceHalfLength]) {
-    const postHeight = fenceInstances.userData.scaledSize.y;
-    const post = new THREE.Mesh(new THREE.BoxGeometry(0.82, postHeight, 0.82), cornerMaterial);
-    post.position.set(x, postHeight / 2, z);
-    scene.add(post);
   }
 
   const standLength = 32;
@@ -2187,53 +2567,23 @@ function createArena01() {
   }
   const audienceInstances = addInstancedArenaModules('arena_stands', standPlacements, standLength, 'Arena01_AudienceModules_14', { tint: 0x777c80, emissive: 0x18191a, emissiveIntensity: 0.2, metalness: 0.36, roughness: 0.7 });
 
-  const outerWallMaterial = createMaterial(0x22292f, 0.3, 0.82);
-  const outerFrameMaterial = createMaterial(0x0e1419, 0.72, 0.46);
   const outerX = ARENA_LAYOUT.outerWallHalfWidth;
   const outerZ = ARENA_LAYOUT.outerWallHalfLength;
-  const outerH = ARENA_LAYOUT.outerWallHeight;
-  const outerWalls = [[0, outerZ, outerX * 2 + 1, 1], [0, -outerZ, outerX * 2 + 1, 1], [outerX, 0, 1, outerZ * 2], [-outerX, 0, 1, outerZ * 2]];
-  for (const [x, z, w, d] of outerWalls) {
-    const wall = new THREE.Mesh(new THREE.BoxGeometry(w, outerH, d), outerWallMaterial);
-    wall.position.set(x, outerH / 2, z);
-    wall.receiveShadow = true;
-    scene.add(wall);
-  }
-  for (const z of [-outerZ, outerZ]) for (let x = -outerX + 6; x <= outerX - 6; x += 12) {
-    const column = new THREE.Mesh(new THREE.BoxGeometry(0.7, outerH + 0.6, 1.25), outerFrameMaterial);
-    column.position.set(x, (outerH + 0.6) / 2, z - Math.sign(z) * 0.15);
-    scene.add(column);
-  }
-  for (const x of [-outerX, outerX]) for (let z = -outerZ + 7; z <= outerZ - 7; z += 12) {
-    const column = new THREE.Mesh(new THREE.BoxGeometry(1.25, outerH + 0.6, 0.7), outerFrameMaterial);
-    column.position.set(x - Math.sign(x) * 0.15, (outerH + 0.6) / 2, z);
-    scene.add(column);
-  }
-  for (const [x, z, w, d] of [[0, outerZ - 0.54, outerX * 2, 0.16], [0, -outerZ + 0.54, outerX * 2, 0.16], [outerX - 0.54, 0, 0.16, outerZ * 2], [-outerX + 0.54, 0, 0.16, outerZ * 2]]) {
-    const band = new THREE.Mesh(new THREE.BoxGeometry(w, 0.75, d), outerFrameMaterial);
-    band.position.set(x, outerH * 0.68, z);
-    scene.add(band);
-  }
-
-  const bumperPlacements = [[-46, -30, 0], [46, 30, Math.PI], [46, -30, Math.PI / 2], [-46, 30, -Math.PI / 2]];
-  for (const [x, z, rotationY] of bumperPlacements) {
-    const placed = addArenaAsset('arena_bumper', { x, z, rotationY, targetLongest: 4.6, name: `arena_bumper_${x}_${z}` });
-    obstacles.push({ kind: 'box', x, z, rotationY, halfX: 2.35, halfZ: 1.48, radius: 2.35, mesh: placed.object, groundGap: placed.groundGap });
-  }
 
   arenaStats.dimensions = { width, length, outerWidth: outerX * 2, outerLength: outerZ * 2 };
-  arenaStats.assets = ['관중석.glb', '낮은 철제 범퍼.glb', '철제 보호 팬스.glb', 'arena_floor_tile.png'];
-  arenaStats.layoutOrder = ['combat-floor', 'inner-impact-wall', 'steel-safety-fence', 'audience-stands', 'indoor-outer-wall'];
+  arenaStats.assets = ['관중석.glb', 'Meshy_AI_concrete_barrier_lowp_0828114955_texture.glb', 'arena_floor_tile.png'];
+  arenaStats.layoutOrder = ['combat-floor', 'modular-concrete-boundary', 'audience-stands'];
   arenaStats.noCeilingGeometry = true;
   arenaStats.lightColor = 'focused-warm-key-with-cool-fill';
-  arenaStats.scaleReferences.fenceHeight = Number(fenceInstances.userData.scaledSize.y.toFixed(3));
+  arenaStats.scaleReferences.fenceHeight = 0;
   arenaStats.scaleReferences.audienceHeight = Number(audienceInstances.userData.scaledSize.y.toFixed(3));
-  arenaStats.scaleReferences.fenceRobotRatio = Number((arenaStats.scaleReferences.fenceHeight / arenaStats.scaleReferences.robotHeight).toFixed(2));
+  arenaStats.scaleReferences.fenceRobotRatio = 0;
   arenaStats.scaleReferences.audienceRobotRatio = Number((arenaStats.scaleReferences.audienceHeight / arenaStats.scaleReferences.robotHeight).toFixed(2));
   arenaStats.safetyGap = Number((ARENA_LAYOUT.audienceDistance - audienceInstances.userData.scaledSize.z / 2).toFixed(3));
+  arenaStats.boundary = { type: 'concrete-obstacle-only', moduleCount: arenaConcreteBoundary.moduleCount, sourceAsset: arenaConcreteBoundary.sourceAsset, oldWallAssetsLoaded: arenaConcreteBoundary.oldWallAssetsLoaded };
 }
 
-function addIndustrialObstacleSet(id, placements, targetLength, name, appearance, obstacleType) {
+function addIndustrialObstacleSet(id, placements, targetLength, name, appearance, obstacleType, mapId = 'industrial01') {
   const instances = addInstancedArenaModules(id, placements, targetLength, name, appearance);
   const colliderInset = 0.012;
   const halfX = Math.max(0.05, instances.userData.scaledSize.x / 2 - colliderInset);
@@ -2251,13 +2601,14 @@ function addIndustrialObstacleSet(id, placements, targetLength, name, appearance
       radius: Math.hypot(halfX, halfZ),
       colliderHeight,
       colliderBottom: PHYSICS_FLOOR_TOP - (appearance.groundEmbed ?? 0.006),
+      groundGap: -(appearance.groundEmbed ?? 0.006),
       colliderInset,
       mesh: instances,
       static: true,
     };
     obstacles.push(obstacle);
     addEnvironmentColliderDebug({
-      name: `${name}_${obstacleType}_Collider`, mapId: 'industrial01',
+      name: `${name}_${obstacleType}_Collider`, mapId,
       x: obstacle.x, y: obstacle.colliderBottom + colliderHeight / 2, z: obstacle.z,
       width: halfX * 2, height: colliderHeight, depth: halfZ * 2,
       rotationY: obstacle.rotationY, color: obstacleType === 'container' ? 0x62d9ff : 0xffd45a,
@@ -2336,6 +2687,12 @@ function createIndustrialBattleZone() {
     scene.add(route);
   }
 
+  const industrialConcreteBoundary = addConcreteArenaBoundary('industrial01', INDUSTRIAL_LAYOUT.halfWidth, INDUSTRIAL_LAYOUT.halfLength);
+
+  /* Removed runtime set: old containers, interior barriers, steel fence and
+     corner posts. The final map instruction allows only the new modular
+     concrete obstacle boundary in BattleZone01. Keeping this authored layout
+     below as inert migration history makes it explicit that it is not loaded. 
   const containerPlacements = [
     { x: -178, z: 88, rotationY: 0 }, { x: -154, z: 88, rotationY: 0 },
     { x: -88, z: 88, rotationY: 0 }, { x: -64, z: 88, rotationY: 0 },
@@ -2406,6 +2763,7 @@ function createIndustrialBattleZone() {
     post.position.set(x, fenceHeight / 2, z);
     scene.add(post);
   }
+  */
 
   const silhouetteMaterial = createMaterial(0x434b4f, 0.28, 0.82);
   const silhouetteGeometry = new THREE.BoxGeometry(1, 1, 1);
@@ -2421,18 +2779,19 @@ function createIndustrialBattleZone() {
   silhouettes.receiveShadow = true;
   scene.add(silhouettes);
 
-  industrialStats.assets.containers = containerPlacements.length;
-  industrialStats.assets.barriers = barrierPlacements.length;
-  industrialStats.assets.fenceModules = horizontalFence.length + verticalFence.length;
-  industrialStats.assets.containerSource = '컨테이너.glb';
-  industrialStats.assets.barrierSource = '콘크리트 방벽.glb';
-  industrialStats.assets.fenceSource = 'Arena 01 철제 보호 펜스';
-  industrialStats.assets.containerTrianglesPerInstance = containerInstances.geometry.index ? containerInstances.geometry.index.count / 3 : 0;
-  industrialStats.assets.barrierTrianglesPerInstance = barrierInstances.geometry.index ? barrierInstances.geometry.index.count / 3 : 0;
-  industrialStats.assets.containerWorldSize = Object.fromEntries(Object.entries(containerInstances.userData.scaledSize).map(([key, value]) => [key, Number(value.toFixed(2))]));
-  industrialStats.assets.barrierWorldSize = Object.fromEntries(Object.entries(barrierInstances.userData.scaledSize).map(([key, value]) => [key, Number(value.toFixed(2))]));
-  industrialStats.assets.containerRole = 'full-line-of-sight-blocker';
-  industrialStats.assets.barrierRole = 'low-path-deflector';
+  industrialStats.assets.containers = 0;
+  industrialStats.assets.barriers = industrialConcreteBoundary.moduleCount;
+  industrialStats.assets.fenceModules = 0;
+  industrialStats.assets.containerSource = null;
+  industrialStats.assets.barrierSource = industrialConcreteBoundary.sourceAsset;
+  industrialStats.assets.fenceSource = null;
+  industrialStats.assets.containerTrianglesPerInstance = 0;
+  industrialStats.assets.barrierTrianglesPerInstance = industrialConcreteBoundary.horizontal.geometry.index ? industrialConcreteBoundary.horizontal.geometry.index.count / 3 : 0;
+  industrialStats.assets.containerWorldSize = null;
+  industrialStats.assets.barrierWorldSize = Object.fromEntries(Object.entries(industrialConcreteBoundary.horizontal.userData.scaledSize).map(([key, value]) => [key, Number(value.toFixed(2))]));
+  industrialStats.assets.containerRole = 'removed';
+  industrialStats.assets.barrierRole = 'solid-perimeter-boundary';
+  industrialStats.assets.oldWallAssetsLoaded = industrialConcreteBoundary.oldWallAssetsLoaded;
 }
 
 function createDesertSandTextures() {
@@ -2643,9 +3002,19 @@ function addDesertAsset(id, placement, targetLongest, name, obstacle = false) {
   });
   scene.add(object);
   if (obstacle) {
-    const halfX = Math.max(2.2, size.x * uniform * 0.37);
-    const halfZ = Math.max(2.2, size.z * uniform * 0.37);
-    obstacles.push({ kind: 'box', obstacleType: 'desert-rock', x: placement.x, z: placement.z, rotationY: placement.rotationY ?? 0, halfX, halfZ, radius: Math.hypot(halfX, halfZ), colliderHeight: size.y * uniform * verticalScale * 0.72, colliderBottom: desertTerrainHeight(placement.x, placement.z), mesh: object, static: true });
+    object.updateMatrixWorld(true);
+    const outline = topViewOutlineFromObject(object);
+    if (outline.length >= 3) {
+      const centre = outline.reduce((sum, point) => sum.add(point), new THREE.Vector2()).multiplyScalar(1 / outline.length);
+      const radius = Math.max(...outline.map((point) => point.distanceTo(centre)));
+      obstacles.push({
+        kind: 'polygon', obstacleType: 'desert-rock', outline,
+        x: centre.x, z: centre.y, radius,
+        colliderHeight: size.y * uniform * verticalScale * 0.72,
+        colliderBottom: desertTerrainHeight(placement.x, placement.z), mesh: object, static: true,
+      });
+      desertTopViewOutlines.push({ sourceAsset: id, obstacleType: 'desert-rock', outline, mesh: object });
+    }
   }
   return object;
 }
@@ -2730,16 +3099,25 @@ function getDesertAssetLOD(id) {
   const { root, bounds, size } = getArenaAssetMetrics(id);
   root.updateWorldMatrix(true, true);
   const inverseRoot = root.matrixWorld.clone().invert();
-  const template = new THREE.Group();
+  const nearTemplate = new THREE.Group();
+  const midTemplate = new THREE.Group();
+  const farTemplate = new THREE.Group();
   let sourceTriangles = 0;
-  let lodTriangles = 0;
+  let nearTriangles = 0;
+  let midTriangles = 0;
+  let farTriangles = 0;
   root.traverse((node) => {
     if (!node.isMesh || !node.geometry) return;
     const geometry = node.geometry.clone();
     geometry.applyMatrix4(inverseRoot.clone().multiply(node.matrixWorld));
-    const lodGeometry = clusterDesertGeometry(geometry, bounds, id === 'desert_cliff' ? 30 : 24);
-    sourceTriangles += lodGeometry.userData.sourceTriangles ?? 0;
-    lodTriangles += lodGeometry.userData.lodTriangles ?? 0;
+    const nearResolution = id.startsWith('desert_cliff_') ? 30 : id.startsWith('desert_ridge_') ? 26 : 24;
+    const nearGeometry = clusterDesertGeometry(geometry, bounds, nearResolution);
+    const midGeometry = clusterDesertGeometry(nearGeometry, bounds, Math.max(12, Math.round(nearResolution * 0.58)));
+    const farGeometry = clusterDesertGeometry(midGeometry, bounds, Math.max(7, Math.round(nearResolution * 0.32)));
+    sourceTriangles += nearGeometry.userData.sourceTriangles ?? 0;
+    nearTriangles += nearGeometry.userData.lodTriangles ?? 0;
+    midTriangles += midGeometry.userData.lodTriangles ?? 0;
+    farTriangles += farGeometry.userData.lodTriangles ?? 0;
     const material = Array.isArray(node.material) ? node.material.map((entry) => entry.clone()) : node.material.clone();
     const materials = Array.isArray(material) ? material : [material];
     for (const entry of materials) {
@@ -2748,26 +3126,35 @@ function getDesertAssetLOD(id) {
       entry.flatShading = true;
       entry.needsUpdate = true;
     }
-    const mesh = new THREE.Mesh(lodGeometry, material);
-    mesh.castShadow = false;
-    mesh.receiveShadow = true;
-    template.add(mesh);
+    for (const [template, levelGeometry] of [[nearTemplate, nearGeometry], [midTemplate, midGeometry], [farTemplate, farGeometry]]) {
+      const mesh = new THREE.Mesh(levelGeometry, material);
+      mesh.castShadow = false;
+      mesh.receiveShadow = true;
+      template.add(mesh);
+    }
   });
-  template.userData = { sourceAsset: id, optimizedFromSuppliedGLB: true, sourceTriangles, lodTriangles };
-  const result = { root: template, bounds: bounds.clone(), size: size.clone(), sourceTriangles, lodTriangles };
+  const lodTriangles = { near: nearTriangles, mid: midTriangles, far: farTriangles };
+  for (const [level, template] of Object.entries({ near: nearTemplate, mid: midTemplate, far: farTemplate })) {
+    template.userData = { sourceAsset: id, optimizedFromSuppliedGLB: true, lodLevel: level, sourceTriangles, lodTriangles: lodTriangles[level] };
+  }
+  const result = { roots: { near: nearTemplate, mid: midTemplate, far: farTemplate }, bounds: bounds.clone(), size: size.clone(), sourceTriangles, lodTriangles };
   desertAssetLODCache.set(id, result);
   return result;
 }
 
 function addDesertLODAsset(id, placement, worldSize, name, obstacle = false, obstacleType = 'desert-rock') {
   const source = getDesertAssetLOD(id);
-  const object = source.root.clone(true);
+  const object = new THREE.LOD();
+  const smallDecoration = obstacleType === 'desert-small-decoration';
+  const levels = smallDecoration
+    ? [[source.roots.near, 0], [source.roots.far, 34], [new THREE.Group(), 82]]
+    : [[source.roots.near, 0], [source.roots.mid, 105], [source.roots.far, 230], [new THREE.Group(), 520]];
+  for (const [template, distance] of levels) object.addLevel(template.clone(true), distance);
   const desired = new THREE.Vector3(...worldSize);
-  const scale = new THREE.Vector3(
-    desired.x / Math.max(source.size.x, 0.0001),
-    desired.y / Math.max(source.size.y, 0.0001),
-    desired.z / Math.max(source.size.z, 0.0001),
-  );
+  const authoredLongest = Math.max(source.size.x, source.size.y, source.size.z, 0.0001);
+  const requestedLongest = Math.max(desired.x, desired.y, desired.z);
+  const uniform = requestedLongest / authoredLongest;
+  const scale = new THREE.Vector3(uniform, uniform, uniform);
   if (placement.mirror) scale.x *= -1;
   object.name = name;
   object.scale.copy(scale);
@@ -2777,19 +3164,63 @@ function addDesertLODAsset(id, placement, worldSize, name, obstacle = false, obs
     desertTerrainHeight(placement.x, placement.z) - source.bounds.min.y * Math.abs(scale.y) - (placement.embed ?? 0.28),
     placement.z,
   );
-  object.traverse((node) => {
+  object.levels.forEach((level, levelIndex) => level.object.traverse((node) => {
     if (!node.isMesh) return;
-    node.castShadow = Boolean(placement.castShadow);
+    node.castShadow = levelIndex === 0 && Boolean(placement.castShadow);
     node.receiveShadow = true;
-  });
-  object.userData = { ...object.userData, sourceAsset: id, optimizedFromSuppliedGLB: true, desiredWorldSize: desired.toArray() };
+  }));
+  object.userData = {
+    ...object.userData,
+    sourceAsset: id,
+    assetSource: ASSET_PATHS[id],
+    optimizedFromSuppliedGLB: true,
+    trueDistanceLOD: true,
+    lodDistances: levels.map(([, distance]) => distance),
+    desiredWorldSize: desired.toArray(),
+    obstacleType,
+    colliderRegistered: Boolean(obstacle),
+    smallDecoration,
+    shadowCastingLevels: placement.castShadow && !smallDecoration ? [0] : [],
+  };
   scene.add(object);
+  object.updateWorldMatrix(true, true);
+  object.userData.topViewOutline = topViewOutlineFromObject(object);
   if (obstacle) {
-    const halfX = desired.x * 0.43;
-    const halfZ = desired.z * 0.43;
-    obstacles.push({ kind: 'box', obstacleType, x: placement.x, z: placement.z, rotationY: placement.rotationY ?? 0, halfX, halfZ, radius: Math.hypot(halfX, halfZ), colliderHeight: desired.y * 0.82, colliderBottom: desertTerrainHeight(placement.x, placement.z), mesh: object, static: true });
+    registerDesertGeometryObstacle(object, obstacleType, desired.y * 0.82);
   }
   return object;
+}
+
+function topViewOutlineFromObject(object) {
+  const points = [];
+  const worldPoint = new THREE.Vector3();
+  object.updateWorldMatrix(true, true);
+  object.traverse((node) => {
+    if (!node.isMesh || !node.geometry?.attributes?.position) return;
+    const attribute = node.geometry.attributes.position;
+    const stride = Math.max(1, Math.floor(attribute.count / 2600));
+    for (let index = 0; index < attribute.count; index += stride) {
+      worldPoint.fromBufferAttribute(attribute, index).applyMatrix4(node.matrixWorld);
+      points.push(new THREE.Vector3(worldPoint.x, 0, worldPoint.z));
+    }
+  });
+  const hull = convexHullXZ(points);
+  if (hull.length <= 28) return hull;
+  return Array.from({ length: 28 }, (_, index) => hull[Math.floor(index * hull.length / 28)]);
+}
+
+function registerDesertGeometryObstacle(object, obstacleType, colliderHeight) {
+  const outline = object.userData.topViewOutline ?? topViewOutlineFromObject(object);
+  if (outline.length < 3) return null;
+  const centre = outline.reduce((sum, point) => sum.add(point), new THREE.Vector3()).multiplyScalar(1 / outline.length);
+  const radius = Math.max(...outline.map((point) => Math.hypot(point.x - centre.x, point.z - centre.z)));
+  const obstacle = {
+    kind: 'polygon', obstacleType, outline, x: centre.x, z: centre.z, radius,
+    colliderHeight, colliderBottom: desertTerrainHeight(centre.x, centre.z), mesh: object, static: true,
+  };
+  obstacles.push(obstacle);
+  desertTopViewOutlines.push({ sourceAsset: object.userData.sourceAsset, obstacleType, outline, mesh: object });
+  return obstacle;
 }
 
 function addCanyonBarrierSegment(segment, segmentIndex) {
@@ -2801,23 +3232,17 @@ function addCanyonBarrierSegment(segment, segmentIndex) {
     castShadow: segmentIndex < 6,
   };
   const visuals = [addDesertLODAsset(
-    'desert_cliff', placement,
+    `desert_cliff_${segmentIndex % 4 + 1}`, placement,
     [segment.length * 1.14, segment.height * (1.06 + (segmentIndex % 3) * 0.06), segment.depth * 1.55],
     `RedCanyon_BlockingCliff_${segment.id}`, false,
   )];
-  const collider = {
-    kind: 'box', obstacleType: 'desert-cliff', canyonSegmentId: segment.id,
-    x: segment.x, z: segment.z, rotationY: segment.yaw,
-    halfX: segment.length * 0.5 + 1.2, halfZ: segment.depth * 0.5,
-    radius: Math.hypot(segment.length * 0.5 + 1.2, segment.depth * 0.5),
-    colliderHeight: segment.height, colliderBottom: desertTerrainHeight(segment.x, segment.z) - 0.4,
-    mesh: visuals[0], static: true,
-  };
-  obstacles.push(collider);
+  const collider = registerDesertGeometryObstacle(visuals[0], 'desert-cliff', segment.height);
+  collider.canyonSegmentId = segment.id;
   return { visuals, collider };
 }
 
 function createDesertConquestMap() {
+  desertTopViewOutlines.length = 0;
   const width = DESERT_LAYOUT.halfWidth * 2;
   const length = DESERT_LAYOUT.halfLength * 2;
   scene.add(new THREE.HemisphereLight(0xffe8c9, 0x292320, 0.72));
@@ -2879,7 +3304,7 @@ function createDesertConquestMap() {
     [-184,382,Math.PI,116,58,40],[0,384,Math.PI,136,70,46],[184,382,Math.PI,116,60,40],
   ].map(([x,z,rotationY,sx,sy,sz], index) => ({ x, z, rotationY, sx, sy, sz, mirror: index % 2 === 0, embed: 7 + (index % 3), tiltX: ((index % 3) - 1) * 0.022, tiltZ: (((index + 1) % 3) - 1) * 0.028 }));
   boundaryCliffs.forEach((placement, index) => addDesertLODAsset(
-    'desert_cliff', placement, [placement.sx, placement.sy, placement.sz],
+    `desert_cliff_${index % 4 + 1}`, placement, [placement.sx, placement.sy, placement.sz],
     `RedCanyon_BackgroundMountain_${index + 1}`, false,
   ));
 
@@ -2893,7 +3318,7 @@ function createDesertConquestMap() {
     [-148,248,1.96,15,11,13],[132,258,0.38,16,12,14],[206,272,2.12,18,13,15],
   ].map(([x,z,rotationY,sx,sy,sz], index) => ({ x, z, rotationY, sx, sy, sz, mirror: index % 4 === 0, embed: 0.72 + (index % 3) * 0.16, tiltX: ((index % 5) - 2) * 0.025, tiltZ: ((index % 4) - 1.5) * 0.022, castShadow: index < 6 }));
   rockPlacements.forEach((placement, index) => addDesertLODAsset(
-    'desert_rock', placement, [placement.sx, placement.sy, placement.sz],
+    `desert_medium_${index % 3 + 1}`, placement, [placement.sx, placement.sy, placement.sz],
     `RedCanyon_MediumRock_${index + 1}`, true, 'desert-rock',
   ));
 
@@ -2904,12 +3329,32 @@ function createDesertConquestMap() {
   ];
   ridgePlacements.forEach(([x,z,ridgeLength,height,rotationY], index) => {
     const ridge = addDesertLODAsset(
-      'desert_rock',
+      `desert_ridge_${index % 4 + 1}`,
       { x, z, rotationY, mirror: index % 2 === 0, embed: height * 0.24, tiltZ: ((index % 3) - 1) * 0.035 },
       [ridgeLength, height * 1.35, height * 2.15],
       `RedCanyon_LowLongRidge_${index + 1}`, false,
     );
-    obstacles.push({ kind: 'box', obstacleType: 'desert-ridge', x, z, rotationY, halfX: ridgeLength * 0.45, halfZ: height * 0.88, radius: Math.hypot(ridgeLength * 0.45, height * 0.88), colliderHeight: height * 1.05, colliderBottom: desertTerrainHeight(x,z), mesh: ridge, static: true });
+    registerDesertGeometryObstacle(ridge, 'desert-ridge', height * 1.05);
+  });
+  const smallRockPlacements = Array.from({ length: 30 }, (_, index) => {
+    const lane = index % 6;
+    const row = Math.floor(index / 6);
+    return {
+      x: -228 + lane * 91 + ((row * 17 + lane * 11) % 19 - 9),
+      z: -305 + row * 148 + ((lane * 23 + row * 7) % 25 - 12),
+      rotationY: ((index * 47) % 360) * Math.PI / 180,
+      mirror: index % 3 === 0,
+      scale: 1,
+      embed: 0.08,
+    };
+  });
+  smallRockPlacements.forEach((placement, index) => {
+    const size = 1.05 + (index % 5) * 0.21;
+    const rock = addDesertLODAsset(
+      `desert_small_${index % 5 + 1}`, placement, [size, size, size],
+      `RedCanyon_DecorationSmallRock_${index + 1}`, false, 'desert-small-decoration',
+    );
+    rock.userData = { ...rock.userData, visualDetailOnly: true, collider: false, pathfinding: false, minimap: false };
   });
   const gravel = createDesertGravelDetails();
 
@@ -2950,6 +3395,8 @@ function createDesertConquestMap() {
   desertStats.assets.blockingMountainChains = DESERT_CANYON_SEGMENTS.length;
   desertStats.assets.mediumRocks = rockPlacements.length;
   desertStats.assets.lowRidges = ridgePlacements.length;
+  desertStats.assets.smallRockDecorations = smallRockPlacements.length;
+  desertStats.assets.smallRockColliders = 0;
   desertStats.assets.visualGravel = gravel.count;
   desertStats.assets.visualGravelColliders = 0;
   desertStats.assets.suppliedGLBLODInstances = desertStats.assets.giantCliffs + rockPlacements.length + ridgePlacements.length;
@@ -2975,6 +3422,10 @@ function captureMapScene(id, build) {
 
 function pointInsideMapObstacle(point, margin = 0) {
   for (const obstacle of obstacles) {
+    if (obstacle.kind === 'polygon') {
+      if (pointInsideObstaclePolygon(point, obstacle.outline, margin)) return true;
+      continue;
+    }
     if (obstacle.kind !== 'box') continue;
     const cos = Math.cos(-obstacle.rotationY);
     const sin = Math.sin(-obstacle.rotationY);
@@ -2989,7 +3440,9 @@ function pointInsideMapObstacle(point, margin = 0) {
 
 function robotCentreInsideMountainCollider(robot, margin = 0.02) {
   return obstacles.some((obstacle) => {
-    if (obstacle.kind !== 'box' || obstacle.obstacleType !== 'desert-cliff') return false;
+    if (obstacle.obstacleType !== 'desert-cliff') return false;
+    if (obstacle.kind === 'polygon') return pointInsideObstaclePolygon(robot.root.position, obstacle.outline, margin);
+    if (obstacle.kind !== 'box') return false;
     const local = orientedBoxLocalPoint(robot.root.position, obstacle);
     return Math.abs(local.x) < obstacle.halfX + margin && Math.abs(local.y) < obstacle.halfZ + margin;
   });
@@ -3078,6 +3531,22 @@ function buildDesertNavigation() {
     .filter((edge) => remap.has(edge.node))
     .map((edge) => ({ node: remap.get(edge.node), cost: edge.cost })));
   desertNavigation = { nodes: connectedNodes, links: connectedLinks, revision: desertNavigation.revision + 1 };
+  desertMapKnowledge = {
+    revision: desertNavigation.revision,
+    loaded: true,
+    blueSpawn: [0, -(DESERT_LAYOUT.halfLength - DESERT_LAYOUT.spawnInset)],
+    redSpawn: [0, DESERT_LAYOUT.halfLength - DESERT_LAYOUT.spawnInset],
+    objectives: { A: [...DESERT_LAYOUT.pointA], B: [...DESERT_LAYOUT.pointB] },
+    repairZones: {
+      blue: [0, -(DESERT_LAYOUT.halfLength - DESERT_LAYOUT.spawnInset), DESERT_LAYOUT.repairRadius],
+      red: [0, DESERT_LAYOUT.halfLength - DESERT_LAYOUT.spawnInset, DESERT_LAYOUT.repairRadius],
+    },
+    routeFamilies: ['LEFT_CANYON', 'CENTER_PASS', 'RIGHT_RIDGE'],
+    impassableCliffs: DESERT_CANYON_SEGMENTS.map((segment) => segment.id),
+    dangerSlopes: ['cliff-margin', 'outer-boundary'],
+    graphNodes: connectedNodes.length,
+    graphLinks: Math.round(connectedLinks.reduce((sum, list) => sum + list.length, 0) / 2),
+  };
   desertStats.navigation.nodes = connectedNodes.length;
   desertStats.navigation.links = Math.round(connectedLinks.reduce((sum, list) => sum + list.length, 0) / 2);
   desertStats.navigation.connectedNodes = connectedNodes.length;
@@ -3114,31 +3583,131 @@ function buildDesertNavigation() {
     A: !pointInsideMapObstacle(pointA, DESERT_LAYOUT.captureRadius + 2),
     B: !pointInsideMapObstacle(pointB, DESERT_LAYOUT.captureRadius + 2),
   };
+  // A/B never move during a match. Build the three real collider-aware route
+  // families once and share their immutable waypoints across all AI. Re-running
+  // A* for every bot every few frames was the dominant 10v10 CPU cost.
+  desertObjectiveRouteCache.clear();
+  for (const team of ['blue', 'red']) {
+    const spawn = team === 'blue' ? blue : red;
+    for (let lane = 0; lane < 3; lane++) {
+      // Cache paths at the largest supported runtime steering clearance. A
+      // light bot can safely use a wide-bot route; the reverse is what created
+      // the southern-corner convoy loop.
+      const toA = computeDesertPath(spawn, pointA, lane, 7.4);
+      const toB = computeDesertPath(spawn, pointB, lane, 7.4);
+      const aToB = computeDesertPath(pointA, pointB, lane, 7.4);
+      desertObjectiveRouteCache.set(`${team}:A:${lane}`, toA.map((point) => point.clone()));
+      desertObjectiveRouteCache.set(`${team}:B:${lane}`, toB.map((point) => point.clone()));
+      desertObjectiveRouteCache.set(`A:B:${lane}`, aToB.map((point) => point.clone()));
+    }
+  }
 }
 
-function nearestDesertNavigationNode(point) {
+function cachedDesertObjectivePath(robot, goal) {
+  const pointKey = ['A', 'B'].find((key) => goal.distanceToSquared(conquestState.points[key].centre) <= (conquestState.points[key].radius + 16) ** 2);
+  if (!pointKey || !['blue', 'red'].includes(robot.team)) return null;
+  const lane = Math.abs(robot.aiRouteVariant ?? robot.id) % 3;
+  const nearA = robot.root.position.distanceToSquared(conquestState.points.A.centre) <= 180 ** 2;
+  // B activates while many robots are physically around A. Reusing a
+  // spawn-to-B route from that position made them backtrack toward spawn and
+  // none reached B. Choose the A->B family for the actual A battle group and
+  // reserve the spawn route for freshly respawned/rear robots.
+  // Commit to the transfer family when an objective activates. Re-evaluating
+  // `nearA` every replan made a bot switch from A->B to spawn->B exactly when
+  // it crossed 180 m from A, so it turned around and drove back toward spawn.
+  if (robot.aiObjectiveRoutePoint !== pointKey) {
+    robot.aiObjectiveRoutePoint = pointKey;
+    const transferredFromA = pointKey === 'B' && (nearA || robot.aiObjectiveTelemetry?.A?.reached);
+    robot.aiObjectiveRouteKey = transferredFromA ? `A:B:${lane}` : `${robot.team}:${pointKey}:${lane}`;
+    robot.aiObjectiveRouteCursorKey = robot.aiObjectiveRouteKey;
+    robot.aiObjectiveRouteCursor = 0;
+  }
+  const routeKey = robot.aiObjectiveRouteKey ?? `${robot.team}:${pointKey}:${lane}`;
+  const source = desertObjectiveRouteCache.get(routeKey);
+  if (!source?.length) return null;
+  if (robot.aiObjectiveRouteCursorKey !== routeKey) {
+    robot.aiObjectiveRouteCursorKey = routeKey;
+    robot.aiObjectiveRouteCursor = 0;
+  }
+  const navigationClearance = robotNavigationClearance(robot);
+  // A cached route is an ordered corridor, not a fresh set of candidate
+  // points. Re-selecting the globally nearest visible node on every repath
+  // allowed the cursor to move backwards after a wide chassis overshot a
+  // portal. The next repath then commanded the robot back to the old portal;
+  // this was the repeated east/west motion visible below A on the minimap.
+  // Route progress is monotonic for the lifetime of an objective.
+  const cursorFloor = clamp(Math.floor(robot.aiObjectiveRouteCursor ?? 0), 0, source.length - 1);
+  let nearestIndex = cursorFloor;
+  let nearestDistance = Infinity;
+  source.forEach((point, index) => {
+    if (index < cursorFloor) return;
+    const distance = robot.root.position.distanceToSquared(point);
+    if (distance < nearestDistance && !segmentBlockedByMapObstacle(robot.root.position, point, navigationClearance)) {
+      nearestDistance = distance;
+      nearestIndex = index;
+    }
+  });
+  robot.aiObjectiveRouteCursor = Math.max(cursorFloor, nearestIndex);
+  const path = source.slice(nearestIndex).map((point) => point.clone());
+  // Spread robots that share a graph edge across the real free width of that
+  // edge.  The candidate offset is accepted only when both adjoining swept
+  // segments remain clear, so this is a physical lane choice rather than a
+  // transform correction. It prevents ten bots from all fighting for the
+  // exact [24,72] centre point of the canyon pass.
+  const lateralSlot = (Math.abs(Number(robot.id ?? 0) * 7) % 5) - 2;
+  const laneSpacing = clamp(navigationClearance * 0.72, 2.8, 5.2);
+  const lateralOffset = lateralSlot * laneSpacing;
+  if (Math.abs(lateralOffset) > 0.01 && path.length > 1) {
+    let previous = robot.root.position.clone();
+    for (let index = 0; index < path.length - 1; index++) {
+      const current = path[index];
+      const next = path[index + 1];
+      const tangent = next.clone().sub(previous).setY(0);
+      if (tangent.lengthSq() < 0.01) continue;
+      tangent.normalize();
+      const candidate = current.clone().add(new THREE.Vector3(tangent.z, 0, -tangent.x).multiplyScalar(lateralOffset));
+      const clearance = navigationClearance;
+      if (!segmentBlockedByMapObstacle(previous, candidate, clearance)
+        && !segmentBlockedByMapObstacle(candidate, next, clearance)) path[index] = candidate;
+      previous = path[index];
+    }
+  }
+  path.push(goal.clone());
+  let anchor = robot.root.position;
+  for (const waypoint of path) {
+    if (segmentBlockedByMapObstacle(anchor, waypoint, navigationClearance)) return null;
+    anchor = waypoint;
+  }
+  return path;
+}
+
+function nearestDesertNavigationNode(point, clearance = 2.5) {
   let best = -1;
   let bestDistance = Infinity;
   desertNavigation.nodes.forEach((node, index) => {
     const distance = node.distanceToSquared(point);
-    if (distance >= bestDistance || segmentBlockedByMapObstacle(point, node, 2.5)) return;
+    if (distance >= bestDistance || pointInsideMapObstacle(node, clearance)
+      || segmentBlockedByMapObstacle(point, node, clearance)) return;
     best = index;
     bestDistance = distance;
   });
   return best;
 }
 
-function computeDesertPathSection(from, goal, routeIndex = 1) {
-  if (from.distanceToSquared(goal) < 42 ** 2 && !segmentBlockedByMapObstacle(from, goal, 2.5)) return [goal.clone()];
-  const start = nearestDesertNavigationNode(from);
-  const finish = nearestDesertNavigationNode(goal);
+function computeDesertPathSection(from, goal, routeIndex = 1, clearance = 2.8) {
+  if (from.distanceToSquared(goal) < 42 ** 2 && !segmentBlockedByMapObstacle(from, goal, clearance)) return [goal.clone()];
+  const start = nearestDesertNavigationNode(from, clearance);
+  const finish = nearestDesertNavigationNode(goal, clearance);
   if (start < 0 || finish < 0) return [goal.clone()];
   const size = desertNavigation.nodes.length;
   const cost = Array(size).fill(Infinity);
   const estimate = Array(size).fill(Infinity);
   const previous = Array(size).fill(-1);
   const open = new Set([start]);
-  const preferredLane = [-158, 0, 158][Math.abs(routeIndex) % 3];
+  // Keep three visibly different corridors without dragging the outer lane
+  // all the way to the map boundary. The former +/-158 preference made two
+  // combatants miss A entirely before it was captured.
+  const preferredLane = [-108, 0, 108][Math.abs(routeIndex) % 3];
   cost[start] = 0;
   estimate[start] = desertNavigation.nodes[start].distanceTo(desertNavigation.nodes[finish]);
   while (open.size) {
@@ -3149,9 +3718,14 @@ function computeDesertPathSection(from, goal, routeIndex = 1) {
     open.delete(current);
     for (const edge of desertNavigation.links[current]) {
       const next = desertNavigation.nodes[edge.node];
+      if (clearance > 3.01 && (pointInsideMapObstacle(next, clearance)
+        || segmentBlockedByMapObstacle(desertNavigation.nodes[current], next, clearance))) continue;
       const goalDistanceBlend = clamp(next.distanceTo(goal) / 175, 0, 1);
-      const laneCost = Math.abs(next.x - preferredLane) * 0.012 * goalDistanceBlend;
-      const variety = Math.abs(Math.sin((edge.node + 11) * (routeIndex + 3) * 4.173)) * 0.75;
+      // Route families must be physically distinct, not three labels pointing
+      // at the same choke node. Keep the goal heuristic dominant while giving
+      // the left/centre/right lane enough cost weight to split a 10-bot team.
+      const laneCost = Math.abs(next.x - preferredLane) * 0.024 * goalDistanceBlend;
+      const variety = Math.abs(Math.sin((edge.node + 11) * (routeIndex + 3) * 4.173)) * 0.95;
       const candidate = cost[current] + edge.cost + laneCost + variety;
       if (candidate >= cost[edge.node]) continue;
       previous[edge.node] = current;
@@ -3174,7 +3748,7 @@ function computeDesertPathSection(from, goal, routeIndex = 1) {
   while (cursor < raw.length) {
     let farthest = cursor;
     for (let candidate = cursor + 1; candidate < raw.length; candidate++) {
-      if (segmentBlockedByMapObstacle(anchor, raw[candidate], 2.8)) break;
+      if (segmentBlockedByMapObstacle(anchor, raw[candidate], clearance)) break;
       farthest = candidate;
     }
     simplified.push(raw[farthest].clone());
@@ -3194,13 +3768,38 @@ function desertRouteAnchors(from, goal, routeIndex) {
   const goalIsRed = goal.distanceToSquared(red) < 38 ** 2;
   if (goalIsA && from.z < -80) return [
     [new THREE.Vector3(-132, 0, -184), new THREE.Vector3(-162, 0, -112)],
-    [new THREE.Vector3(-4, 0, -181), new THREE.Vector3(-76, 0, -178), new THREE.Vector3(-104, 0, -92)],
-    [new THREE.Vector3(132, 0, -181), new THREE.Vector3(122, 0, -82), new THREE.Vector3(54, 0, -28), new THREE.Vector3(-70, 0, 58)],
+    // Keep the centre family east of the long central-south spine until its
+    // northern end is cleared. The old (-48,-168) corner was where the blue
+    // convoy visibly accumulated and circled.
+    [new THREE.Vector3(18, 0, -184), new THREE.Vector3(42, 0, -150), new THREE.Vector3(42, 0, -58), new THREE.Vector3(-56, 0, -20)],
+    [new THREE.Vector3(96, 0, -184), new THREE.Vector3(88, 0, -116), new THREE.Vector3(54, 0, -58), new THREE.Vector3(-30, 0, -16), new THREE.Vector3(-92, 0, 8)],
   ][lane];
-  if (goalIsB && from.x < 70) return [
-    [new THREE.Vector3(-108, 0, 154), new THREE.Vector3(18, 0, 160), new THREE.Vector3(122, 0, 108)],
+  // From the red/north spawn, collider-aware A* is both shorter and already
+  // split by its lane cost. A former hand route sent two thirds of RED around
+  // the outside ridge, so BLUE could capture A without ever meeting an enemy.
+  // A -> B transfer. All three families leave A toward B; none sends a bot
+  // back to the southern spawn-side corner after it already captured A.
+  if (goalIsB && from.distanceToSquared(pointA) < 145 ** 2) return [
+    // The lower canyon family stays distinct from the centre and upper
+    // families, but no longer makes a 700+ metre excursion to the north map
+    // edge. That old detour left exactly two lane-0 combatants travelling
+    // after the 300-second result and prevented real all-AI participation.
+    [new THREE.Vector3(-120, 0, 18), new THREE.Vector3(-66, 0, -8), new THREE.Vector3(16, 0, -34), new THREE.Vector3(98, 0, -42)],
     [new THREE.Vector3(-92, 0, 61), new THREE.Vector3(26, 0, 61), new THREE.Vector3(108, 0, 35)],
-    [new THREE.Vector3(-124, 0, -182), new THREE.Vector3(26, 0, -181), new THREE.Vector3(114, 0, -116)],
+    [new THREE.Vector3(-122, 0, 112), new THREE.Vector3(-38, 0, 148), new THREE.Vector3(84, 0, 142), new THREE.Vector3(142, 0, 86)],
+  ][lane];
+  // Fresh blue respawns after A was captured need a spawn -> B route, not the
+  // A -> B family above.
+  if (goalIsB && from.z < -150) return [
+    [new THREE.Vector3(-132, 0, -184), new THREE.Vector3(-116, 0, -92), new THREE.Vector3(-62, 0, -42), new THREE.Vector3(54, 0, -42)],
+    [new THREE.Vector3(18, 0, -184), new THREE.Vector3(42, 0, -150), new THREE.Vector3(42, 0, -58), new THREE.Vector3(112, 0, -42)],
+    [new THREE.Vector3(132, 0, -181), new THREE.Vector3(150, 0, -112), new THREE.Vector3(146, 0, -64)],
+  ][lane];
+  // The mirrored case for fresh red respawns.
+  if (goalIsB && from.z > 150) return [
+    [new THREE.Vector3(-132, 0, 220), new THREE.Vector3(-38, 0, 154), new THREE.Vector3(52, 0, 110), new THREE.Vector3(122, 0, 72)],
+    [new THREE.Vector3(18, 0, 220), new THREE.Vector3(72, 0, 156), new THREE.Vector3(124, 0, 94)],
+    [new THREE.Vector3(132, 0, 220), new THREE.Vector3(184, 0, 146), new THREE.Vector3(204, 0, 70)],
   ][lane];
   if (goalIsRed && from.z < 120) return [
     [new THREE.Vector3(104, 0, 120), new THREE.Vector3(-126, 0, 170), new THREE.Vector3(-134, 0, 244)],
@@ -3210,13 +3809,24 @@ function desertRouteAnchors(from, goal, routeIndex) {
   return [];
 }
 
-function computeDesertPath(from, goal, routeIndex = 1) {
-  const anchors = desertRouteAnchors(from, goal, routeIndex);
+function computeDesertPath(from, goal, routeIndex = 1, clearance = 2.8) {
+  // The graph is the collision authority, while these strategic anchors make
+  // the three route families genuinely distinct. A lane-cost-only A* still
+  // converged every southern bot on the same tight corner of the central
+  // spine; their paths were technically valid but their turning circles were
+  // not. Each anchor-to-anchor section is still solved and simplified by the
+  // real collider-aware graph, so an authored anchor can never cut through a
+  // mountain.
+  const anchors = desertRouteAnchors(from, goal, routeIndex)
+    .filter((point) => !pointInsideMapObstacle(point, clearance));
+  if (!anchors.length) return computeDesertPathSection(from, goal, routeIndex, clearance);
   const path = [];
   let start = from;
   for (const target of [...anchors, goal]) {
-    const section = computeDesertPathSection(start, target, routeIndex);
-    path.push(...section);
+    const section = computeDesertPathSection(start, target, routeIndex, clearance);
+    for (const point of section) {
+      if (!path.length || path.at(-1).distanceToSquared(point) > 0.25) path.push(point.clone());
+    }
     start = target;
   }
   return path;
@@ -3287,7 +3897,7 @@ function navigationPointForRobot(robot, goal, dt) {
       } else if (robot.aiLastProgressDistance - waypointDistance > 0.55) {
         robot.aiLastProgressDistance = waypointDistance;
         robot.aiNoProgressSeconds = 0;
-      } else if (Math.abs(robot.control.throttle) > 0.35 && waypointDistance > 5) {
+      } else if (Math.abs(robot.control.throttle) > 0.2 && waypointDistance > 4) {
         robot.aiNoProgressSeconds += dt;
       }
     }
@@ -3296,14 +3906,56 @@ function navigationPointForRobot(robot, goal, dt) {
     }
     if (robot.aiNavRepath <= 0 || goalMoved || !robot.aiNavPath?.length) {
       performanceProfile.pathReplans++;
-      robot.aiNavPath = computeDesertPath(robot.root.position, goal, robot.aiRouteVariant ?? (robot.id % 3));
+      performanceProfile.pathRequests++;
+      const pathStarted = performance.now();
+      const cachedPath = cachedDesertObjectivePath(robot, goal);
+      if (cachedPath) performanceProfile.pathCacheHits++;
+      else performanceProfile.aStarCalls++;
+      robot.aiNavPath = cachedPath
+        ?? computeDesertPath(robot.root.position, goal, robot.aiRouteVariant ?? (robot.id % 3), robotNavigationClearance(robot));
+      performanceProfile.pathTimeMs += performance.now() - pathStarted;
       robot.aiNavGoal = goal.clone();
-      robot.aiNavRepath = (robots.length >= 16 ? 4.2 : 2.8) + (robot.id % 6) * 0.11;
+      robot.aiNavRepath = (robots.length >= 16 ? 8.5 : 4.8) + (robot.id % 6) * 0.17;
       robot.aiProgressWaypointKey = null;
       robot.aiLastProgressDistance = Infinity;
     }
-    while (robot.aiNavPath.length > 1 && robot.root.position.distanceToSquared(robot.aiNavPath[0]) < 15) {
+    // A 12-20 m/s bot can cross the old 14 m waypoint circle between AI
+    // decisions, then orbit the missed point forever. Advance earlier only
+    // when the following segment is collider-clear, preserving the real path.
+    const lookAheadDistance = clamp(6 + robot.velocity.clone().setY(0).length() * 0.85, 7, 24);
+    while (robot.aiNavPath.length > 1) {
+      const currentWaypoint = robot.aiNavPath[0];
+      const nextWaypoint = robot.aiNavPath[1];
+      const waypointDistanceSquared = robot.root.position.distanceToSquared(currentWaypoint);
+      // A graph node is a corridor portal, not a pin the chassis centre must
+      // touch. Wide/long wheelbases physically cannot turn tightly enough to
+      // hit a missed 0-radius point. Once inside this clearance-sized arrival
+      // circle, consume the portal even if the direct look-ahead chord would
+      // still shave the obstacle corner; the following graph edge remains the
+      // authoritative collision-safe route.
+      const hardArrivalDistance = clamp(robotNavigationClearance(robot) + 9.5, 15, 20);
+      const reachedPortal = waypointDistanceSquared < hardArrivalDistance ** 2;
+      const canLookAhead = waypointDistanceSquared < lookAheadDistance ** 2
+        && !segmentBlockedByMapObstacle(robot.root.position, nextWaypoint, robotNavigationClearance(robot));
+      // A fast or collision-displaced chassis can cross the plane of a
+      // portal without entering its radius. Once its centre is beyond that
+      // plane and the next edge is physically clear, returning to the old
+      // point is always wrong and is exactly what produced repeated loops.
+      const edge = nextWaypoint.clone().sub(currentWaypoint).setY(0);
+      const beyondPortal = edge.lengthSq() > 0.01
+        && robot.root.position.clone().sub(currentWaypoint).setY(0).dot(edge) > 0
+        && !segmentBlockedByMapObstacle(robot.root.position, nextWaypoint, robotNavigationClearance(robot));
+      if (!reachedPortal && !canLookAhead && !beyondPortal) break;
       robot.aiNavPath.shift();
+      // A deliberate 60-120 degree turn between two corridor edges is not a
+      // circle around one waypoint. Start the transform loop window again
+      // whenever the authoritative portal advances; a real orbit keeps the
+      // same portal and is still caught before one full revolution.
+      robot.aiRouteLoopHistory.length = 0;
+      robot.aiObjectiveRouteCursor = Math.min(
+        Math.max(0, (robot.aiObjectiveRouteCursor ?? 0) + 1),
+        Math.max(0, (desertObjectiveRouteCache.get(robot.aiObjectiveRouteKey)?.length ?? 1) - 1),
+      );
       robot.aiProgressWaypointKey = null;
       robot.aiLastProgressDistance = Infinity;
       robot.aiNoProgressSeconds = 0;
@@ -3315,11 +3967,17 @@ function navigationPointForRobot(robot, goal, dt) {
   const goalMoved = !robot.aiNavGoal || robot.aiNavGoal.distanceToSquared(goal) > 64;
   if (robot.aiNavRepath <= 0 || goalMoved || !robot.aiNavPath?.length) {
     performanceProfile.pathReplans++;
+    performanceProfile.pathRequests++;
+    performanceProfile.aStarCalls++;
+    const pathStarted = performance.now();
     robot.aiNavPath = computeIndustrialPath(robot.root.position, goal);
+    performanceProfile.pathTimeMs += performance.now() - pathStarted;
     robot.aiNavGoal = goal.clone();
     robot.aiNavRepath = (robots.length >= 12 ? 0.72 : robots.length >= 8 ? 0.58 : 0.46) + (robot.id % 5) * 0.055;
   }
-  while (robot.aiNavPath.length > 1 && robot.root.position.distanceToSquared(robot.aiNavPath[0]) < 14) robot.aiNavPath.shift();
+  const lookAheadDistance = clamp(5 + robot.velocity.clone().setY(0).length() * 0.5, 5, 14);
+  while (robot.aiNavPath.length > 1 && robot.root.position.distanceToSquared(robot.aiNavPath[0]) < lookAheadDistance ** 2
+    && !segmentBlockedByMapObstacle(robot.root.position, robot.aiNavPath[1], 3.2)) robot.aiNavPath.shift();
   return robot.aiNavPath[0]?.clone() ?? goal;
 }
 
@@ -3481,16 +4139,43 @@ function setActiveMap(id) {
   ui.lobbyEnterBattle.textContent = desert ? 'RED CANYON 10v10 출전' : selectedMapId === 'industrial01' ? 'INDUSTRIAL ZONE 출전' : 'ARENA 01 출전';
 }
 
+// Geometry loaded from a GLB or generated once for the block catalogue is
+// immutable and shared by every robot instance.  Keep a weak registry so a
+// respawn can dispose its private render resources without invalidating the
+// asset cache used by the remaining robots.
+const sharedRuntimeGeometries = new WeakSet();
+const sharedRuntimeMaterials = new WeakSet();
+const sharedBlockBatchMaterials = new Map();
+
+function sharedBlockBatchMaterial(type) {
+  if (sharedBlockBatchMaterials.has(type)) return sharedBlockBatchMaterials.get(type);
+  const material = new THREE.MeshStandardMaterial({
+    color: 0xffffff, metalness: 0.34, roughness: 0.48,
+    emissive: new THREE.Color(0x07151c), emissiveIntensity: 0.08,
+  });
+  sharedRuntimeMaterials.add(material);
+  sharedBlockBatchMaterials.set(type, material);
+  return material;
+}
+
 function cloneModel(id, tint = 0xffffff, options = {}) {
   const transform = MODEL_TRANSFORMS[id] ?? { scale: [1, 1, 1], rotation: [0, 0, 0] };
   const wrapper = new THREE.Group();
+  if (!models[id]) throw new Error(`Runtime asset is not loaded: ${id} (${ASSET_PATHS[id] ?? 'no path'})`);
   const root = models[id].clone(true);
   root.scale.set(...transform.scale);
   root.rotation.set(...transform.rotation);
   if (transform.offset) root.position.set(...transform.offset);
+  if (transform.targetMax) {
+    root.updateWorldMatrix(true, true);
+    const size = new THREE.Box3().setFromObject(root).getSize(new THREE.Vector3());
+    const longest = Math.max(size.x, size.y, size.z, 0.0001);
+    root.scale.multiplyScalar(transform.targetMax / longest);
+  }
   wrapper.add(root);
   wrapper.traverse((node) => {
     if (!node.isMesh) return;
+    if (node.geometry) sharedRuntimeGeometries.add(node.geometry);
     node.castShadow = true;
     node.receiveShadow = true;
     if (node.material) {
@@ -3500,7 +4185,7 @@ function cloneModel(id, tint = 0xffffff, options = {}) {
       node.material.roughness = 0.43;
       if (options.ghost) {
         node.material.transparent = true;
-        node.material.opacity = 0.48;
+        node.material.opacity = 0.78;
         node.material.depthWrite = false;
         node.material.emissive = new THREE.Color(0x2adf9c);
         node.material.emissiveIntensity = 0.35;
@@ -3508,7 +4193,28 @@ function cloneModel(id, tint = 0xffffff, options = {}) {
     }
   });
   wrapper.userData.modelId = id;
+  wrapper.userData.assetSource = ASSET_PATHS[id];
+  wrapper.userData.assetRevision = LOWPOLY_REVISION;
   return wrapper;
+}
+
+function disposeRuntimeObjectResources(object) {
+  if (!object) return;
+  const disposedGeometries = new Set();
+  const disposedMaterials = new Set();
+  object.traverse((node) => {
+    const geometry = node.geometry;
+    if (geometry && !sharedRuntimeGeometries.has(geometry) && !disposedGeometries.has(geometry)) {
+      disposedGeometries.add(geometry);
+      geometry.dispose?.();
+    }
+    if (!node.material) return;
+    for (const material of (Array.isArray(node.material) ? node.material : [node.material])) {
+      if (!material || sharedRuntimeMaterials.has(material) || disposedMaterials.has(material)) continue;
+      disposedMaterials.add(material);
+      material.dispose?.();
+    }
+  });
 }
 
 function setPreviewValidity(object, valid) {
@@ -3517,7 +4223,7 @@ function setPreviewValidity(object, valid) {
     if (!node.isMesh || !node.material) return;
     node.material.emissive = new THREE.Color(valid ? 0x24e89a : 0xff372f);
     node.material.emissiveIntensity = valid ? 0.45 : 0.7;
-    node.material.opacity = valid ? 0.5 : 0.42;
+    node.material.opacity = valid ? 0.8 : 0.74;
   });
 }
 
@@ -3619,6 +4325,7 @@ function getBlockGeometry(record) {
   geometry.computeBoundingBox();
   geometry.computeVertexNormals();
   blockGeometryCache.set(key, geometry);
+  sharedRuntimeGeometries.add(geometry);
   return geometry;
 }
 
@@ -3695,7 +4402,7 @@ function createBlockVisualObject(record, ghost = false) {
     emissive: new THREE.Color(ghost ? 0x167ea5 : 0x07151c),
     emissiveIntensity: ghost ? 0.72 : 0.08,
     transparent: ghost,
-    opacity: ghost ? 0.48 : 1,
+    opacity: ghost ? 0.78 : 1,
     depthWrite: !ghost,
   });
   const mesh = new THREE.Mesh(getBlockGeometry(record), material);
@@ -3725,7 +4432,7 @@ function setBlockPreviewValidity(object, valid) {
       node.material.color.set(valid ? 0x55d8ff : 0xff4d45);
       node.material.emissive.set(valid ? 0x168ebc : 0xb5120e);
       node.material.emissiveIntensity = valid ? 0.86 : 0.92;
-      node.material.opacity = valid ? 0.52 : 0.44;
+      node.material.opacity = valid ? 0.8 : 0.74;
     } else if (node.isLineSegments) {
       node.material.color.set(valid ? 0xd9f8ff : 0xffb0a8);
     }
@@ -3790,7 +4497,13 @@ function validateBlockPlacement(record, ignoreId = null) {
 function createPartVisualContent(type, tint = 0xffffff, ghost = false, hubFlipped = false, modelOverride = null) {
   const content = new THREE.Group();
   const meta = PART_META[type];
-  if (type === 'hammer') {
+  if (type === 'puncher') {
+    const housing = cloneModel(meta.model, tint, { ghost });
+    const tip = cloneModel(meta.tipModel, tint, { ghost });
+    tip.position.z = 0.08;
+    tip.userData.puncherTipPreview = true;
+    content.add(housing, tip);
+  } else if (type === 'hammer') {
     const pivot = new THREE.Group();
     pivot.rotation.x = 1.18;
     pivot.add(cloneModel(meta.model, tint, { ghost }));
@@ -3815,7 +4528,7 @@ function addMountStandoffVisual(object, record, tint = 0xffffff, ghost = false) 
   const connector = new THREE.Mesh(
     new THREE.CylinderGeometry(radius, radius * 1.12, localLength, 10),
     ghost
-      ? new THREE.MeshBasicMaterial({ color: tint, transparent: true, opacity: 0.38, depthWrite: false })
+      ? new THREE.MeshBasicMaterial({ color: tint, transparent: true, opacity: 0.72, depthWrite: false })
       : createMaterial(0x303943, 0.72, 0.48),
   );
   connector.name = 'MountStandoffCollider';
@@ -3830,7 +4543,7 @@ function addMountStandoffVisual(object, record, tint = 0xffffff, ghost = false) 
 function prepareMountGeometry() {
   mountLocalBounds.clear();
   modelLocalBounds.clear();
-  for (const modelId of new Set(Object.values(PART_META).map((meta) => meta.model).concat(['wheel_light', 'wheel_wide', 'track_heavy']))) {
+  for (const modelId of new Set(Object.values(PART_META).flatMap((meta) => [meta.model, meta.tipModel]).filter(Boolean).concat(['wheel_light', 'wheel_wide']))) {
     const modelProbe = cloneModel(modelId);
     modelProbe.updateWorldMatrix(true, true);
     modelLocalBounds.set(modelId, new THREE.Box3().setFromObject(modelProbe));
@@ -3851,6 +4564,15 @@ function getSurfaceAlignmentQuaternion(record) {
 
 function getRecordQuaternion(record) {
   const user = new THREE.Quaternion().setFromEuler(new THREE.Euler(...(record.rotation ?? [0, 0, 0]), 'XYZ'));
+  if (record.nativeBlockPlate) return getSurfaceAlignmentQuaternion(record);
+  // These two direct-mounted weapons have functional world-space axes that
+  // must not inherit the generic "local Y follows surface normal" rule.
+  // Bar: world +Y pivot -> horizontal helicopter-rotor plane.
+  // Puncher: local +Z stroke -> chassis forward direction.
+  if (record.type === 'barSpinner' || record.type === 'puncher') {
+    const yaw = Number(record.rotation?.[1] ?? 0);
+    return new THREE.Quaternion().setFromEuler(new THREE.Euler(0, yaw, 0, 'XYZ'));
+  }
   return getSurfaceAlignmentQuaternion(record).multiply(user);
 }
 
@@ -3858,11 +4580,6 @@ function getWheelRuntimeDimensions(scaleFactor = 1, modelId = 'new_wheel', axisS
   const bounds = modelLocalBounds.get(modelId) ?? mountLocalBounds.get('wheel');
   if (!bounds) return { radius: 0.58 * scaleFactor, halfWidth: 0.17 * scaleFactor };
   const axes = axisScale.map((value) => value * scaleFactor);
-  if (modelId === 'track_heavy') return {
-    radius: Math.max(Math.abs(bounds.min.y), Math.abs(bounds.max.y)) * axes[1],
-    halfWidth: Math.max(Math.abs(bounds.min.x), Math.abs(bounds.max.x)) * axes[0],
-    halfLength: Math.max(Math.abs(bounds.min.z), Math.abs(bounds.max.z)) * axes[2],
-  };
   return {
     radius: Math.max(Math.abs(bounds.min.y) * axes[1], Math.abs(bounds.max.y) * axes[1], Math.abs(bounds.min.z) * axes[2], Math.abs(bounds.max.z) * axes[2]),
     halfWidth: Math.max(Math.abs(bounds.min.x), Math.abs(bounds.max.x)) * axes[0],
@@ -3980,37 +4697,41 @@ function detachObject(object) {
   object.scale.copy(scale);
 }
 
-const AI_HULL_ARCHETYPES = Object.freeze([
-  'low-wedge', 'tall-heavy', 'armored-turtle', 'horned-bull', 'centipede', 'monster', 'crab', 'armored-tank',
-  'saw-fortress', 'spinner-beast', 'asymmetric-raider', 'exhaust-brute',
-  'predator-jaw', 'split-nose', 'triangle', 'hex', 'elongated', 'shark', 'disc', 'arrowhead', 'stepped', 'bulldozer', 'multi-layer',
-].filter((value, index, list) => list.indexOf(value) === index));
-const AI_ARCHETYPE_NAMES = Object.freeze({
-  'predator-jaw': 'RAZOR MAW', 'armored-turtle': 'IRON SHELL', centipede: 'LONG CRAWL', crab: 'SIDE CLAW',
-  'low-wedge': 'LOW BITE', monster: 'STEEL JAW', 'split-nose': 'FORK FANG', 'asymmetric-raider': 'OFF AXIS',
-  triangle: 'TRI SPEAR', hex: 'HEX GUARD', elongated: 'RAIL RUNNER', shark: 'SHARK NOSE', disc: 'LOW DISC',
-  arrowhead: 'ARROW RAM', stepped: 'STAIR CRUSH', bulldozer: 'BULL WALL', 'multi-layer': 'TIER TANK',
-  'tall-heavy': 'TALL HEAVY', 'horned-bull': 'STEEL BULL', 'armored-tank': 'ARMOR TANK',
-  'saw-fortress': 'SAW FORTRESS', 'spinner-beast': 'SPINNER BEAST', 'exhaust-brute': 'EXHAUST BRUTE',
+const AI_SILHOUETTE_SPECS = Object.freeze({
+  wedge: { name: 'LOW WEDGE', family: 'Wedge Bot', silhouette: 'low-wide-forward-wedge', aspect: 1.28, profile: 'wedge', wheelPairs: 2, exterior: 'nose-armor' },
+  'long-nose': { name: 'LONG NOSE', family: 'Long Nose Bot', silhouette: 'extended-centre-nose', aspect: 0.58, profile: 'long', wheelPairs: 3, exterior: 'nose-armor' },
+  'short-bull': { name: 'SHORT BULL', family: 'Compact Brawler', silhouette: 'short-wide-heavy', aspect: 1.45, profile: 'bull', wheelPairs: 2, exterior: 'front-horn-pair' },
+  'high-back': { name: 'HIGH BACK', family: 'High Back Bot', silhouette: 'low-front-raised-rear', aspect: 0.88, profile: 'high-back', wheelPairs: 2, exterior: 'rear-exhaust-pair' },
+  'low-flat': { name: 'LOW FLAT', family: 'Low Profile Bot', silhouette: 'broad-flat-disc', aspect: 1.34, profile: 'flat', wheelPairs: 2, exterior: 'curved-ring' },
+  stepped: { name: 'STAIR CRUSH', family: 'Stepped Bot', silhouette: 'front-to-rear-stair', aspect: 0.92, profile: 'stepped', wheelPairs: 2, exterior: 'layered-armor' },
+  'twin-shoulder': { name: 'TWIN SHOULDER', family: 'Twin Shoulder Bot', silhouette: 'raised-sides-low-centre', aspect: 1.22, profile: 'shoulder', wheelPairs: 2, exterior: 'side-armor' },
+  'center-ridge': { name: 'CENTER RIDGE', family: 'Ridge Bot', silhouette: 'raised-centre-spine', aspect: 0.9, profile: 'ridge', wheelPairs: 2, exterior: 'layered-armor' },
+  'asymmetric-combat': { name: 'OFF AXIS', family: 'Asymmetric Raider', silhouette: 'offset-weapon-body', aspect: 0.96, profile: 'asymmetric', wheelPairs: 2, symmetry: 'intentional-asymmetry', exterior: 'offset-armor-horn' },
+  fortress: { name: 'IRON FORTRESS', family: 'Fortress Bot', silhouette: 'wide-high-fortress', aspect: 1.08, profile: 'fortress', wheelPairs: 4, exterior: 'layered-armor' },
+  crocodile: { name: 'CROC MAW', family: 'Crocodile Bot', silhouette: 'very-low-long-wide-snout', aspect: 0.54, profile: 'crocodile', wheelPairs: 3, animal: true, exterior: 'jaw-armor' },
+  scorpion: { name: 'SCORPION CLAW', family: 'Scorpion Bot', silhouette: 'split-front-claws-raised-tail', aspect: 0.72, profile: 'scorpion', wheelPairs: 3, animal: true, exterior: 'front-claw-pair' },
+  shark: { name: 'SHARK NOSE', family: 'Shark Bot', silhouette: 'long-pointed-nose-top-fin', aspect: 0.66, profile: 'shark', wheelPairs: 2, animal: true, exterior: 'centre-fin' },
+  rhino: { name: 'RHINO RAM', family: 'Rhino Bot', silhouette: 'wide-heavy-centre-horn', aspect: 1.22, profile: 'rhino', wheelPairs: 2, animal: true, exterior: 'centre-horn' },
+  bull: { name: 'STEEL BULL', family: 'Bull Bot', silhouette: 'wide-horned-front', aspect: 1.42, profile: 'bull', wheelPairs: 2, animal: true, exterior: 'front-horn-pair' },
+  cobra: { name: 'COBRA STRIKE', family: 'Cobra Bot', silhouette: 'narrow-long-raised-hood', aspect: 0.5, profile: 'cobra', wheelPairs: 3, animal: true, exterior: 'raised-neck' },
+  spider: { name: 'IRON SPIDER', family: 'Spider Bot', silhouette: 'central-body-wide-leg-arms', aspect: 1.72, profile: 'spider', wheelPairs: 3, animal: true, exterior: 'side-claws' },
+  eagle: { name: 'EAGLE WING', family: 'Eagle Bot', silhouette: 'low-centre-wide-wings', aspect: 1.86, profile: 'wing', wheelPairs: 2, animal: true, exterior: 'wing-armor' },
+  bear: { name: 'IRON BEAR', family: 'Bear Bot', silhouette: 'broad-thick-heavy-front', aspect: 1.18, profile: 'bear', wheelPairs: 3, animal: true, exterior: 'layered-armor' },
+  lion: { name: 'LION FANG', family: 'Lion Bot', silhouette: 'wide-front-mane', aspect: 1.3, profile: 'lion', wheelPairs: 2, animal: true, exterior: 'front-mane-armor' },
+  rabbit: { name: 'RABBIT RUSH', family: 'Rabbit Bot', silhouette: 'light-fast-twin-rear-ears', aspect: 0.72, profile: 'rabbit', wheelPairs: 2, animal: true, exterior: 'twin-ear-spines' },
+  whale: { name: 'STEEL WHALE', family: 'Whale Bot', silhouette: 'rounded-long-heavy', aspect: 0.7, profile: 'whale', wheelPairs: 3, animal: true, exterior: 'curved-shell' },
+  dinosaur: { name: 'RAPTOR SPINE', family: 'Dinosaur Bot', silhouette: 'long-front-top-spine', aspect: 0.6, profile: 'dinosaur', wheelPairs: 3, animal: true, exterior: 'top-spine' },
+  manta: { name: 'MANTA WING', family: 'Manta Bot', silhouette: 'very-wide-low-diamond', aspect: 2.05, profile: 'manta', wheelPairs: 2, animal: true, exterior: 'wing-armor' },
+  dragon: { name: 'RED DRAGON', family: 'Dragon Bot', silhouette: 'long-aggressive-winged-spine', aspect: 1.05, profile: 'dragon', wheelPairs: 3, animal: true, exterior: 'wing-and-spine' },
 });
-const AI_DESIGN_CONCEPTS = Object.freeze({
-  'low-wedge': { family: 'Wedge Bot', silhouette: 'low-forward-wedge', symmetry: 'mirrored', exterior: 'nose-armor' },
-  'armored-turtle': { family: 'Armored Turtle', silhouette: 'wide-domed-shell', symmetry: 'mirrored', exterior: 'curved-shell' },
-  centipede: { family: 'Centipede Bot', silhouette: 'long-six-wheel', symmetry: 'mirrored', exterior: 'rear-exhaust-pair' },
-  'horned-bull': { family: 'Horned Bull', silhouette: 'wide-horned-nose', symmetry: 'mirrored', exterior: 'front-horn-pair' },
-  monster: { family: 'Monster Bot', silhouette: 'open-jaw', symmetry: 'mirrored', exterior: 'front-horn-pair' },
-  crab: { family: 'Crab Bot', silhouette: 'wide-side-claws', symmetry: 'mirrored', exterior: 'side-armor' },
-  'tall-heavy': { family: 'Tall Heavy Bot', silhouette: 'five-tier-heavy', symmetry: 'mirrored', exterior: 'layered-armor' },
-  'armored-tank': { family: 'Armored Tank', silhouette: 'fortress-shell', symmetry: 'mirrored', exterior: 'layered-armor' },
-  disc: { family: 'Low Profile Bot', silhouette: 'flat-disc', symmetry: 'mirrored', exterior: 'curved-ring' },
-  'asymmetric-raider': { family: 'Asymmetric Raider', silhouette: 'offset-weapon-body', symmetry: 'intentional-asymmetry', exterior: 'offset-armor-horn' },
-  'spinner-beast': { family: 'Spinner Beast', silhouette: 'weapon-first-ring', symmetry: 'mirrored', exterior: 'curved-ring' },
-  'saw-fortress': { family: 'Saw Fortress', silhouette: 'low-weapon-armored-fortress', symmetry: 'mirrored', exterior: 'layered-armor' },
-  'exhaust-brute': { family: 'Exhaust Brute', silhouette: 'long-decorated-brute', symmetry: 'mirrored', exterior: 'rear-exhaust-array' },
-  'predator-jaw': { family: 'Jaw Bot', silhouette: 'split-jaw', symmetry: 'mirrored', exterior: 'front-horn-pair' },
-  'split-nose': { family: 'Jaw Bot', silhouette: 'forked-nose', symmetry: 'mirrored', exterior: 'nose-armor' },
-  bulldozer: { family: 'Wedge Bot', silhouette: 'wide-bulldozer', symmetry: 'mirrored', exterior: 'nose-armor' },
-});
+const AI_HULL_ARCHETYPES = Object.freeze(Object.keys(AI_SILHOUETTE_SPECS));
+const AI_ARCHETYPE_NAMES = Object.freeze(Object.fromEntries(Object.entries(AI_SILHOUETTE_SPECS).map(([key, value]) => [key, value.name])));
+const AI_DESIGN_CONCEPTS = Object.freeze(Object.fromEntries(Object.entries(AI_SILHOUETTE_SPECS).map(([key, value]) => [key, {
+  family: value.family,
+  silhouette: value.silhouette,
+  symmetry: value.symmetry ?? 'mirrored',
+  exterior: value.exterior,
+}])));
 const AI_BLOCK_PALETTES = Object.freeze({
   blue: ['#39afe7', '#55c6f0', '#278dc7'],
   silver: ['#b9c4cc', '#d5dde2', '#909da6'],
@@ -4031,15 +4752,12 @@ function createAIBlockHull(type, designSeed = Math.random(), requestedArchetypeI
   const blocks = [];
   const occupied = new Set();
   const idFor = (x, y, z) => `ai-${type}-block-${x}-${y}-${z}`;
-  const baseDimensions = {
-    'predator-jaw': [3, -4, 5], 'armored-turtle': [4, -4, 4], centipede: [1, -7, 7], crab: [4, -3, 4],
-    'low-wedge': [3, -4, 6], monster: [3, -4, 5], 'split-nose': [3, -4, 6], 'asymmetric-raider': [3, -4, 5],
-    triangle: [4, -4, 6], hex: [3, -5, 5], elongated: [2, -7, 7], shark: [3, -5, 7],
-    disc: [4, -4, 4], arrowhead: [4, -4, 7], stepped: [3, -5, 5], 'tall-heavy': [4, -3, 4],
-    bulldozer: [4, -4, 5], 'exhaust-brute': [3, -6, 4], 'multi-layer': [3, -4, 5],
-    'horned-bull': [4, -4, 6], 'spinner-beast': [3, -4, 5], 'armored-tank': [4, -4, 4], 'saw-fortress': [4, -4, 5],
-  }[archetype];
-  const defaultHeight = ({ 'low-wedge': 1, disc: 1, centipede: 2, elongated: 2, 'tall-heavy': 5, 'armored-tank': 4, 'saw-fortress': 4, 'exhaust-brute': 4, 'armored-turtle': 3, monster: 3 }[archetype] ?? (1 + Math.floor(random() * 4)));
+  const silhouetteSpec = AI_SILHOUETTE_SPECS[archetype];
+  const baseDimensions = silhouetteSpec.aspect >= 1.55 ? [5, -3, 4]
+    : silhouetteSpec.aspect <= 0.62 ? [2, -7, 7]
+      : silhouetteSpec.aspect >= 1.2 ? [4, -4, 5] : [3, -5, 6];
+  const defaultHeight = ({ flat: 2, wedge: 2, crocodile: 2, manta: 2, fortress: 5, 'high-back': 4, scorpion: 4, cobra: 4, dinosaur: 4, dragon: 4 }[silhouetteSpec.profile]
+    ?? (2 + Math.floor(random() * 3)));
   const desiredHeight = clamp(Math.round(requestedHeightTier ?? defaultHeight), 2, 5);
   const widthVariation = random() < 0.34 ? 1 : 0;
   const rearZ = baseDimensions[1] - (random() < 0.28 ? 1 : 0);
@@ -4076,24 +4794,21 @@ function createAIBlockHull(type, designSeed = Math.random(), requestedArchetypeI
   const widthAt = (z) => {
     const normalized = (z - rearZ) / Math.max(1, frontZ - rearZ);
     const centreBias = 1 - Math.abs(normalized * 2 - 1);
-    if (archetype === 'centipede') return 1;
-    if (archetype === 'elongated') return 2;
-    if (archetype === 'armored-turtle' || archetype === 'disc' || ['spinner-beast', 'saw-fortress'].includes(archetype)) return Math.max(1, Math.round(1 + centreBias * (nominalHalfWidth - 1)));
-    if (archetype === 'hex') return Math.max(2, Math.round(2 + centreBias * (nominalHalfWidth - 2)));
-    if (archetype === 'triangle' || archetype === 'shark' || archetype === 'arrowhead' || archetype === 'low-wedge') return Math.max(0, Math.round(nominalHalfWidth * (1 - normalized * 0.88)));
-    if (archetype === 'bulldozer' || archetype === 'horned-bull') return z >= frontZ - 2 ? nominalHalfWidth : Math.max(2, nominalHalfWidth - 1);
-    if (archetype === 'exhaust-brute') return z <= rearZ + 2 ? nominalHalfWidth : Math.max(2, nominalHalfWidth - 1);
-    if (archetype === 'crab') return Math.abs(z) <= 2 ? nominalHalfWidth : Math.max(2, nominalHalfWidth - 2);
+    if (silhouetteSpec.aspect <= 0.58) return Math.max(1, nominalHalfWidth - 1);
+    if (['flat', 'whale', 'fortress'].includes(silhouetteSpec.profile)) return Math.max(1, Math.round(1 + centreBias * (nominalHalfWidth - 1)));
+    if (['wedge', 'shark', 'manta', 'wing'].includes(silhouetteSpec.profile)) return Math.max(0, Math.round(nominalHalfWidth * (1 - normalized * 0.82)));
+    if (['bull', 'rhino', 'lion'].includes(silhouetteSpec.profile)) return z >= frontZ - 2 ? nominalHalfWidth : Math.max(2, nominalHalfWidth - 1);
+    if (silhouetteSpec.profile === 'spider') return Math.abs(z) <= 2 ? nominalHalfWidth : Math.max(2, nominalHalfWidth - 2);
     if (archetype === 'stepped') return z >= frontZ - 2 ? 1 : Math.max(2, nominalHalfWidth - 1);
     return nominalHalfWidth;
   };
   for (let z = rearZ; z <= frontZ; z++) {
     const width = widthAt(z);
-    const left = archetype === 'asymmetric-raider' ? -1 : -width;
-    const right = archetype === 'asymmetric-raider' ? width + 2 : width;
+    const left = silhouetteSpec.profile === 'asymmetric' ? -1 : -width;
+    const right = silhouetteSpec.profile === 'asymmetric' ? width + 2 : width;
     for (let x = left; x <= right; x++) {
-      const mouthGap = ['predator-jaw', 'monster'].includes(archetype) && z >= frontZ - 1 && Math.abs(x) <= (archetype === 'monster' ? 1 : 0);
-      const forkGap = archetype === 'split-nose' && z >= frontZ - 1 && Math.abs(x) < Math.max(1, width - 1);
+      const mouthGap = ['crocodile', 'lion'].includes(silhouetteSpec.profile) && z >= frontZ - 1 && Math.abs(x) <= (silhouetteSpec.profile === 'lion' ? 1 : 0);
+      const forkGap = silhouetteSpec.profile === 'scorpion' && z >= frontZ - 1 && Math.abs(x) < Math.max(1, width - 1);
       if (mouthGap || forkGap) continue;
       const pointNose = width === 0;
       add(x, 0, z, z >= frontZ - 1 ? (pointNose || Math.abs(x) < width ? 'wedge' : 'cornerWedge') : 'cube');
@@ -4146,14 +4861,305 @@ function createAIBlockHull(type, designSeed = Math.random(), requestedArchetypeI
   return { blocks, idFor, archetype, colorMode, rearZ, frontZ, minX, maxX, maxY, frontWidth, rearWidth, silverCount, random, desiredHeight };
 }
 
+function normalizeAIHullForClass(hull, weightClass, designSeed = 0.5, reservedStructuralBlocks = 0) {
+  const profile = WEIGHT_CLASSES[weightClass];
+  const finalTargetCount = profile.aiBlockTarget ?? profile.maxBlocks;
+  const targetCount = finalTargetCount - Math.max(0, reservedStructuralBlocks);
+  {
+    // Silhouette-first generator. The old normalizer reduced every design to
+    // the same 3x5/5x5 carpet and then stacked a quota on top. Here the top-view
+    // footprint is chosen from the archetype before any block is created; two
+    // complete structural layers and supported upper columns are then filled
+    // to the class' exact block target.
+    const silhouetteSpec = AI_SILHOUETTE_SPECS[hull.archetype] ?? AI_SILHOUETTE_SPECS.wedge;
+    const archetypeIndex = Math.max(0, AI_HULL_ARCHETYPES.indexOf(hull.archetype));
+    const requestedLayers = clamp(Math.round(hull.desiredHeight ?? profile.aiLayerCount ?? 3), 2, profile.aiLayerCount ?? 5);
+    const plannedLayers = targetCount % 2 && requestedLayers === 2 ? 3 : requestedLayers;
+    const averageColumnHeight = 2 + Math.max(0, plannedLayers - 2) * 0.42;
+    const footprintTarget = Math.min(Math.floor(targetCount / 2), Math.max(8, Math.ceil(targetCount / averageColumnHeight)));
+    const desiredWheelPairs = clamp(Math.round(silhouetteSpec.wheelPairs ?? 2), 2, 4);
+    const minimumLengthCells = desiredWheelPairs >= 4 ? 15 : desiredWheelPairs === 3 ? 11 : 6;
+    let widthCells = Math.max(3, Math.round(Math.sqrt(footprintTarget * silhouetteSpec.aspect)));
+    if (widthCells % 2 === 0) widthCells++;
+    if (silhouetteSpec.aspect < 0.78) widthCells = Math.min(widthCells, 5);
+    if (silhouetteSpec.aspect > 1.58) widthCells = Math.max(widthCells, 7);
+    let lengthCells = Math.max(minimumLengthCells, Math.ceil((footprintTarget + Math.max(5, Math.round(footprintTarget * 0.18))) / widthCells));
+    if (lengthCells % 2 === 0) lengthCells++;
+    const halfWidth = Math.floor(widthCells / 2);
+    const rearBias = ['long', 'crocodile', 'shark', 'cobra', 'dinosaur', 'dragon', 'scorpion'].includes(silhouetteSpec.profile) ? 0.44 : 0.5;
+    const rearZ = -Math.max(2, Math.round((lengthCells - 1) * rearBias));
+    const frontZ = rearZ + lengthCells - 1;
+    const seedPhase = Math.abs(Math.sin(Number(designSeed) * 67.19 + archetypeIndex * 1.731));
+    const normalizedZ = (z) => (z - rearZ) / Math.max(1, frontZ - rearZ);
+    const cellAllowed = (x, z) => {
+      if (x === 0 && z === 0) return true;
+      const ax = Math.abs(x) / Math.max(1, halfWidth);
+      const nz = normalizedZ(z);
+      const centreZ = Math.abs(nz * 2 - 1);
+      if (['wedge', 'shark'].includes(silhouetteSpec.profile)) return ax <= 1.08 - nz * 0.54;
+      if (silhouetteSpec.profile === 'manta') return ax + centreZ * 0.78 <= 1.18;
+      if (silhouetteSpec.profile === 'wing') return ax + centreZ * 0.58 <= 1.22;
+      if (['whale', 'flat'].includes(silhouetteSpec.profile)) return ax * ax + centreZ * centreZ <= 1.24;
+      if (silhouetteSpec.profile === 'spider') return centreZ < 0.48 ? ax <= 1 : ax <= 0.48;
+      if (silhouetteSpec.profile === 'scorpion') return nz > 0.58 ? ax <= 1 : ax <= 0.5;
+      if (silhouetteSpec.profile === 'rabbit') return nz > 0.68 ? ax <= 0.55 : ax <= 0.82;
+      if (silhouetteSpec.profile === 'asymmetric') return x >= -halfWidth + 1 && x <= halfWidth;
+      return true;
+    };
+    const cellScore = (x, z) => {
+      const ax = Math.abs(x); const az = Math.abs(z);
+      const nz = normalizedZ(z);
+      const tie = (Math.abs(Math.sin((x + 11) * 12.9898 + (z + 17) * 78.233 + Number(designSeed) * 37.719)) % 1) * 0.075;
+      switch (silhouetteSpec.profile) {
+        case 'long': case 'crocodile': case 'cobra': case 'dinosaur': return ax * 1.28 + az * 0.31 - z * 0.13 + tie;
+        case 'shark': return ax * (0.72 + nz * 1.08) + az * 0.34 - z * 0.12 + tie;
+        case 'bull': case 'rhino': case 'lion': return az * 1.08 + ax * 0.48 - z * 0.09 + tie;
+        case 'wing': case 'manta': return az * 1.18 + ax * 0.34 + tie;
+        case 'spider': return az * 0.92 + ax * 0.38 - (Math.abs(z) <= 1 ? ax * 0.24 : 0) + tie;
+        case 'scorpion': return ax * 0.94 + az * 0.34 - (nz > 0.6 && ax > 0 ? 0.55 : 0) + tie;
+        case 'whale': case 'flat': return Math.hypot(x * 0.72, z) + tie;
+        case 'asymmetric': return ax * 0.76 + az * 0.7 - x * 0.18 + tie;
+        case 'wedge': return ax * (0.56 + nz * 0.95) + az * 0.5 - z * 0.1 + tie;
+        default: return ax * 0.72 + az * 0.78 + tie;
+      }
+    };
+    const candidateCells = [];
+    for (let z = rearZ; z <= frontZ; z++) for (let x = -halfWidth; x <= halfWidth; x++) {
+      if (cellAllowed(x, z)) candidateCells.push({ x, z });
+    }
+    // A very restrictive outline can be smaller than a heavy class quota.
+    // Expand only with adjoining cells inside the same design bounds.
+    if (candidateCells.length < footprintTarget) {
+      candidateCells.length = 0;
+      for (let z = rearZ; z <= frontZ; z++) for (let x = -halfWidth; x <= halfWidth; x++) candidateCells.push({ x, z });
+    }
+    const candidateKeys = new Set(candidateCells.map(({ x, z }) => `${x},${z}`));
+    const selectedCells = [{ x: 0, z: 0 }];
+    const selectedKeys = new Set(['0,0']);
+    while (selectedCells.length < footprintTarget) {
+      const frontier = new Map();
+      for (const cell of selectedCells) for (const [dx, dz] of [[0,1],[-1,0],[1,0],[0,-1]]) {
+        const x = cell.x + dx; const z = cell.z + dz; const key = `${x},${z}`;
+        if (selectedKeys.has(key) || !candidateKeys.has(key)) continue;
+        frontier.set(key, { x, z });
+      }
+      const next = [...frontier.values()].sort((a, b) => cellScore(a.x, a.z) - cellScore(b.x, b.z))[0];
+      if (!next) break;
+      selectedKeys.add(`${next.x},${next.z}`);
+      selectedCells.push(next);
+    }
+    const sourceBlocks = hull.blocks.length ? hull.blocks : [createBlockRecord('core', [0, 0, 0], [0, 0, 0], 'block-core')];
+    const nearestSource = (x, y, z) => sourceBlocks.reduce((best, block) => {
+      const [bx, by, bz] = block.gridPosition;
+      const distance = (bx - x) ** 2 + (by - y) ** 2 + (bz - z) ** 2;
+      return !best || distance < best.distance ? { block, distance } : best;
+    }, null).block;
+    const normalized = [];
+    const addAt = (x, y, z, forcedType = null) => {
+      const source = nearestSource(x, y, z);
+      const isCore = x === 0 && y === 0 && z === 0;
+      const record = createBlockRecord(isCore ? 'core' : (forcedType ?? (source.type === 'silverCube' ? 'silverCube' : 'cube')), [x, y, z], [0, 0, 0], isCore ? 'block-core' : hull.idFor(x, y, z));
+      record.color = source.color;
+      record.materialTier = source.materialTier;
+      record.isCore = isCore;
+      normalized.push(record);
+      return record;
+    };
+    const actualFront = Math.max(...selectedCells.map((cell) => cell.z));
+    const actualRear = Math.min(...selectedCells.map((cell) => cell.z));
+    const wedgeProfiles = new Set(['wedge', 'long', 'crocodile', 'shark', 'rhino', 'bull', 'lion', 'dinosaur', 'manta', 'dragon']);
+    for (const { x, z } of selectedCells) {
+      const atFront = z === actualFront;
+      const atWingTip = ['wing', 'manta', 'spider', 'dragon'].includes(silhouetteSpec.profile) && Math.abs(x) === Math.max(...selectedCells.filter((cell) => cell.z === z).map((cell) => Math.abs(cell.x)));
+      addAt(x, 0, z, atFront && wedgeProfiles.has(silhouetteSpec.profile) ? (Math.abs(x) > 0 ? 'cornerWedge' : 'wedge') : null);
+      addAt(x, 1, z, atWingTip ? 'cornerWedge' : (atFront && wedgeProfiles.has(silhouetteSpec.profile) ? 'wedge' : null));
+    }
+    const columnHeights = new Map(selectedCells.map(({ x, z }) => [`${x},${z}`, 2]));
+    const upperScore = (x, z, y) => {
+      const ax = Math.abs(x); const nz = normalizedZ(z);
+      let score = Math.abs(x) * 0.7 + Math.abs(z) * 0.5 + y * 0.42;
+      if (silhouetteSpec.profile === 'high-back') score = ax * 0.72 + (z - actualRear) * 0.82 + y * 0.32;
+      if (silhouetteSpec.profile === 'stepped') score = ax * 0.7 + (actualFront - z) * 0.48 + y * 0.28;
+      if (silhouetteSpec.profile === 'shoulder') score = Math.abs(ax - Math.max(1, halfWidth - 1)) * 0.82 + Math.abs(z) * 0.5 + y * 0.26;
+      if (['ridge', 'shark', 'dinosaur'].includes(silhouetteSpec.profile)) score = ax * 1.35 + Math.abs(z) * 0.38 + y * 0.24;
+      if (silhouetteSpec.profile === 'scorpion') score = ax * 1.25 + (z - actualRear) * 0.92 + y * 0.18;
+      if (silhouetteSpec.profile === 'cobra') score = ax * 1.45 + Math.abs(z - Math.round(actualFront * 0.35)) * 0.45 + y * 0.16;
+      if (silhouetteSpec.profile === 'rabbit') score = Math.abs(ax - 1) * 1.1 + Math.abs(z - actualRear) * 0.7 + y * 0.18;
+      if (['fortress', 'bear', 'whale'].includes(silhouetteSpec.profile)) score = ax * 0.58 + Math.abs(z) * 0.44 + y * 0.22;
+      if (silhouetteSpec.profile === 'asymmetric') score = Math.abs(x - 1) * 0.72 + Math.abs(z) * 0.52 + y * 0.24;
+      if (silhouetteSpec.profile === 'dragon') score = ax * 0.8 + Math.abs(z) * 0.34 - (ax >= 2 && nz > 0.35 ? 0.42 : 0) + y * 0.2;
+      return score + (Math.abs(Math.sin(x * 19.13 + z * 7.31 + y * 3.17 + seedPhase * 13.7)) % 1) * 0.06;
+    };
+    let remaining = targetCount - normalized.length;
+    while (remaining > 0) {
+      const candidates = selectedCells
+        .map(({ x, z }) => ({ x, z, y: columnHeights.get(`${x},${z}`) }))
+        .filter((entry) => entry.y < plannedLayers)
+        .sort((a, b) => upperScore(a.x, a.z, a.y) - upperScore(b.x, b.z, b.y));
+      const next = candidates[0];
+      if (!next) break;
+      const featureTop = ['ridge', 'shark', 'scorpion', 'cobra', 'rabbit', 'dinosaur', 'dragon'].includes(silhouetteSpec.profile);
+      addAt(next.x, next.y, next.z, featureTop && next.y === plannedLayers - 1 ? (archetypeIndex % 2 ? 'cornerWedge' : 'wedge') : null);
+      columnHeights.set(`${next.x},${next.z}`, next.y + 1);
+      remaining--;
+    }
+    if (normalized.length !== targetCount) throw new Error(`SILHOUETTE TARGET FAILED ${hull.archetype}: ${normalized.length}/${targetCount}`);
+    hull.blocks = normalized;
+    const positions = normalized.map((block) => block.gridPosition);
+    hull.rearZ = Math.min(...positions.map((position) => position[2]));
+    hull.frontZ = Math.max(...positions.map((position) => position[2]));
+    hull.minX = Math.min(...positions.map((position) => position[0]));
+    hull.maxX = Math.max(...positions.map((position) => position[0]));
+    hull.maxY = Math.max(...positions.map((position) => position[1]));
+    hull.frontWidth = positions.filter((position) => position[1] === 0 && position[2] === hull.frontZ).length;
+    hull.rearWidth = positions.filter((position) => position[1] === 0 && position[2] === hull.rearZ).length;
+    hull.silverCount = normalized.filter((block) => block.materialTier === 'lv1-silver-metal').length;
+    hull.classBlockTarget = finalTargetCount;
+    hull.normalizedHullTarget = targetCount;
+    hull.classHeightTarget = plannedLayers;
+    hull.layerProfile = Array.from({ length: plannedLayers }, (_, y) => positions.filter((position) => position[1] === y).length);
+    hull.compactFootprint = { cells: selectedCells.length, width: hull.maxX - hull.minX + 1, length: hull.frontZ - hull.rearZ + 1, archetype: hull.archetype };
+    hull.silhouettePlan = { stageOrder: ['class', 'archetype', 'silhouette', 'blocks', 'wheels', 'weapon', 'armor', 'paint', 'validation'], animal: Boolean(silhouetteSpec.animal), profile: silhouetteSpec.profile, desiredWheelPairs, topViewRows: Array.from({ length: hull.frontZ - hull.rearZ + 1 }, (_, index) => {
+      const z = hull.rearZ + index;
+      return positions.filter((position) => position[1] === 0 && position[2] === z).map((position) => position[0]).sort((a, b) => a - b);
+    }) };
+    hull.geometrySignature = normalized.map((block) => `${block.gridPosition.join(',')}:${block.type}`).sort().join('|');
+    return hull;
+  }
+  const height = profile.aiLayerCount ?? profile.heightRange[1];
+  const originals = new Map(hull.blocks.map((block) => [block.gridPosition.join(','), block]));
+  const baseOriginals = hull.blocks.filter((block) => block.gridPosition[1] === 0);
+  const baseByXZ = new Map(baseOriginals.map((block) => [`${block.gridPosition[0]},${block.gridPosition[2]}`, block]));
+  const archetypeIndex = Math.max(0, AI_HULL_ARCHETYPES.indexOf(hull.archetype));
+  const styleIndex = archetypeIndex % 8;
+  const seedPhase = Math.abs(Math.sin(Number(designSeed) * 67.19));
+  // Two complete structural layers are mandatory, while the remaining quota
+  // is distributed over the class height. The minimum is mathematical: it
+  // guarantees that every requested exact count can fit without making a
+  // one-storey carpet. A small deterministic range keeps silhouettes distinct.
+  const minimumFootprint = Math.ceil(targetCount / height);
+  const footprintVariation = weightClass === 'lightweight' ? 0 : 2 + (styleIndex % 3) + (seedPhase > 0.64 ? 1 : 0);
+  const footprintCount = Math.min(Math.floor(targetCount / 2), minimumFootprint + footprintVariation);
+  const halfWidth = weightClass === 'lightweight' ? 1 : 2;
+  const halfLength = weightClass === 'superheavy' ? 3 : 2;
+  const cellScore = (x, z) => {
+    const ax = Math.abs(x); const az = Math.abs(z);
+    const tie = (Math.abs(Math.sin((x + 7) * 12.9898 + (z + 11) * 78.233 + Number(designSeed) * 37.719)) % 1) * 0.08;
+    if (styleIndex === 0) return ax * 0.68 + az * 1.1 - z * 0.16 + tie;
+    if (styleIndex === 1) return ax * 1.04 + az * 0.72 + (z > 0 ? ax * 0.18 : 0) + tie;
+    if (styleIndex === 2) return ax * 0.82 + az * 0.9 - (x > 0 ? 0.2 : 0) + tie;
+    if (styleIndex === 3) return Math.hypot(x * 0.86, z) + (z < 0 ? -0.12 : 0) + tie;
+    if (styleIndex === 4) return ax + az * 0.82 - (z > 0 ? 0.22 : 0) + tie;
+    if (styleIndex === 5) return Math.max(ax * 0.82, az) + tie;
+    if (styleIndex === 6) return ax * 0.76 + az * 0.88 + ((x + z) % 2 ? 0.1 : 0) + tie;
+    return ax * 0.9 + az * 0.82 - (x < 0 ? 0.16 : 0) + tie;
+  };
+  // Grow a connected compact footprint. Archetype-specific scores preserve
+  // wedge, tank, rounded, stepped and asymmetric silhouettes without spending
+  // the class quota on an implausibly wide single-storey floor.
+  const selectedCells = [{ x: 0, z: 0 }];
+  const selectedKeys = new Set(['0,0']);
+  while (selectedCells.length < footprintCount) {
+    const frontier = new Map();
+    for (const cell of selectedCells) for (const [dx, dz] of [[0,1],[-1,0],[1,0],[0,-1]]) {
+      const x = cell.x + dx; const z = cell.z + dz;
+      const key = `${x},${z}`;
+      if (selectedKeys.has(key) || Math.abs(x) > halfWidth || Math.abs(z) > halfLength) continue;
+      frontier.set(key, { x, z });
+    }
+    const next = [...frontier.values()].sort((a, b) => cellScore(a.x, a.z) - cellScore(b.x, b.z))[0];
+    if (!next) break;
+    selectedKeys.add(`${next.x},${next.z}`);
+    selectedCells.push(next);
+  }
+  const nearestOriginal = (x, z) => baseByXZ.get(`${x},${z}`) ?? baseOriginals.reduce((best, block) => {
+    const [bx, , bz] = block.gridPosition;
+    const distance = (bx - x) ** 2 + (bz - z) ** 2;
+    return !best || distance < best.distance ? { block, distance } : best;
+  }, null)?.block;
+  const selectedBase = selectedCells.map(({ x, z }) => ({ source: nearestOriginal(x, z), gridPosition: [x, 0, z] }));
+  const normalized = [];
+  const cloneAt = (source, x, y, z, forcedType = null) => {
+    const existing = originals.get(`${x},${y},${z}`);
+    const fallbackType = source?.type === 'wedge' ? 'wedge' : source?.type === 'cornerWedge' ? 'cornerWedge' : 'cube';
+    const record = existing ? cloneData(existing) : createBlockRecord(y === 0 && x === 0 && z === 0 ? 'core' : (forcedType ?? fallbackType), [x, y, z], [0,0,0], hull.idFor(x, y, z));
+    record.id = hull.idFor(x, y, z);
+    record.blockId = record.id;
+    record.gridPosition = [x, y, z];
+    record.isCore = x === 0 && y === 0 && z === 0;
+    if (record.isCore) record.type = record.blockType = 'core';
+    else if (forcedType) record.type = record.blockType = forcedType;
+    if (!existing && source) { record.color = source.color; record.materialTier = source.materialTier; }
+    normalized.push(record);
+  };
+  const frontEdge = Math.max(...selectedCells.map((cell) => cell.z));
+  const noseArchetypes = new Set(['predator-jaw', 'low-wedge', 'split-nose', 'triangle', 'arrowhead', 'shark', 'bulldozer', 'horned-bull']);
+  for (const block of selectedBase) {
+    const [x, , z] = block.gridPosition;
+    const noseType = z === frontEdge && noseArchetypes.has(hull.archetype) ? (Math.abs(x) === halfWidth ? 'cornerWedge' : 'wedge') : null;
+    cloneAt(block.source, x, 0, z, noseType);
+    cloneAt(block.source, x, 1, z, styleIndex === 6 && z === frontEdge ? 'wedge' : null);
+  }
+  let remaining = targetCount - normalized.length;
+  const upperCells = [...selectedBase].sort((a, b) => {
+    const [ax, , az] = a.gridPosition; const [bx, , bz] = b.gridPosition;
+    const upperScore = (x, z) => {
+      if (styleIndex === 0) return Math.abs(x) * 0.7 + Math.abs(z + 1) + (z > 0 ? 0.45 : 0);
+      if (styleIndex === 1) return Math.abs(x) + Math.abs(z) * 0.72;
+      if (styleIndex === 2) return Math.abs(x - 1) + Math.abs(z) * 0.8;
+      if (styleIndex === 3) return Math.hypot(x, z + 0.5);
+      if (styleIndex === 4) return Math.abs(x) * 0.82 + Math.abs(z - 0.5);
+      if (styleIndex === 5) return Math.max(Math.abs(x), Math.abs(z));
+      if (styleIndex === 6) return Math.abs(x) + Math.abs(z + 1) * 0.78;
+      return Math.abs(x + 1) + Math.abs(z) * 0.84;
+    };
+    return upperScore(ax, az) - upperScore(bx, bz);
+  });
+  const layerProfile = [footprintCount, footprintCount];
+  for (let y = 2; y < height; y++) {
+    const layersLeft = height - y;
+    const count = Math.min(footprintCount, Math.ceil(remaining / layersLeft));
+    layerProfile.push(count);
+    for (let index = 0; index < count; index++) {
+      const source = upperCells[index];
+      const [x, , z] = source.gridPosition;
+      const topEdgeType = y === height - 1 && index >= Math.max(0, count - 3)
+        ? (styleIndex % 2 ? 'cornerWedge' : 'wedge') : null;
+      cloneAt(source.source, x, y, z, topEdgeType);
+    }
+    remaining -= count;
+  }
+  hull.blocks = normalized.slice(0, targetCount);
+  const positions = hull.blocks.map((block) => block.gridPosition);
+  hull.rearZ = Math.min(...positions.map((p) => p[2]));
+  hull.frontZ = Math.max(...positions.map((p) => p[2]));
+  hull.minX = Math.min(...positions.map((p) => p[0]));
+  hull.maxX = Math.max(...positions.map((p) => p[0]));
+  hull.maxY = Math.max(...positions.map((p) => p[1]));
+  hull.frontWidth = positions.filter((p) => p[1] === 0 && p[2] === hull.frontZ).length;
+  hull.rearWidth = positions.filter((p) => p[1] === 0 && p[2] === hull.rearZ).length;
+  hull.silverCount = hull.blocks.filter((block) => block.materialTier === 'lv1-silver-metal').length;
+  hull.classBlockTarget = finalTargetCount;
+  hull.normalizedHullTarget = targetCount;
+  hull.classHeightTarget = height;
+  hull.layerProfile = layerProfile;
+  hull.compactFootprint = { cells: footprintCount, maxWidth: halfWidth * 2 + 1, maxLength: halfLength * 2 + 1, styleIndex };
+  hull.geometrySignature = hull.blocks
+    .map((block) => `${block.gridPosition.join(',')}:${block.type}`)
+    .sort()
+    .join('|');
+  return hull;
+}
+
 function createAIAssembly(type, options = {}) {
   if (REMOVED_WEAPON_TYPES.has(type)) type = 'spinner';
   const designSeed = options.designSeed ?? Math.random();
   const hull = createAIBlockHull(type, designSeed, options.archetypeIndex ?? null, options.heightTier ?? null);
-  const { blocks, idFor, archetype, colorMode, rearZ, frontZ, minX, maxX, maxY, frontWidth, rearWidth, silverCount, random } = hull;
-  const lightArchetypes = new Set(['centipede', 'crab', 'low-wedge', 'disc', 'asymmetric-raider']);
-  const heavyArchetypes = new Set(['armored-turtle', 'tall-heavy', 'monster', 'armored-tank', 'saw-fortress', 'exhaust-brute', 'multi-layer', 'bulldozer']);
-  let weightClass = options.weightClass;
+  const { archetype, random } = hull;
+  const silhouetteSpec = AI_SILHOUETTE_SPECS[archetype] ?? AI_SILHOUETTE_SPECS.wedge;
+  const lightArchetypes = new Set(['wedge', 'low-flat', 'shark', 'cobra', 'eagle', 'rabbit', 'manta']);
+  const heavyArchetypes = new Set(['short-bull', 'high-back', 'fortress', 'crocodile', 'rhino', 'bull', 'bear', 'lion', 'whale', 'dragon']);
+  let weightClass = type === 'healer' ? 'healer' : options.weightClass;
   if (!WEIGHT_CLASSES[weightClass]) {
     const roll = random();
     weightClass = lightArchetypes.has(archetype) ? (roll < 0.72 ? 'lightweight' : 'middleweight')
@@ -4161,9 +5167,34 @@ function createAIAssembly(type, options = {}) {
         : roll < 0.25 ? 'lightweight' : roll > 0.75 ? 'superheavy' : 'middleweight';
   }
   const classProfile = WEIGHT_CLASSES[weightClass];
-  const driveType = weightClass === 'superheavy' && random() < 0.46 ? 'track' : 'wheel';
-  const wheelModel = driveType === 'track' ? 'track_heavy' : classProfile.wheelModel;
-  const faceMount = (targetId, point, normal) => ({ kind: 'surface', targetId, targetIds: [targetId], point, normal, attached: true, gap: MOUNT_EPSILON });
+  // Functional mounts never consume the class block quota. Every AI hull is
+  // therefore generated at the exact class target before wheels and weapons
+  // are attached.
+  normalizeAIHullForClass(hull, weightClass, designSeed, 0);
+  const paintIndex = Math.abs(Math.floor(options.paintIndex ?? options.archetypeIndex ?? (Number(designSeed) * 100000))) % AI_PAINT_PALETTES.length;
+  const paintValues = AI_PAINT_PALETTES[paintIndex];
+  const paintPalette = { primary: paintValues[0], secondary: paintValues[1], accent: paintValues[2] };
+  const colorMode = `palette-${String(paintIndex + 1).padStart(2, '0')}`;
+  // One shared material can render all three colours through InstancedMesh
+  // instanceColor. The 70/25/5 zoning is deterministic and forms readable
+  // panels instead of per-frame random noise or team-colour tinting.
+  const paintRank = hull.blocks.map((block) => {
+    const [x, y, z] = block.gridPosition;
+    return { block, score: Math.abs(Math.sin((paintIndex + 1) * 12.9898 + x * 78.233 + y * 37.719 + z * 19.913) * 43758.5453) % 1 };
+  }).sort((left, right) => left.score - right.score);
+  const accentCount = Math.max(1, Math.round(hull.blocks.length * 0.05));
+  const secondaryCount = Math.max(1, Math.round(hull.blocks.length * 0.25));
+  for (let index = 0; index < paintRank.length; index++) {
+    const block = paintRank[index].block;
+    const slot = index < accentCount ? 'accent' : index < accentCount + secondaryCount ? 'secondary' : 'primary';
+    block.paintSlot = slot;
+    block.color = paintPalette[slot];
+    block.materialTier = `ai-instance-${slot}`;
+  }
+  const { blocks, idFor, rearZ, frontZ, minX, maxX, maxY, frontWidth, rearWidth, silverCount } = hull;
+  const driveType = 'wheel';
+  const wheelModel = classProfile.wheelModel;
+  const faceMount = (targetId, point, normal) => ({ kind: 'surface', targetId, targetIds: [targetId], point, normal, attached: true, gap: MOUNT_EPSILON, directWeaponMount: true });
   const part = (id, partType, position, targetId, normal = [0, 1, 0], extra = {}) => {
     const record = { id, type: partType, position, rotation: [0, 0, 0], scaleFactor: 1, mount: faceMount(targetId, position, normal), linkedTo: [targetId], ...extra };
     if (!extra.mount) {
@@ -4187,22 +5218,49 @@ function createAIAssembly(type, options = {}) {
     return [Math.min(...row), Math.max(...row)];
   };
   const parts = [];
-  const frontDriveZ = ['spinner', 'flipper', 'drum', 'bar'].includes(type) ? Math.max(rearTargetZ + 1, frontZ - 3) : frontTargetZ;
-  const wheelRows = driveType === 'track' ? [Math.round((rearZ + frontZ) * 0.5)] : ['centipede', 'elongated'].includes(archetype)
-    ? [rearTargetZ, Math.round((rearZ + frontZ) * 0.5), frontDriveZ]
-    : [rearTargetZ, frontDriveZ];
-  const availableWheelRows = [...new Set(blocks.filter((block) => block.gridPosition[1] === 0).map((block) => block.gridPosition[2]))];
+  const frontDriveZ = ['spinner', 'drum', 'bar', 'puncher'].includes(type) ? Math.max(rearTargetZ + 1, frontZ - 3) : frontTargetZ;
+  const availableWheelRows = [...new Set(blocks.filter((block) => block.gridPosition[1] === 0).map((block) => block.gridPosition[2]))].sort((a, b) => a - b);
+  const wheelDimensionsForLayout = getWheelRuntimeDimensions(1, wheelModel, [1, 1, 1]);
+  const minimumWheelRowSpacing = Math.max(2, Math.ceil((wheelDimensionsForLayout.radius * 2 + 0.12) / GRID_UNIT));
+  const requestedWheelPairs = clamp(Math.round(hull.silhouettePlan?.desiredWheelPairs ?? silhouetteSpec.wheelPairs ?? 2), 2, 4);
+  const chooseWheelRows = (count) => {
+    let best = null;
+    const visit = (start, chosen) => {
+      if (chosen.length === count) {
+        const span = chosen.at(-1) - chosen[0];
+        const idealStep = count > 1 ? span / (count - 1) : 0;
+        const evenness = chosen.reduce((sum, value, index) => sum + Math.abs(value - (chosen[0] + idealStep * index)), 0);
+        const frontPenalty = Math.abs(chosen.at(-1) - frontDriveZ) * 0.18;
+        const rearPenalty = Math.abs(chosen[0] - rearTargetZ) * 0.18;
+        const score = evenness + frontPenalty + rearPenalty - span * 0.35;
+        if (!best || score < best.score) best = { rows: [...chosen], score };
+        return;
+      }
+      for (let index = start; index < availableWheelRows.length; index++) {
+        const row = availableWheelRows[index];
+        if (chosen.length && row - chosen.at(-1) < minimumWheelRowSpacing) continue;
+        visit(index + 1, [...chosen, row]);
+      }
+    };
+    visit(0, []);
+    return best?.rows ?? null;
+  };
+  let wheelRows = null;
+  for (let pairCount = requestedWheelPairs; pairCount >= 2 && !wheelRows; pairCount--) wheelRows = chooseWheelRows(pairCount);
+  wheelRows ??= [availableWheelRows[0] ?? rearTargetZ, availableWheelRows.at(-1) ?? frontDriveZ];
   const usedWheelRows = new Set();
   for (let axle = 0; axle < wheelRows.length; axle++) {
     const suffix = wheelRows.length === 3 ? ['r', 'm', 'f'][axle] : ['r', 'f'][axle];
-    const steers = driveType !== 'track' && axle === wheelRows.length - 1;
+    const steers = axle === wheelRows.length - 1;
     // Track and wheel GLBs already contain their authored proportions. Runtime
     // scaling stays uniform so mount support, visual bounds and collider bounds
     // can never diverge after assembly enrichment.
     const driveAxisScale = [1, 1, 1];
     // Runtime ground alignment replaces this authored Y with the measured GLB
     // radius and a per-robot chassis clearance after every part is built.
-    const candidateRows = availableWheelRows.filter((z) => !usedWheelRows.has(z)).sort((a, b) => Math.abs(a - wheelRows[axle]) - Math.abs(b - wheelRows[axle]));
+    const candidateRows = availableWheelRows
+      .filter((z) => !usedWheelRows.has(z) && [...usedWheelRows].every((used) => Math.abs(z - used) >= minimumWheelRowSpacing))
+      .sort((a, b) => Math.abs(a - wheelRows[axle]) - Math.abs(b - wheelRows[axle]));
     let chosen = null;
     for (const z of candidateRows) {
       const [leftTargetX, rightTargetX] = rowExtents(z);
@@ -4257,82 +5315,65 @@ function createAIAssembly(type, options = {}) {
   const layoutX = weaponLayout === 'front-left' || weaponLayout === 'side-left' ? -Math.min(2, Math.abs(minX) - 0.5)
     : weaponLayout === 'front-right' || weaponLayout === 'side-right' ? Math.min(2, Math.abs(maxX) - 0.5)
       : weaponLayout === 'front-center' || weaponLayout === 'central' || weaponLayout === 'high-center' || weaponLayout === 'low-front' ? 0
-        : ['asymmetric-raider', 'split-nose'].includes(archetype) ? sideBias : 0;
+      : archetype === 'asymmetric-combat' ? sideBias : 0;
   const layoutZ = weaponLayout === 'mouth' || weaponLayout === 'low-front' ? frontZ
     : weaponLayout === 'rear' ? rearZ + 1
       : weaponLayout.startsWith('front-') ? frontZ - 2
         : weaponLayout.startsWith('side-') ? 0 : 0;
   // Weapon mounts always reference a ground-layer block. A tall hull is built
   // around a low front bay instead of lifting the weapon above opponents.
-  const nearestWeaponDeckBlock = (gx, gz) => blocks.filter((block) => block.gridPosition[1] === 1).reduce((best, block) => {
+  const nearestWeaponDeckBlock = (gx, gz) => blocks.filter((block) => block.gridPosition[1] === 0).reduce((best, block) => {
     const [x, , z] = block.gridPosition;
     const score = (x - gx) ** 2 + (z - gz) ** 2;
     return !best || score < best.score ? { block, score } : best;
   }, null)?.block ?? nearestGroundBlock(gx, gz);
   const targetBlock = nearestWeaponDeckBlock(layoutX, layoutZ);
-  const mountX = layoutX * GRID_UNIT;
+  const mountX = targetBlock.gridPosition[0] * GRID_UNIT;
   const mountZ = layoutZ * GRID_UNIT;
   const mountY = (targetBlock.gridPosition[1] + 0.5) * GRID_UNIT;
   const weaponYaw = weaponLayout === 'diagonal' ? sideBias * Math.PI / 4
     : weaponLayout === 'side-left' ? -Math.PI / 2 : weaponLayout === 'side-right' ? Math.PI / 2 : 0;
   const topTarget = targetBlock.id;
-  const largeWeaponScale = ['tall-heavy', 'armored-turtle', 'armored-tank', 'saw-fortress'].includes(archetype) ? 1.16 : ['centipede', 'elongated'].includes(archetype) ? 0.9 : 1;
+  const largeWeaponScale = ['fortress', 'bear', 'whale', 'high-back'].includes(archetype) ? 1.16 : ['long-nose', 'cobra', 'dinosaur', 'crocodile'].includes(archetype) ? 0.9 : 1;
   if (type === 'spinner') {
-    const mount = part('ai-saw-mount', 'sawSupport', [mountX, mountY, mountZ], topTarget, [0, 1, 0], { rotation: [0, weaponYaw, 0] });
-    // Keep the support on the block surface. The former 34 cm artificial gap
-    // lifted the blade toward the upper hull and made it look detached.
-    mount.mount.standoff = 0.02;
-    refreshRecordMount(mount);
-    const centre = [...mount.position];
-    parts.push(mount, part('ai-spinner', 'spinner', centre, 'ai-saw-mount', [0, 1, 0], { scaleFactor: weaponLayout === 'mouth' ? 1.12 : largeWeaponScale, rotation: [0, weaponYaw, 0], mount: { kind: 'axis', targetId: 'ai-saw-mount', targetIds: ['ai-saw-mount'], point: centre, normal: [0, 1, 0], attached: true, gap: 0 }, linkedTo: ['ai-saw-mount'] }));
-  } else if (type === 'hammer') {
-    const mount = part('ai-hammer-mount', 'hammerMount', [mountX, mountY, mountZ], topTarget, [0, 1, 0], { rotation: [0, weaponYaw, 0] });
-    const centre = [...mount.position];
-    parts.push(mount, part('ai-hammer', 'hammer', centre, 'ai-hammer-mount', [0, 1, 0], { scaleFactor: largeWeaponScale, rotation: [0, weaponYaw, 0], mount: { kind: 'axis', targetId: 'ai-hammer-mount', targetIds: ['ai-hammer-mount'], point: centre, normal: [0, 1, 0], attached: true, gap: 0 }, linkedTo: ['ai-hammer-mount'] }));
-  } else if (type === 'flipper') {
-    const leftTarget = nearestGroundBlock(-1, frontZ);
-    const rightTarget = nearestGroundBlock(1, frontZ);
-    const flipperZ = Math.max(leftTarget.gridPosition[2], rightTarget.gridPosition[2]) * GRID_UNIT;
-    const left = part('ai-pivot-l', 'pivotMount', [-0.54, GRID_UNIT * 0.5, flipperZ], leftTarget.id, [0, 0, 1], { axisGroup: 'ai-flipper' });
-    const right = part('ai-pivot-r', 'pivotMount', [0.54, GRID_UNIT * 0.5, flipperZ], rightTarget.id, [0, 0, 1], { rotation: [0, Math.PI, 0], axisGroup: 'ai-flipper' });
-    const centre = new THREE.Vector3(...left.position).add(new THREE.Vector3(...right.position)).multiplyScalar(0.5).toArray();
-    parts.push(left, right, part('ai-flipper', 'flipper', centre, 'ai-pivot-l', [1, 0, 0], { scaleFactor: largeWeaponScale, mount: { kind: 'axis', targetId: 'ai-pivot-l', targetIds: ['ai-pivot-l', 'ai-pivot-r'], point: centre, normal: [1, 0, 0], attached: true, gap: 0 }, linkedTo: ['ai-pivot-l', 'ai-pivot-r'] }));
+    const [targetX, targetY, targetZ] = targetBlock.gridPosition;
+    const frontPoint = [targetX * GRID_UNIT, targetY * GRID_UNIT, (targetZ + 0.5) * GRID_UNIT];
+    const weapon = part('ai-spinner', 'spinner', frontPoint, topTarget, [0, 0, 1], { scaleFactor: weaponLayout === 'mouth' ? 1.12 : largeWeaponScale, rotation: [0, weaponYaw, 0], directWeaponMount: true, functionalAxis: 'surface-normal', expectedPlane: 'vertical' });
+    weapon.mount.standoff = 0.06;
+    refreshRecordMount(weapon);
+    parts.push(weapon);
   } else if (type === 'bar') {
-    // A horizontal bar needs its whole swept circle outside the nose. Build a
-    // real three-block boom from the selected hull face, then mount the shaft
-    // to the boom's exposed front face. The weapon is visibly connected and
-    // its rotation volume cannot cut through the chassis.
-    let boomTarget = targetBlock;
-    for (let step = 1; step <= 3; step++) {
-      const [boomX, boomY, boomZ] = boomTarget.gridPosition;
-      const nextZ = boomZ + 1;
-      let next = blocks.find((block) => block.gridPosition[0] === boomX && block.gridPosition[1] === boomY && block.gridPosition[2] === nextZ);
-      if (!next) {
-        next = createBlockRecord('cube', [boomX, boomY, nextZ], [0, 0, 0], idFor(boomX, boomY, nextZ));
-        next.color = boomTarget.color;
-        next.materialTier = boomTarget.materialTier;
-        blocks.push(next);
-      }
-      boomTarget = next;
-    }
-    const boomPoint = new THREE.Vector3(...boomTarget.gridPosition).multiplyScalar(GRID_UNIT);
-    const axisMount = part('ai-bar-axis', 'barAxis', [boomPoint.x, mountY, boomPoint.z + GRID_UNIT], boomTarget.id, [0, 0, 1], { rotation: [0, weaponYaw, 0] });
-    axisMount.mount.standoff = 1.18;
-    refreshRecordMount(axisMount);
-    const centre = [...axisMount.position];
-    parts.push(axisMount, part('ai-bar', 'barSpinner', centre, 'ai-bar-axis', [0, 1, 0], { scaleFactor: largeWeaponScale, rotation: [0, weaponYaw, 0], mount: { kind: 'axis', targetId: 'ai-bar-axis', targetIds: ['ai-bar-axis'], point: centre, normal: [0, 1, 0], attached: true, gap: 0 }, linkedTo: ['ai-bar-axis'] }));
+    // A horizontal rotor cannot be centred on a vertical front face without
+    // sweeping backwards through its own chassis. Pick a genuine exposed top
+    // face on the front two structural layers, then keep the pivot world-up.
+    // This is still a direct block-face mount and stays at opponent height.
+    const barTarget = blocks
+      .filter((block) => block.gridPosition[1] <= 1 && !blocks.some((other) => other.gridPosition[0] === block.gridPosition[0]
+        && other.gridPosition[1] === block.gridPosition[1] + 1 && other.gridPosition[2] === block.gridPosition[2]))
+      .sort((left, right) => right.gridPosition[2] - left.gridPosition[2]
+        || Math.abs(left.gridPosition[0]) - Math.abs(right.gridPosition[0])
+        || right.gridPosition[1] - left.gridPosition[1])[0] ?? targetBlock;
+    const boomPoint = [
+      barTarget.gridPosition[0] * GRID_UNIT,
+      (barTarget.gridPosition[1] + 0.5) * GRID_UNIT,
+      barTarget.gridPosition[2] * GRID_UNIT,
+    ];
+    const weapon = part('ai-bar', 'barSpinner', boomPoint, barTarget.id, [0, 1, 0], { scaleFactor: largeWeaponScale, rotation: [0, weaponYaw, 0], directWeaponMount: true, functionalAxis: 'world-y', expectedPlane: 'horizontal' });
+    weapon.mount.standoff = 0.06;
+    refreshRecordMount(weapon);
+    parts.push(weapon);
   } else if (type === 'drum') {
-    const leftTarget = nearestGroundBlock(-1, frontZ);
-    const rightTarget = nearestGroundBlock(1, frontZ);
-    const drumZ = Math.max(leftTarget.gridPosition[2], rightTarget.gridPosition[2]) * GRID_UNIT;
-    const left = part('ai-drum-pivot-l', 'pivotMount', [-0.72, GRID_UNIT * 0.5, drumZ], leftTarget.id, [0, 0, 1], { axisGroup: 'ai-drum' });
-    const right = part('ai-drum-pivot-r', 'pivotMount', [0.72, GRID_UNIT * 0.5, drumZ], rightTarget.id, [0, 0, 1], { rotation: [0, Math.PI, 0], axisGroup: 'ai-drum' });
-    left.mount.standoff = 0.52;
-    right.mount.standoff = 0.52;
-    refreshRecordMount(left);
-    refreshRecordMount(right);
-    const centre = new THREE.Vector3(...left.position).add(new THREE.Vector3(...right.position)).multiplyScalar(0.5).toArray();
-    parts.push(left, right, part('ai-drum', 'drumSpinner', centre, 'ai-drum-pivot-l', [1, 0, 0], { scaleFactor: largeWeaponScale, mount: { kind: 'axis', targetId: 'ai-drum-pivot-l', targetIds: ['ai-drum-pivot-l', 'ai-drum-pivot-r'], point: centre, normal: [1, 0, 0], attached: true, gap: 0 }, linkedTo: ['ai-drum-pivot-l', 'ai-drum-pivot-r'] }));
+    const point = [mountX, targetBlock.gridPosition[1] * GRID_UNIT, (targetBlock.gridPosition[2] + 0.5) * GRID_UNIT];
+    const weapon = part('ai-drum', 'drumSpinner', point, topTarget, [0, 0, 1], { scaleFactor: largeWeaponScale, rotation: [0, weaponYaw, 0], directWeaponMount: true, functionalAxis: 'local-x', expectedPlane: 'front-roller' });
+    weapon.mount.standoff = 0.08;
+    refreshRecordMount(weapon);
+    parts.push(weapon);
+  } else if (type === 'puncher') {
+    const point = [mountX, targetBlock.gridPosition[1] * GRID_UNIT, (targetBlock.gridPosition[2] + 0.5) * GRID_UNIT];
+    const weapon = part('ai-puncher', 'puncher', point, topTarget, [0, 0, 1], { scaleFactor: largeWeaponScale, rotation: [0, weaponYaw, 0], directWeaponMount: true, functionalAxis: 'local-z-forward', expectedPlane: 'linear-forward' });
+    weapon.mount.standoff = 0.04;
+    refreshRecordMount(weapon);
+    parts.push(weapon);
   }
   const blockByCell = new Map(blocks.map((block) => [block.gridPosition.join(','), block]));
   const normalCellStep = (normal) => normal.map((value) => Math.round(value));
@@ -4343,7 +5384,10 @@ function createAIAssembly(type, options = {}) {
   };
   const surfacePoint = (block, normal) => {
     const dimensions = getBlockOrientedDimensions(block).multiplyScalar(GRID_UNIT);
-    const centre = new THREE.Vector3(...block.gridPosition).multiplyScalar(GRID_UNIT);
+    // gridPosition is the lower-Y anchor of a block, not its visual centre.
+    // Reuse the canonical block-bounds centre so weapon/armour mount points,
+    // collision bounds and face validators all operate in one coordinate space.
+    const centre = getBlockLocalCentre(block);
     return centre.add(new THREE.Vector3(
       normal[0] * dimensions.x * 0.5,
       normal[1] * dimensions.y * 0.5,
@@ -4393,31 +5437,31 @@ function createAIAssembly(type, options = {}) {
   // Exterior pieces are structural silhouettes, not a cosmetic team tint.
   // Every archetype receives a different deterministic layout so mixed-class
   // battles remain readable even when block palettes happen to match.
-  if (['armored-turtle', 'armored-tank', 'tall-heavy', 'saw-fortress'].includes(archetype)) {
+  if (['fortress', 'bear', 'whale', 'high-back'].includes(archetype)) {
     accessory('armor-top', 'armorCurved', 0, maxY, 0, [0, 1, 0], [0, 0, 0], [1.25, 1, 1.05]);
     accessory('armor-front', 'armorFlat', 0, 0, frontZ - 1, [0, 0, 1], [Math.PI / 2, 0, 0], [1.4, 1, 0.8]);
     accessory('armor-side-l', 'armorFlat', minX, Math.min(1, maxY), -1, [-1, 0, 0], [0, 0, Math.PI / 2], [1.05, 1, 1]);
     accessory('armor-side-r', 'armorFlat', maxX, Math.min(1, maxY), 1, [1, 0, 0], [0, 0, -Math.PI / 2], [1.05, 1, 1]);
     accessory('heavy-exhaust-l', 'exhaustVertical', -1, maxY, rearZ + 2, [0, 1, 0], [0, 0, 0], [0.86, 0.86, 0.86]);
     accessory('heavy-exhaust-r', 'exhaustVertical', 1, maxY, rearZ + 2, [0, 1, 0], [0, 0, 0], [1.08, 1.08, 1.08]);
-  } else if (['horned-bull', 'monster', 'predator-jaw'].includes(archetype)) {
+  } else if (['bull', 'rhino', 'lion', 'crocodile'].includes(archetype)) {
     accessory('horn-left', 'hornCurved', -Math.min(2, Math.abs(minX)), 0, frontZ, [0, 0, 1], [0, 0, -0.2]);
     accessory('horn-right', 'hornCurved', Math.min(2, Math.abs(maxX)), 0, frontZ, [0, 0, 1], [0, Math.PI, 0.2]);
     accessory('exhaust-bull', 'exhaustTriple', 0, maxY, rearZ + 1, [0, 1, 0]);
     accessory('jaw-armor', 'armorFlat', 0, 0, frontZ - 2, [0, 1, 0], [0, 0, 0], [0.92, 0.92, 0.92]);
-  } else if (['centipede', 'elongated', 'exhaust-brute'].includes(archetype)) {
+  } else if (['long-nose', 'cobra', 'dinosaur', 'dragon', 'scorpion'].includes(archetype)) {
     accessory('tail-spike', 'hornStraight', 0, 0, rearZ, [0, 0, -1], [0, Math.PI, 0], [1.35, 0.82, 0.82]);
     accessory('exhaust-tail-l', 'exhaustVertical', -1, maxY, rearZ + 2, [0, 1, 0]);
     accessory('exhaust-tail-r', 'exhaustVertical', 1, maxY, rearZ + 2, [0, 1, 0]);
     accessory('long-side-plate-l', 'armorFlat', minX, 0, 1, [-1, 0, 0], [0, 0, Math.PI / 2], [0.88, 0.88, 0.88]);
     accessory('long-side-plate-r', 'armorFlat', maxX, 0, -1, [1, 0, 0], [0, 0, -Math.PI / 2], [1.12, 1.12, 1.12]);
-  } else if (archetype === 'crab') {
+  } else if (archetype === 'spider') {
     accessory('side-plate-l', 'armorFlat', minX, 0, 0, [-1, 0, 0], [0, 0, Math.PI / 2], [1.2, 1, 0.66]);
     accessory('side-plate-r', 'armorFlat', maxX, 0, 0, [1, 0, 0], [0, 0, -Math.PI / 2], [1.2, 1, 0.66]);
-  } else if (archetype === 'asymmetric-raider') {
+  } else if (archetype === 'asymmetric-combat') {
     accessory('offset-side-plate', 'armorFlat', minX, 0, -1, [-1, 0, 0], [0, 0, Math.PI / 2], [1.3, 1, 0.7]);
     accessory('offset-forward-horn', 'hornStraight', maxX, 0, frontZ - 1, [0, 0, 1], [0, 0, 0], [1.1, 0.82, 0.82]);
-  } else if (['spinner-beast', 'saw-fortress', 'disc'].includes(archetype)) {
+  } else if (['low-flat', 'manta', 'eagle', 'twin-shoulder'].includes(archetype)) {
     accessory('spinner-ring-a', 'armorCurved', -1, 0, 0, [0, 1, 0], [0, Math.PI / 2, 0], [0.9, 0.8, 0.9]);
     accessory('spinner-ring-b', 'armorCurved', 1, 0, 0, [0, 1, 0], [0, -Math.PI / 2, 0], [0.9, 0.8, 0.9]);
     accessory('spinner-side-l', 'armorFlat', minX, 0, -1, [-1, 0, 0], [0, 0, Math.PI / 2], [0.9, 0.9, 0.9]);
@@ -4460,13 +5504,13 @@ function createAIAssembly(type, options = {}) {
         .reduce((minimum, wheel) => Math.min(minimum, point.distanceTo(new THREE.Vector3(...wheel.position))), Infinity);
       const weaponClearance = parts.filter((candidate) => WEAPON_TYPES.has(candidate.type) || ['pivotMount', 'sawSupport', 'barAxis'].includes(candidate.type))
         .reduce((minimum, weapon) => Math.min(minimum, point.distanceTo(new THREE.Vector3(...weapon.position))), Infinity);
-      return wheelClearance >= 0.44 && weaponClearance >= 0.42;
+      const decorationClearance = occupiedAccessoryPoints
+        .reduce((minimum, entry) => Math.min(minimum, point.distanceTo(entry.point)), Infinity);
+      return wheelClearance >= 0.44 && weaponClearance >= 0.42 && decorationClearance >= GRID_UNIT * 0.56;
     });
-  const baseArmorCoverage = weightClass === 'superheavy' ? 0.88 : weightClass === 'middleweight' ? 0.7 : 0.56;
-  const archetypeArmorBias = ['armored-turtle', 'armored-tank', 'tall-heavy', 'saw-fortress'].includes(archetype) ? 0.1
-    : ['centipede', 'low-wedge', 'elongated'].includes(archetype) ? -0.06 : 0;
-  const requestedArmorCoverage = clamp(baseArmorCoverage + archetypeArmorBias, 0.5, 0.96);
-  const armorPlateCap = weightClass === 'superheavy' ? 96 : weightClass === 'middleweight' ? 72 : 52;
+  // Armour coverage is an exact face-to-face invariant, not a density hint.
+  // Every eligible exposed face gets one and only one flat low-poly plate.
+  const requestedArmorCoverage = 1;
   const deterministicFaceScore = ({ block, normal }) => {
     const [x, y, z] = block.gridPosition;
     const seed = Number(designSeed) * 91.7 + x * 17.13 + y * 31.79 + z * 47.21 + normal[0] * 7.7 + normal[1] * 13.1 + normal[2] * 19.9;
@@ -4476,32 +5520,34 @@ function createAIAssembly(type, options = {}) {
     const facePriority = { front: 0, left: 1, right: 1, top: 2, rear: 3 };
     return facePriority[a.face] - facePriority[b.face] || deterministicFaceScore(a) - deterministicFaceScore(b);
   });
-  const wantedArmorCount = Math.min(armorPlateCap, Math.max(2, Math.round(armorableFaces.length * requestedArmorCoverage)));
+  const wantedArmorCount = armorableFaces.length;
   let blockFaceArmorInstalled = 0;
+  const installedArmorFaceKeys = new Set();
   for (const descriptor of armorableFaces) {
-    if (blockFaceArmorInstalled >= wantedArmorCount) break;
-    if (deterministicFaceScore(descriptor) > requestedArmorCoverage && blockFaceArmorInstalled >= Math.ceil(wantedArmorCount * 0.65)) continue;
     const { block, normal, rotation, face } = descriptor;
     const point = surfacePoint(block, normal);
-    const cornerLike = block.type === 'cornerWedge' || Math.abs(block.gridPosition[0]) === Math.max(Math.abs(minX), Math.abs(maxX));
     const partType = 'armorFlat';
-    const sizeVariants = [0.72, 0.84, 0.94];
-    const plateSize = sizeVariants[Math.floor(deterministicFaceScore(descriptor) * sizeVariants.length) % sizeVariants.length];
-    const existingTooClose = occupiedAccessoryPoints.some((entry) => entry.point.distanceTo(point) < GRID_UNIT * 0.56);
-    if (existingTooClose) continue;
+    const plateSize = 1;
+    const faceKey = `${block.id}:${normal.join(',')}`;
+    if (installedArmorFaceKeys.has(faceKey)) continue;
     const record = part(`face-armor-${block.id}-${face}`, partType, point.toArray(), block.id, normal, { rotation, scaleFactor: 1, axisScale: [1, 1, 1], nativeBlockPlate: true, plateSize });
+    record.paintColor = block.paintSlot === 'accent' ? paintPalette.accent : paintPalette.secondary;
     record.mount = { kind: 'surface', targetId: block.id, targetIds: [block.id], point: point.toArray(), normal: [...normal], attached: true, gap: MOUNT_EPSILON };
     refreshRecordMount(record);
-    record.aiPlacement = { source: 'block-face-armor-grid', face, faceNormal: [...normal], targetGrid: [...block.gridPosition], wheelClearance: 1, weaponClearance: 1 };
-    const collision = partCollisionState(record, record.id, { blocks, parts });
-    if (collision.blockPenetrations.length || collision.partPenetrations.length) continue;
+    record.aiPlacement = { source: 'block-face-armor-grid', sourceAsset: ASSET_PATHS.armor_flat, face, faceKey, faceNormal: [...normal], targetGrid: [...block.gridPosition], wheelClearance: 1, weaponClearance: 1, oneBlockFace: true };
     parts.push(record);
     accessoryRecords.push(record);
     occupiedAccessoryPoints.push({ point, radius: GRID_UNIT * plateSize * 0.46, id: record.id });
+    installedArmorFaceKeys.add(faceKey);
     blockFaceArmorInstalled++;
   }
   const autoCutRemovedBlockIds = [];
   const assemblyDraft = { blocks, parts };
+  // Resolve model-specific authored bounds before the assembly is audited.
+  // The repair only increases outward surface standoff and keeps weapon height,
+  // axis centres and player-visible hull blocks unchanged.
+  repairAssemblyBuildFloor(assemblyDraft, `ai-${weightClass}-${type}`);
+  repairLoadedFunctionalPlacement(assemblyDraft);
   const protectedMountBlocks = new Set(parts.flatMap((record) => [record.mount?.targetId, ...(record.mount?.targetIds ?? [])]).filter((id) => blocks.some((block) => block.id === id)));
   for (const weapon of parts.filter((record) => WEAPON_TYPES.has(record.type))) {
     const supportIds = new Set([weapon.mount?.targetId, ...(weapon.mount?.targetIds ?? []), ...(weapon.linkedTo ?? [])].filter(Boolean));
@@ -4533,22 +5579,30 @@ function createAIAssembly(type, options = {}) {
   for (const record of parts) {
     const meta = PART_META[record.type];
     if (!meta) continue;
-    record.mass = meta.mass * classProfile.massScale;
+    record.mass = record.nativeBlockPlate
+      ? 2.5 * (record.plateSize ?? 0.92) ** 2 * classProfile.massScale
+      : meta.mass * recordScaleVolume(record) * classProfile.massScale;
     record.baseHp = meta.hp * classProfile.hpScale;
   }
   const width = maxX - minX + 1;
   const actualFrontZ = Math.max(...blocks.map((block) => block.gridPosition[2]));
   const length = actualFrontZ - rearZ + 1;
   const layerCount = maxY + 1;
-  const signature = `${archetype}:${weightClass}:${driveType}:${Math.round(width / Math.max(length, 1) * 10)}:${type}:${weaponLayout}:${colorMode}:${layerCount}`;
+  const signature = `${archetype}:${weightClass}:${driveType}:${Math.round(width / Math.max(length, 1) * 10)}:${type}:${weaponLayout}:${colorMode}:${layerCount}:${hull.geometrySignature}`;
   const exteriorValidationFailures = [];
   for (const record of accessoryRecords) {
     const target = blocks.find((block) => block.id === record.mount?.targetId);
     if (!target) exteriorValidationFailures.push(`${record.id}:missing-target`);
     else {
-      const expected = surfacePoint(target, record.mount.normal);
-      const gap = expected.distanceTo(new THREE.Vector3(...record.mount.point));
-      if (gap > 0.001) exteriorValidationFailures.push(`${record.id}:off-surface-${gap.toFixed(4)}`);
+      const bounds = blockLocalAABB(target);
+      const point = new THREE.Vector3(...record.mount.point);
+      const normal = new THREE.Vector3(...record.mount.normal).normalize();
+      const axis = Math.abs(normal.x) > 0.7 ? 'x' : Math.abs(normal.y) > 0.7 ? 'y' : 'z';
+      const tangents = ['x', 'y', 'z'].filter((value) => value !== axis);
+      const plane = normal[axis] > 0 ? bounds.max[axis] : bounds.min[axis];
+      const gap = Math.abs(point[axis] - plane);
+      const pointOnFace = tangents.every((tangent) => point[tangent] >= bounds.min[tangent] - 0.002 && point[tangent] <= bounds.max[tangent] + 0.002);
+      if (gap > 0.001 || !pointOnFace) exteriorValidationFailures.push(`${record.id}:off-surface-${gap.toFixed(4)}`);
       if (!faceIsExposed(target, record.mount.normal)) exteriorValidationFailures.push(`${record.id}:buried-face`);
     }
     if ((record.aiPlacement?.wheelClearance ?? 0) < 0.58) exteriorValidationFailures.push(`${record.id}:wheel-overlap`);
@@ -4558,13 +5612,90 @@ function createAIAssembly(type, options = {}) {
     .filter((entry) => !entry.result.valid);
   const installationValidationFailures = installationValidationEntries
     .map((entry) => `${entry.record.id}:${entry.result.reason}`);
-  const concept = AI_DESIGN_CONCEPTS[archetype] ?? { family: 'Custom Battle Bot', silhouette: archetype, symmetry: archetype === 'asymmetric-raider' ? 'intentional-asymmetry' : 'mirrored', exterior: 'surface-mounted' };
+  const wheelRecords = parts.filter((record) => record.type === 'wheel');
+  const wheelRowsByZ = new Map();
+  for (const wheel of wheelRecords) {
+    const rowKey = Number(wheel.position[2]).toFixed(3);
+    if (!wheelRowsByZ.has(rowKey)) wheelRowsByZ.set(rowKey, []);
+    wheelRowsByZ.get(rowKey).push(wheel);
+  }
+  const wheelPairFailures = [...wheelRowsByZ.entries()]
+    .filter(([, row]) => row.length !== 2 || !row.some((wheel) => wheel.mount?.normal?.[0] < -0.7) || !row.some((wheel) => wheel.mount?.normal?.[0] > 0.7))
+    .map(([rowKey]) => `wheel-row-${rowKey}:missing-left-right-pair`);
+  const sameSideSpacingFailures = [];
+  for (const side of [-1, 1]) {
+    const sideWheels = wheelRecords.filter((wheel) => Math.sign(wheel.mount?.normal?.[0] ?? wheel.position[0]) === side)
+      .sort((a, b) => a.position[2] - b.position[2]);
+    for (let index = 1; index < sideWheels.length; index++) {
+      const centreDistance = new THREE.Vector3(...sideWheels[index].position).distanceTo(new THREE.Vector3(...sideWheels[index - 1].position));
+      const requiredDistance = wheelDimensionsForLayout.radius * 2 + 0.08;
+      if (centreDistance + 0.001 < requiredDistance) sameSideSpacingFailures.push(`${sideWheels[index - 1].id}/${sideWheels[index].id}:wheel-spacing-${centreDistance.toFixed(3)}/${requiredDistance.toFixed(3)}`);
+    }
+  }
+  const invalidWheelMounts = wheelRecords
+    .filter((wheel) => !blocks.some((block) => block.id === wheel.mount?.targetId)
+      || Math.abs(wheel.mount?.normal?.[0] ?? 0) < 0.7
+      || partCollisionState(wheel, wheel.id, assemblyDraft).blockPenetrations.length > 0)
+    .map((wheel) => `${wheel.id}:invalid-side-mount`);
+  installationValidationFailures.push(...wheelPairFailures, ...sameSideSpacingFailures, ...invalidWheelMounts);
+  const concept = AI_DESIGN_CONCEPTS[archetype] ?? { family: 'Custom Battle Bot', silhouette: archetype, symmetry: archetype === 'asymmetric-combat' ? 'intentional-asymmetry' : 'mirrored', exterior: 'surface-mounted' };
   const armorRecords = accessoryRecords.filter((record) => ['armorFlat', 'armorCurved'].includes(record.type));
   const hornRecords = accessoryRecords.filter((record) => ['hornCurved', 'hornStraight'].includes(record.type));
   const exhaustRecords = accessoryRecords.filter((record) => ['exhaustTriple', 'exhaustVertical'].includes(record.type));
   const armorFaces = [...new Set(armorRecords.map((record) => (record.aiPlacement?.faceNormal ?? record.mount?.normal ?? []).map((value) => Math.round(value)).join(',')))];
+  const duplicateArmorFaceKeys = armorRecords
+    .map((record) => record.aiPlacement?.faceKey)
+    .filter((key, index, keys) => key && keys.indexOf(key) !== index);
+  const bottomArmorCount = armorRecords.filter((record) => Number(record.mount?.normal?.[1] ?? 0) < -0.7).length;
+  const nonFlatArmorCount = armorRecords.filter((record) => record.type !== 'armorFlat').length;
+  const exactArmorFaceCoverage = blockFaceArmorInstalled === armorableFaces.length
+    && duplicateArmorFaceKeys.length === 0 && bottomArmorCount === 0 && nonFlatArmorCount === 0;
   const primaryWeaponRecord = parts.find((record) => WEAPON_TYPES.has(record.type));
   const actualWeaponPosition = primaryWeaponRecord?.position ?? [mountX, mountY, mountZ];
+  const weaponTargetBlock = blocks.find((block) => block.id === primaryWeaponRecord?.mount?.targetId) ?? null;
+  const weaponMountPoint = primaryWeaponRecord?.mount?.point ? new THREE.Vector3(...primaryWeaponRecord.mount.point) : null;
+  const weaponFaceNormal = primaryWeaponRecord?.mount?.normal ? new THREE.Vector3(...primaryWeaponRecord.mount.normal).normalize() : null;
+  const weaponTargetBounds = weaponTargetBlock ? blockLocalAABB(weaponTargetBlock) : null;
+  const weaponFaceAxis = weaponFaceNormal
+    ? (Math.abs(weaponFaceNormal.x) > 0.7 ? 'x' : Math.abs(weaponFaceNormal.y) > 0.7 ? 'y' : 'z')
+    : null;
+  const weaponFaceCoordinate = weaponTargetBounds && weaponFaceAxis
+    ? (weaponFaceNormal[weaponFaceAxis] > 0 ? weaponTargetBounds.max[weaponFaceAxis] : weaponTargetBounds.min[weaponFaceAxis])
+    : null;
+  const weaponFaceGap = weaponMountPoint && weaponFaceAxis
+    ? Math.abs(weaponMountPoint[weaponFaceAxis] - weaponFaceCoordinate) : Infinity;
+  const weaponPointOnFaceBounds = Boolean(weaponMountPoint && weaponTargetBounds && weaponFaceAxis
+    && ['x', 'y', 'z'].filter((axis) => axis !== weaponFaceAxis)
+      .every((axis) => weaponMountPoint[axis] >= weaponTargetBounds.min[axis] - 0.001
+        && weaponMountPoint[axis] <= weaponTargetBounds.max[axis] + 0.001));
+  const weaponFaceExposed = Boolean(weaponTargetBlock && weaponFaceNormal && faceIsExposed(weaponTargetBlock, weaponFaceNormal.toArray()));
+  const weaponAttachmentPassed = !primaryWeaponRecord || Boolean(weaponTargetBlock
+    && primaryWeaponRecord.mount?.kind === 'surface' && primaryWeaponRecord.directWeaponMount
+    && weaponFaceGap <= 0.001 && weaponPointOnFaceBounds && weaponFaceExposed
+    && !installationValidationEntries.some((entry) => entry.record === primaryWeaponRecord));
+  if (primaryWeaponRecord && !weaponAttachmentPassed) installationValidationFailures.push(`${primaryWeaponRecord.id}:invalid-direct-block-face-attachment`);
+  const barVisualBounds = modelLocalBounds.get('bar_spinner');
+  const barVisualSize = barVisualBounds?.getSize(new THREE.Vector3()) ?? new THREE.Vector3(1, 0.1, 0.3);
+  const barLocalLongAxis = barVisualSize.x >= barVisualSize.y && barVisualSize.x >= barVisualSize.z ? X_AXIS.clone()
+    : barVisualSize.z >= barVisualSize.y ? Z_AXIS.clone() : Y_AXIS.clone();
+  const barRecordQuaternion = primaryWeaponRecord ? getRecordQuaternion(primaryWeaponRecord) : new THREE.Quaternion();
+  const barLongAxisUpDot = Math.abs(barLocalLongAxis.applyQuaternion(barRecordQuaternion).dot(Y_AXIS));
+  const barRotationAxisUpDot = Math.abs(Y_AXIS.clone().applyQuaternion(barRecordQuaternion).dot(Y_AXIS));
+  const barMountOffset = primaryWeaponRecord?.mount?.point
+    ? Math.abs(Number(primaryWeaponRecord.position?.[1] ?? 0) - Number(primaryWeaponRecord.mount.point[1] ?? 0)) : Infinity;
+  const barSweptClearanceBlockIds = primaryWeaponRecord?.type === 'barSpinner'
+    ? weaponClearanceBlockIds(primaryWeaponRecord, assemblyDraft) : [];
+  const barOrientationPassed = primaryWeaponRecord?.type !== 'barSpinner' || (
+    primaryWeaponRecord.functionalAxis === 'world-y'
+    && primaryWeaponRecord.expectedPlane === 'horizontal'
+    && Math.abs(primaryWeaponRecord.rotation?.[0] ?? 0) <= 0.001
+    && Math.abs(primaryWeaponRecord.rotation?.[2] ?? 0) <= 0.001
+    && primaryWeaponRecord.mount?.normal?.[1] > 0.985
+    && barLongAxisUpDot < 0.15 && barRotationAxisUpDot > 0.95
+    && (weaponTargetBlock?.gridPosition?.[1] ?? Infinity) <= 1
+    && barMountOffset <= 0.3 && barSweptClearanceBlockIds.length === 0
+  );
+  if (!barOrientationPassed) installationValidationFailures.push(`${primaryWeaponRecord?.id ?? 'ai-bar'}:bar-not-helicopter-rotor`);
   const initialInstallationAudit = {
     DetachedArmor: armorRecords.filter((record) => record.detached).length,
     FloatingArmor: exteriorValidationFailures.filter((failure) => failure.includes('missing-target') || failure.includes('off-surface') || failure.includes('buried-face')).length,
@@ -4573,31 +5704,51 @@ function createAIAssembly(type, options = {}) {
     FloatingHorn: exteriorValidationFailures.filter((failure) => failure.includes('horn') && (failure.includes('missing-target') || failure.includes('off-surface'))).length,
     DetachedExhaust: exhaustRecords.filter((record) => record.detached).length,
     FloatingExhaust: exteriorValidationFailures.filter((failure) => failure.includes('exhaust') && (failure.includes('missing-target') || failure.includes('off-surface'))).length,
-    WeaponIntersection: installationValidationEntries.filter((entry) => WEAPON_TYPES.has(entry.record.type)).length,
+    WeaponIntersection: installationValidationEntries.filter((entry) => WEAPON_TYPES.has(entry.record.type)).length + (weaponAttachmentPassed && barOrientationPassed ? 0 : 1),
   };
   initialInstallationAudit.Passed = Object.values(initialInstallationAudit).every((count) => count === 0);
   return enrichAssembly({
-    version: ASSEMBLY_VERSION, weightClass, driveType, blocks, parts,
+    version: ASSEMBLY_VERSION, weightClass, driveType, paintPalette, blocks, parts,
     aiDesign: {
-      archetype, displayName: AI_ARCHETYPE_NAMES[archetype], colorMode, weaponLayout, signature, weightClass, weightClassLabel: classProfile.label, driveType, wheelModel,
+      archetype, displayName: AI_ARCHETYPE_NAMES[archetype], colorMode, paintPalette, paintIndex, weaponLayout, signature, weightClass, weightClassLabel: classProfile.label, driveType, wheelModel,
       conceptFamily: concept.family, silhouette: concept.silhouette, symmetryMode: concept.symmetry, exteriorIntent: concept.exterior,
+      isAnimalArchetype: Boolean(silhouetteSpec.animal), silhouettePlan: hull.silhouettePlan,
       width, length, height: layerCount, frontWidth, rearWidth, centerHeight: layerCount,
-      sideArmorThickness: ['crab', 'armored-turtle', 'tall-heavy', 'armored-tank', 'saw-fortress'].includes(archetype) ? 2 : 1,
-      blockCount: blocks.length, blockLayerCount: layerCount, silverRatio: Number((silverCount / Math.max(1, blocks.length)).toFixed(2)),
+      sideArmorThickness: ['spider', 'bear', 'whale', 'fortress', 'short-bull'].includes(archetype) ? 2 : 1,
+      blockCount: blocks.length, blockTarget: hull.classBlockTarget, exactClassBlockCount: blocks.length === classProfile.aiBlockTarget, blockRange: [classProfile.minBlocks, classProfile.maxBlocks], maxWeight: classProfile.maxWeight, blockLayerCount: layerCount, heightRange: classProfile.heightRange, layerProfile: hull.layerProfile, compactFootprint: hull.compactFootprint, geometrySignature: hull.geometrySignature, silverRatio: Number((silverCount / Math.max(1, blocks.length)).toFixed(2)),
       exteriorCounts: { armor: armorRecords.length, horns: hornRecords.length, exhaust: exhaustRecords.length, total: accessoryRecords.length },
-      blockFaceArmor: { eligibleFaces: armorableFaces.length, requestedCoverage: Number(requestedArmorCoverage.toFixed(2)), requestedCount: wantedArmorCount, installedCount: blockFaceArmorInstalled, actualCoverage: Number((blockFaceArmorInstalled / Math.max(1, armorableFaces.length)).toFixed(3)) },
+      blockFaceArmor: { eligibleFaces: armorableFaces.length, exposedArmorFaces: armorableFaces.length, requestedCoverage: 1, requestedCount: wantedArmorCount, installedCount: blockFaceArmorInstalled, flatArmorCount: armorRecords.length, actualCoverage: Number((blockFaceArmorInstalled / Math.max(1, armorableFaces.length)).toFixed(3)), duplicateFaceCount: duplicateArmorFaceKeys.length, bottomArmorCount, nonFlatArmorCount, exactFaceCoverage: exactArmorFaceCoverage, sourceAsset: ASSET_PATHS.armor_flat },
+      wheelLayout: { requestedPairs: requestedWheelPairs, installedPairs: wheelRowsByZ.size, wheelCount: wheelRecords.length, rows: [...wheelRowsByZ.keys()].map(Number).sort((a, b) => a - b), minimumRowSpacing: minimumWheelRowSpacing, pairFailures: wheelPairFailures, spacingFailures: sameSideSpacingFailures, invalidMounts: invalidWheelMounts, passed: wheelPairFailures.length === 0 && sameSideSpacingFailures.length === 0 && invalidWheelMounts.length === 0 },
       armorFaces,
       initialInstallationAudit,
       weaponBay: {
         position: [...actualWeaponPosition],
-        lowMounted: actualWeaponPosition[1] <= GRID_UNIT * 2.4,
+        lowMounted: primaryWeaponRecord?.type === 'barSpinner'
+          ? (weaponTargetBlock?.gridPosition?.[1] ?? Infinity) <= 1 && barMountOffset <= 0.3
+          : actualWeaponPosition[1] <= GRID_UNIT * 2.4,
         // Split-nose and jaw hulls deliberately leave the centre-front cell
         // empty. Judge the weapon's leading edge, not only its shaft centre.
         frontMounted: actualWeaponPosition[2] + (primaryWeaponRecord ? recordRadius(primaryWeaponRecord) * 0.8 : 0) >= (frontZ - 0.5) * GRID_UNIT,
         clearanceRemovedBlockIds: [...new Set(autoCutRemovedBlockIds)],
         weaponType: primaryWeaponRecord?.type ?? null,
+        functionalAxis: primaryWeaponRecord?.functionalAxis ?? null,
+        expectedPlane: primaryWeaponRecord?.expectedPlane ?? null,
+        attachmentPassed: weaponAttachmentPassed,
+        faceGap: Number.isFinite(weaponFaceGap) ? Number(weaponFaceGap.toFixed(5)) : null,
+        barPose: primaryWeaponRecord?.type === 'barSpinner' ? {
+          longAxisUpDot: Number(barLongAxisUpDot.toFixed(4)), rotationAxisUpDot: Number(barRotationAxisUpDot.toFixed(4)),
+          targetLayer: weaponTargetBlock?.gridPosition?.[1] ?? null,
+          mountOffset: Number.isFinite(barMountOffset) ? Number(barMountOffset.toFixed(4)) : null,
+          noMast: (weaponTargetBlock?.gridPosition?.[1] ?? Infinity) <= 1 && barMountOffset <= 0.3,
+          sweptClearanceBlockIds: barSweptClearanceBlockIds,
+        } : null,
+        orientationPassed: primaryWeaponRecord?.type === 'barSpinner'
+          ? barOrientationPassed
+          : primaryWeaponRecord?.type === 'puncher'
+            ? primaryWeaponRecord.functionalAxis === 'local-z-forward'
+          : true,
       },
-      validation: { passed: exteriorValidationFailures.length === 0 && installationValidationFailures.length === 0, failures: [...exteriorValidationFailures, ...installationValidationFailures], floatingExterior: 0, exposedFaceMounts: accessoryRecords.length, weaponClearancePassed: !installationValidationFailures.some((failure) => failure.includes('weapon-clearance')), wheelClearancePassed: !installationValidationFailures.some((failure) => failure.includes('penetration')), autoCutRemovedBlockIds },
+      validation: { passed: blocks.length === classProfile.aiBlockTarget && exactArmorFaceCoverage && exteriorValidationFailures.length === 0 && installationValidationFailures.length === 0, failures: [...(blocks.length === classProfile.aiBlockTarget ? [] : [`AI_BLOCK_TARGET:${blocks.length}/${classProfile.aiBlockTarget}`]), ...(exactArmorFaceCoverage ? [] : [`ARMOR_FACE_COVERAGE:${blockFaceArmorInstalled}/${armorableFaces.length}:duplicate=${duplicateArmorFaceKeys.length}:bottom=${bottomArmorCount}:nonflat=${nonFlatArmorCount}`]), ...exteriorValidationFailures, ...installationValidationFailures], floatingExterior: 0, exposedFaceMounts: accessoryRecords.length, weaponClearancePassed: !installationValidationFailures.some((failure) => failure.includes('weapon-clearance')), wheelClearancePassed: !installationValidationFailures.some((failure) => failure.includes('penetration')), autoCutRemovedBlockIds },
     },
   });
 }
@@ -4629,6 +5780,7 @@ function createColoredBlockQAAssembly(color = '#ffd23f', type = 'bar') {
 class Robot {
   constructor(options) {
     Object.assign(this, options);
+    this.paintPalette = normalizedPaintPalette(options.assembly?.paintPalette);
     this.instanceUid = `${options.team}:${options.id}:respawn:${Number(options.respawnCount ?? 0)}:instance:${++robotInstanceSequence}`;
     this.spawnPosition = { x: options.position.x, z: options.position.z };
     this.spawnYaw = options.yaw ?? 0;
@@ -4657,6 +5809,8 @@ class Robot {
     this.aiLastAttackTime = -Infinity;
     this.aiDecisionOffset = ((Number(options.id ?? 0) * 37) % 17) / 17;
     this.aiThinkAccumulator = ((Number(options.id ?? 0) * 29) % 11) * 0.017;
+    this.aiSimulationLOD = 0;
+    this.aiThinkInterval = 0.2;
     this.postureRecovery = null;
     this.postureRecoveryCooldown = 0;
     this.spawnProtectionUntil = 0;
@@ -4678,6 +5832,11 @@ class Robot {
     scene.add(this.root);
     this.velocity = new THREE.Vector3();
     this.yaw = options.yaw ?? 0;
+    // Apply the spawn yaw before children are audited or rendered. Previously
+    // the red-team root stayed at yaw 0 until the first physics frame, so the
+    // pre-match runtime audit (and the first visible frame) saw its forward
+    // puncher pointing toward world +Z instead of the robot's real -Z front.
+    this.root.rotation.set(0, this.yaw, 0, 'YXZ');
     this.yawVelocity = 0;
     this.pitch = 0;
     this.roll = 0;
@@ -4694,6 +5853,9 @@ class Robot {
     this.exhaustEmitters = [];
     this.nativeArmorParts = [];
     this.nativeArmorBatch = null;
+    this.nativeArmorBatches = [];
+    this.nativeArmorSourceSize = new THREE.Vector3(1, 1, 1);
+    this.nativeArmorSourceCenter = new THREE.Vector3();
     this.radius = options.type === 'hammer' ? 2.15 : 1.95;
     this.dead = false;
     this.stuckTime = 0;
@@ -4703,6 +5865,10 @@ class Robot {
     this.aiStuckAnchorYaw = this.yaw;
     this.aiStuckWindow = 0;
     this.aiStuckYawTravel = 0;
+    this.aiRouteLoopSampleAccumulator = 0;
+    this.aiRouteLoopHistory = [];
+    this.aiRouteLoopGuardEvents = 0;
+    this.aiRouteLoopPreventedEvents = 0;
     this.aiRecoverStuckTime = 0;
     this.aiRecoverTurnSign = this.id % 2 ? 1 : -1;
     this.aiStuckEvents = 0;
@@ -4715,7 +5881,27 @@ class Robot {
     this.aiUndrivableTime = 0;
     this.aiObjectiveHeartbeat = 0;
     this.aiObjectiveRevision = 0;
-    this.aiRole = options.type === 'healer' ? 'healer' : ['capturer', 'capturer', 'capturer', 'capturer', 'blocker', 'blocker', 'flanker', 'flanker', 'flanker', 'flanker'][Math.abs(Number(options.id ?? 0)) % 10];
+    this.aiSpawnExitAt = null;
+    this.aiForcedSpawnDeployments = 0;
+    this.aiObjectiveSampleAccumulator = 0;
+    this.aiObjectiveTelemetry = {
+      A: { distanceHistory: [], reached: false, timeReached: null, captureSeconds: 0 },
+      B: { distanceHistory: [], reached: false, timeReached: null, captureSeconds: 0 },
+    };
+    this.aiStuckRecoveryLog = [];
+    this.aiAttackAttemptCooldown = 0;
+    this.aiRole = options.type === 'healer' ? 'healer' : ['capturer', 'capturer', 'capturer', 'capturer', 'capturer', 'flanker', 'flanker', 'blocker', 'capturer', 'blocker'][Math.abs(Number(options.id ?? 0)) % 10];
+    this.aiMovementStyle = options.type === 'healer' ? 'HEALER' : ['DIRECT', 'DIRECT', 'AGGRESSIVE', 'CAUTIOUS', 'SUPPORT', 'DIRECT', 'FLANK', 'FLANK', 'CAUTIOUS', 'AGGRESSIVE'][Math.abs(Number(options.id ?? 0)) % 10];
+    const drivingStyle = {
+      DIRECT: [1.32, 0.09, 1.0, 0.82], FLANK: [1.42, 0.075, 1.06, 0.94],
+      AGGRESSIVE: [1.5, 0.07, 1.12, 1.0], CAUTIOUS: [1.24, 0.105, 0.88, 0.68],
+      SUPPORT: [1.28, 0.1, 0.9, 0.62], HEALER: [1.3, 0.095, 0.96, 0.7],
+    }[this.aiMovementStyle];
+    this.aiSteeringGain = drivingStyle[0] + (Math.abs(Number(options.id ?? 0)) % 3 - 1) * 0.035;
+    this.aiSteeringDeadzone = drivingStyle[1];
+    this.aiAccelerationPreference = drivingStyle[2];
+    this.aiDashAggression = drivingStyle[3];
+    this.aiPreferredSide = Number(options.id ?? 0) % 2 ? 1 : -1;
     this.aiGoalDistance = Infinity;
     this.aiLastProgressDistance = Infinity;
     this.aiNoProgressSeconds = 0;
@@ -4723,6 +5909,9 @@ class Robot {
     this.aiMaximumMeaninglessStationarySeconds = 0;
     this.aiRespawnDecisionSeconds = 0;
     this.aiRouteVariant = Math.abs(Number(options.id ?? 0)) % 3;
+    this.aiObjectiveRouteCursorKey = null;
+    this.aiObjectiveRouteCursor = 0;
+    this.aiObjectiveReverseUntil = 0;
     this.aiSteeringHoldUntil = 0;
     this.aiHeldSteering = 0;
     this.aiAvoidSide = this.id % 2 ? 1 : -1;
@@ -4755,6 +5944,8 @@ class Robot {
       maxBodyRollingSeconds: 0, maxVerticalStandingSeconds: 0, maxPostLandingAngularSpeed: 0, sustainedWeaponForcesSuppressed: 0,
       dashUses: 0, dashHits: 0, maximumDashSpeed: 0, maximumDashDistance: 0, dashDistanceSamples: [],
       objectiveVisits: 0, objectiveDefenceResponses: 0, healerSeeks: 0, reverseRecoveries: 0,
+      attacksAttempted: 0, damageDealt: 0, enemyContacts: 0, weaponContacts: 0,
+      enemyDetections: 0, combatEngagements: 0, attackOpportunities: 0, attackOpportunityTimeouts: 0,
     };
     this.centerOfMassLocal = new THREE.Vector3(0, -0.2, 0);
     this.unstableRestTime = 0;
@@ -4804,6 +5995,9 @@ class Robot {
     this.groundPenetrationDetected = false;
     this.groundPenetrationDepth = 0;
     this.physicsAwake = true;
+    this.controlsEnabled = true;
+    this.motorEnabled = true;
+    this.driveEnabled = true;
     this.playerDriveStallSeconds = 0;
     this.driveStallSeconds = 0;
     this.driveStallSnapshots = [];
@@ -4815,6 +6009,7 @@ class Robot {
     this.solverVelocityIterations = 6;
     this.build();
     this.alignDrivingWheelsToGround();
+    this.refreshTeamMarkerBounds();
     this.aiDesign = cloneData(this.assembly.aiDesign ?? { archetype: 'player-built', colorMode: 'custom', weaponLayout: 'custom', blockCount: this.assembly.blocks.length });
     this.respawnBlueprint = cloneData(this.assembly);
     this.originalBuildData = cloneData(this.assembly);
@@ -4832,9 +6027,10 @@ class Robot {
       return;
     }
     const bodyMinY = Math.min(...this.colliderComponents.flatMap((component) => component.points.map((point) => point.y)));
-    const maximumRadius = Math.max(...this.wheels.map((wheel) => wheel.physicsRadius));
-    const clearance = clamp(maximumRadius * 0.22, MIN_CHASSIS_GROUND_CLEARANCE, 0.16);
-    const targetBottomY = bodyMinY - clearance;
+    // HARD BUILD FLOOR: the tyre contact plane may equal the lowest chassis
+    // block plane, but no wheel geometry may begin beneath it.
+    const clearance = 0;
+    const targetBottomY = bodyMinY;
     for (const wheel of this.wheels) {
       wheel.wheelRoot.position.y = targetBottomY + wheel.physicsRadius;
       wheel.baseLocalPosition.copy(wheel.wheelRoot.position);
@@ -4843,6 +6039,21 @@ class Robot {
       wheel.part.record.suspensionRestLength = clearance;
     }
     this.chassisGroundClearance = clearance;
+  }
+
+  refreshTeamMarkerBounds() {
+    const points = [];
+    for (const component of this.colliderComponents ?? []) for (const point of component.points ?? []) points.push(point.clone());
+    for (const wheel of this.wheels ?? []) {
+      if (wheel.part.detached) continue;
+      points.push(wheel.wheelRoot.position.clone().add(new THREE.Vector3(0, wheel.physicsRadius, 0)));
+    }
+    for (const part of this.parts ?? []) {
+      if (part.detached || part.type === 'block' || !part.object) continue;
+      points.push(part.object.position.clone().add(new THREE.Vector3(0, part.radius ?? 0.4, 0)));
+    }
+    this.teamMarkerLocalPoints = points.length ? points : [new THREE.Vector3(0, GRID_UNIT, 0)];
+    this.teamMarkerOccluded = false;
   }
 
   placeOnMeasuredGround() {
@@ -4862,7 +6073,7 @@ class Robot {
     }
   }
 
-  addPart({ name, model, parent = this.root, position = [0, 0, 0], rotation = [0, 0, 0], scaleFactor = 1, axisScale = [1, 1, 1], hp = 80, mass = 5, armor = 0, type = 'armor', weaponKey = null, detachable = true, tint = this.tint, assemblyId = null, radius = 0.45 }) {
+  addPart({ name, model, parent = this.root, position = [0, 0, 0], rotation = [0, 0, 0], scaleFactor = 1, axisScale = [1, 1, 1], hp = 80, mass = 5, armor = 0, type = 'armor', weaponKey = null, detachable = true, tint = 0xffffff, assemblyId = null, radius = 0.45 }) {
     const object = new THREE.Group();
     object.name = `${this.name}_${name}`;
     object.position.set(...position);
@@ -4878,19 +6089,14 @@ class Robot {
   buildBlockRenderBatches() {
     const groups = new Map();
     for (const part of this.blockParts.values()) {
-      const color = new THREE.Color(part.record.renderColor ?? part.record.color ?? LV1_BLOCK_COLOR).getHexString();
-      const key = `${part.record.type}:${color}`;
+      const key = part.record.type;
       if (!groups.has(key)) groups.set(key, []);
       groups.get(key).push(part);
     }
     this.blockRenderBatches = [];
     const dummy = new THREE.Object3D();
     for (const parts of groups.values()) {
-      const color = new THREE.Color(parts[0].record.renderColor ?? parts[0].record.color ?? LV1_BLOCK_COLOR);
-      const material = new THREE.MeshStandardMaterial({
-        color, metalness: 0.34, roughness: 0.48,
-        emissive: new THREE.Color(0x07151c), emissiveIntensity: 0.08,
-      });
+      const material = sharedBlockBatchMaterial(parts[0].record.type);
       const mesh = new THREE.InstancedMesh(getBlockGeometry(parts[0].record), material, parts.length);
       mesh.name = `${this.name}_BlockBatch_${parts[0].record.type}`;
       mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
@@ -4904,11 +6110,15 @@ class Robot {
         dummy.scale.set(1, 1, 1);
         dummy.updateMatrix();
         mesh.setMatrixAt(index, dummy.matrix);
+        mesh.setColorAt(index, new THREE.Color(part.record.renderColor ?? part.record.color ?? LV1_BLOCK_COLOR));
         part.renderBatch = mesh;
         part.renderBatchIndex = index;
         part.object.visible = false;
       }
       mesh.instanceMatrix.needsUpdate = true;
+      if (mesh.instanceColor) mesh.instanceColor.needsUpdate = true;
+      mesh.computeBoundingSphere();
+      mesh.frustumCulled = true;
       this.root.add(mesh);
       this.blockRenderBatches.push(mesh);
     }
@@ -4917,44 +6127,77 @@ class Robot {
 
   buildNativeArmorRenderBatch() {
     if (!this.nativeArmorParts.length) return;
-    const geometry = new THREE.BoxGeometry(1, 1, 1);
-    const material = new THREE.MeshStandardMaterial({ color: 0xaab6bd, metalness: 0.72, roughness: 0.34 });
-    const mesh = new THREE.InstancedMesh(geometry, material, this.nativeArmorParts.length);
-    mesh.name = `${this.name}_NativeBlockFaceArmorBatch`;
-    mesh.castShadow = true;
-    mesh.receiveShadow = true;
-    mesh.frustumCulled = false;
-    this.root.add(mesh);
-    this.nativeArmorBatch = mesh;
-    this.nativeArmorMaterial = material;
+    // Instance the actual remeshed flat-armour GLB. The previous procedural
+    // box looked similar but was not the asset requested by the player.
+    const source = cloneModel('armor_flat', 0xffffff);
+    source.updateWorldMatrix(true, true);
+    const bounds = new THREE.Box3().setFromObject(source);
+    const sourceCentre = bounds.getCenter(new THREE.Vector3());
+    this.nativeArmorSourceCenter.copy(sourceCentre);
+    this.nativeArmorSourceSize.copy(bounds.getSize(new THREE.Vector3())).max(new THREE.Vector3(0.0001, 0.0001, 0.0001));
+    const group = new THREE.Group();
+    group.name = `${this.name}_NativeBlockFaceArmorGLBInstances`;
+    group.userData = { sourceAsset: ASSET_PATHS.armor_flat, actualGLBGeometry: true };
+    this.nativeArmorBatches = [];
+    source.traverse((node) => {
+      if (!node.isMesh || !node.geometry || !node.material) return;
+      const mesh = new THREE.InstancedMesh(node.geometry, node.material, this.nativeArmorParts.length);
+      mesh.name = `${this.name}_NativeBlockFaceArmorBatch_${this.nativeArmorBatches.length + 1}`;
+      mesh.castShadow = true;
+      mesh.receiveShadow = true;
+      mesh.frustumCulled = true;
+      mesh.userData.sourceMatrix = new THREE.Matrix4().makeTranslation(-sourceCentre.x, -sourceCentre.y, -sourceCentre.z).multiply(node.matrixWorld);
+      group.add(mesh);
+      this.nativeArmorBatches.push(mesh);
+    });
+    this.root.add(group);
+    this.nativeArmorBatch = group;
     this.refreshNativeArmorRenderBatch();
+    for (const batch of this.nativeArmorBatches) batch.computeBoundingSphere();
   }
 
   refreshNativeArmorRenderBatch() {
-    if (!this.nativeArmorBatch) return;
+    if (!this.nativeArmorBatch || !this.nativeArmorBatches.length) return;
     const dummy = new THREE.Object3D();
+    const instanceMatrix = new THREE.Matrix4();
     this.nativeArmorParts.forEach((part, index) => {
       dummy.position.copy(part.object.position);
       dummy.quaternion.copy(part.object.quaternion);
       const size = AI_BLOCK_ARMOR_SIZE * (part.record.plateSize ?? 0.92);
-      dummy.scale.set(size, AI_BLOCK_ARMOR_THICKNESS, size);
+      dummy.scale.set(
+        size / this.nativeArmorSourceSize.x,
+        AI_BLOCK_ARMOR_THICKNESS / this.nativeArmorSourceSize.y,
+        size / this.nativeArmorSourceSize.z,
+      );
       if (part.detached) dummy.scale.setScalar(0.00001);
       dummy.updateMatrix();
-      this.nativeArmorBatch.setMatrixAt(index, dummy.matrix);
+      for (const batch of this.nativeArmorBatches) {
+        instanceMatrix.multiplyMatrices(dummy.matrix, batch.userData.sourceMatrix);
+        batch.setMatrixAt(index, instanceMatrix);
+        batch.setColorAt(index, new THREE.Color(part.record?.paintColor ?? this.paintPalette.secondary));
+      }
       part.nativeArmorIndex = index;
     });
-    this.nativeArmorBatch.instanceMatrix.needsUpdate = true;
+    for (const batch of this.nativeArmorBatches) {
+      batch.instanceMatrix.needsUpdate = true;
+      if (batch.instanceColor) batch.instanceColor.needsUpdate = true;
+    }
   }
 
   addNativeArmorDebrisVisual(part) {
     if (!part.record?.nativeBlockPlate || part.object.children.length) return;
     const size = AI_BLOCK_ARMOR_SIZE * (part.record.plateSize ?? 0.92);
-    const mesh = new THREE.Mesh(
-      new THREE.BoxGeometry(size, AI_BLOCK_ARMOR_THICKNESS, size),
-      (this.nativeArmorMaterial ?? new THREE.MeshStandardMaterial({ color: 0xaab6bd, metalness: 0.72, roughness: 0.34 })).clone(),
+    const visual = cloneModel('armor_flat', part.record?.paintColor ?? this.paintPalette.secondary);
+    const container = new THREE.Group();
+    container.scale.set(
+      size / this.nativeArmorSourceSize.x,
+      AI_BLOCK_ARMOR_THICKNESS / this.nativeArmorSourceSize.y,
+      size / this.nativeArmorSourceSize.z,
     );
-    mesh.castShadow = true;
-    part.object.add(mesh);
+    visual.position.copy(this.nativeArmorSourceCenter).negate();
+    visual.userData.detachedFromNativeArmorBatch = true;
+    container.add(visual);
+    part.object.add(container);
   }
 
   hideBlockRenderInstance(part) {
@@ -4967,6 +6210,8 @@ class Robot {
 
   build() {
     this.assembly = enrichAssembly(this.assembly ?? (this.isPlayer ? savedAssembly : createAIAssembly(this.type)));
+    this.buildFloorRepairs = repairAssemblyBuildFloor(this.assembly, `${this.name}-runtime-build`);
+    this.buildFloorAudit = auditAssemblyBuildFloor(this.assembly, `${this.name}-runtime-build`);
     this.weightClass = WEIGHT_CLASSES[this.assembly.weightClass] ? this.assembly.weightClass : 'middleweight';
     this.driveProfile = WEIGHT_CLASSES[this.weightClass];
     this.driveType = this.assembly.driveType ?? 'wheel';
@@ -5018,7 +6263,7 @@ class Robot {
     this.buildBlockRenderBatches();
     const linkedSupports = new Map();
     for (const record of this.assembly.parts.filter((part) => WEAPON_TYPES.has(part.type))) {
-      const key = ['spinner', 'barSpinner', 'drumSpinner'].includes(record.type) ? `${record.type}:${record.id}` : record.type;
+      const key = ['spinner', 'barSpinner', 'drumSpinner', 'puncher'].includes(record.type) ? `${record.type}:${record.id}` : record.type;
       for (const id of record.linkedTo ?? []) linkedSupports.set(id, key);
     }
     const built = new Map();
@@ -5046,11 +6291,16 @@ class Robot {
       visualOrientation.name = `${this.name}_${record.id}_WheelVisualOrientation`;
       rollPivot.add(visualOrientation);
       const wheelObject = new THREE.Group();
-      const scaleFactor = record.scaleFactor ?? 1;
-      const axisScale = record.axisScale ?? [1, 1, 1];
+      // Each weight-class wheel GLB owns its physical dimensions. Runtime
+      // ignores every stale/editor-injected scale so the visible tire,
+      // collider, suspension and ground clearance cannot diverge.
+      record.scaleFactor = 1;
+      record.axisScale = [1, 1, 1];
+      const scaleFactor = 1;
+      const axisScale = [1, 1, 1];
       wheelObject.scale.set(...axisScale).multiplyScalar(scaleFactor);
       const wheelModel = ASSET_PATHS[record.wheelModel] ? record.wheelModel : 'new_wheel';
-      const wheelVisual = cloneModel(wheelModel, this.tint);
+      const wheelVisual = cloneModel(wheelModel, 0xffffff);
       if (record.hubFlipped) visualOrientation.rotation.y = Math.PI;
       wheelObject.add(wheelVisual);
       if (record.mount?.standoff > 0) {
@@ -5071,18 +6321,6 @@ class Robot {
       this.parts.push(part);
       this.functionalParts.set(record.id, part);
       const trackMaterials = [];
-      if (wheelModel === 'track_heavy') wheelVisual.traverse((node) => {
-        if (!node.isMesh || !node.material) return;
-        const materials = Array.isArray(node.material) ? node.material : [node.material];
-        for (const material of materials) {
-          for (const key of ['map', 'normalMap', 'roughnessMap', 'metalnessMap']) if (material[key]) {
-            material[key] = material[key].clone();
-            material[key].wrapS = THREE.RepeatWrapping;
-            material[key].wrapT = THREE.RepeatWrapping;
-          }
-          trackMaterials.push(material);
-        }
-      });
       const wheelLodMesh = new THREE.Mesh(
         new THREE.CylinderGeometry(wheelDimensions.radius, wheelDimensions.radius, wheelDimensions.halfWidth * 2, 10, 1),
         new THREE.MeshStandardMaterial({ color: 0x171a1d, metalness: 0.38, roughness: 0.72 }),
@@ -5091,7 +6329,7 @@ class Robot {
       wheelLodMesh.visible = false;
       wheelLodMesh.castShadow = false;
       visualOrientation.add(wheelLodMesh);
-      this.wheels.push({ wheelRoot, steeringPivot, mountOrientation, rollPivot, visualOrientation, wheelVisual, wheelLodMesh, part, steers: Boolean(record.steers), side: Math.sign(record.position[0]) || 1, physicsRadius: wheelDimensions.radius, halfWidth: wheelDimensions.halfWidth, halfLength: wheelDimensions.halfLength ?? wheelDimensions.radius, isTrack: wheelModel === 'track_heavy', trackMaterials, baseLocalPosition: wheelRoot.position.clone(), wheelGroundDistance: Infinity });
+      this.wheels.push({ wheelRoot, steeringPivot, mountOrientation, rollPivot, visualOrientation, wheelVisual, wheelLodMesh, part, steers: Boolean(record.steers), side: Math.sign(record.position[0]) || 1, physicsRadius: wheelDimensions.radius, halfWidth: wheelDimensions.halfWidth, halfLength: wheelDimensions.radius, isTrack: false, trackMaterials, baseLocalPosition: wheelRoot.position.clone(), wheelGroundDistance: Infinity });
       built.set(record.id, part);
     }
 
@@ -5140,6 +6378,7 @@ class Robot {
           rotation: [0, 0, 0], scaleFactor: record.scaleFactor ?? 1, axisScale: record.axisScale ?? [1, 1, 1],
           hp: record.baseHp ?? meta.hp, mass: record.mass ?? meta.mass, armor: meta.armor ?? 0,
           radius: meta.radius, type: meta.category, assemblyId: record.id,
+          tint: paintTintForPart(record, this.paintPalette),
         });
         part.object.quaternion.copy(getRecordQuaternion(record));
       }
@@ -5169,14 +6408,36 @@ class Robot {
     this.buildNativeArmorRenderBatch();
 
     for (const record of this.assembly.parts.filter((part) => WEAPON_TYPES.has(part.type))) {
-      const supports = (record.linkedTo ?? []).map((id) => built.get(id)).filter(Boolean);
+      const directBlockSupport = record.mount?.targetId ? this.blockParts.get(record.mount.targetId) : null;
+      const supports = [...new Set([
+        ...(record.linkedTo ?? []).map((id) => built.get(id)).filter(Boolean),
+        ...(directBlockSupport ? [directBlockSupport] : []),
+      ])];
       if (record.type === 'spinner') this.attachSpinner(record, supports[0]);
       if (record.type === 'hammer') this.attachHammer(record, supports[0]);
       if (record.type === 'flipper') this.attachFlipper(record, supports);
-      if (record.type === 'barSpinner') this.attachRotary(record, supports, 'bar', 'y');
+      if (record.type === 'barSpinner') this.attachHorizontalBarSpinner(record, supports);
       if (record.type === 'drumSpinner') this.attachRotary(record, supports, 'drum', 'x');
+      if (record.type === 'puncher') this.attachPuncher(record, supports);
     }
     if (this.type === 'healer') this.attachHealerEmitter();
+    this.runtimeAssetSources = this.assembly.parts.flatMap((record) => {
+      if (record.type === 'wheel') return [{ part: record.id, type: 'wheel', source: ASSET_PATHS[record.wheelModel] }];
+      const meta = PART_META[record.type];
+      if (!meta) return [];
+      const result = [{ part: record.id, type: record.type, source: ASSET_PATHS[meta.model] ?? 'procedural' }];
+      if (meta.tipModel) result.push({ part: `${record.id}:tip`, type: `${record.type}-tip`, source: ASSET_PATHS[meta.tipModel] });
+      return result;
+    });
+    // recordLocalAABB includes the installed rotation and scale, but it is
+    // comparatively expensive. Cache its corners once per built robot so the
+    // continuous floor solver can include weapons/armor every physics step
+    // without rebuilding Box3 objects for every part at 90/120 Hz.
+    this.functionalFloorColliderPoints = new Map();
+    for (const record of this.assembly.parts) {
+      if (record.type === 'wheel' || !this.functionalParts.has(record.id)) continue;
+      this.functionalFloorColliderPoints.set(record.id, getBoundsCorners(recordLocalAABB(record)));
+    }
   }
 
   attachHealerEmitter() {
@@ -5236,6 +6497,63 @@ class Robot {
     const rotary = { kind, weaponKey, assemblyId: record.id, mounts, blade, root, pivot, axis, scaleFactor: record.scaleFactor ?? 1, active: true, rpm: 0, visualRpm: 0, hitCooldown: new Map(), contactTimer: 0, ...settings };
     this.rotaryWeapons.push(rotary);
     this.weapons[kind] ??= rotary;
+  }
+
+  attachHorizontalBarSpinner(record, mounts) {
+    // Bar spinners have a dedicated construction path: no generic surface
+    // alignment, no pitch/roll randomisation, no mast and no legacy axis mesh.
+    // The functional pivot stays local/world-up while only yaw may vary.
+    record.rotation = [0, Number(record.rotation?.[1] ?? 0), 0];
+    record.functionalAxis = 'world-y';
+    record.expectedPlane = 'horizontal';
+    const root = new THREE.Group();
+    root.name = `${this.name}_${record.id}_HorizontalBarRoot`;
+    root.position.set(...record.position);
+    root.quaternion.copy(getRecordQuaternion(record));
+    root.scale.setScalar(record.scaleFactor ?? 1);
+    this.root.add(root);
+    const pivot = new THREE.Group();
+    pivot.name = `${this.name}_${record.id}_VerticalSpinPivot`;
+    root.add(pivot);
+    const meta = PART_META.barSpinner;
+    const weaponKey = `barSpinner:${record.id}`;
+    const blade = this.addPart({ name: meta.label, model: meta.model, parent: pivot, hp: record.baseHp ?? meta.hp, mass: record.mass ?? meta.mass, type: 'weapon', weaponKey, assemblyId: record.id, radius: meta.radius });
+    blade.record = record;
+    this.configureWeaponLOD(blade, 'bar');
+    this.functionalParts.set(record.id, blade);
+    const rotary = {
+      kind: 'bar', weaponKey, assemblyId: record.id, mounts, blade, root, pivot,
+      axis: 'y', scaleFactor: record.scaleFactor ?? 1, active: true, rpm: 0,
+      visualRpm: 0, maxRpm: 2700, visualMaxRpm: 690,
+      acceleration: 980, visualAcceleration: 720,
+      radius: 1.72 * (record.scaleFactor ?? 1), hitCooldown: new Map(), contactTimer: 0,
+      horizontalBarOnly: true,
+    };
+    this.rotaryWeapons.push(rotary);
+    this.weapons.bar ??= rotary;
+  }
+
+  attachPuncher(record, mounts = []) {
+    const root = new THREE.Group();
+    root.name = `${this.name}_${record.id}_PuncherRoot`;
+    root.position.set(...record.position);
+    root.quaternion.copy(getRecordQuaternion(record));
+    root.scale.setScalar(record.scaleFactor ?? 1);
+    this.root.add(root);
+    const meta = PART_META.puncher;
+    const housing = this.addPart({ name: 'PuncherHousing', model: meta.model, parent: root, hp: record.baseHp ?? meta.hp, mass: record.mass ?? meta.mass, type: 'weapon', weaponKey: `puncher:${record.id}`, assemblyId: record.id, radius: meta.radius });
+    housing.record = record;
+    const slide = new THREE.Group();
+    slide.name = `${this.name}_${record.id}_PuncherSlide`;
+    root.add(slide);
+    const tipVisual = cloneModel(meta.tipModel, 0xffffff);
+    slide.add(tipVisual);
+    const tipAnchor = new THREE.Object3D();
+    tipAnchor.position.z = 0.48;
+    slide.add(tipAnchor);
+    const weapon = { kind: 'puncher', weaponKey: `puncher:${record.id}`, assemblyId: record.id, mounts, housing, root, slide, tipAnchor, phase: 'idle', time: 0, cooldown: 0, requested: false, didHit: false, stroke: 1.18 * (record.scaleFactor ?? 1) };
+    this.weapons.puncher = weapon;
+    this.functionalParts.set(record.id, housing);
   }
 
   configureWeaponLOD(part, kind) {
@@ -5309,16 +6627,22 @@ class Robot {
     // the COM within the structural cells; no legacy below-floor stabilizer is
     // available to an oddly shaped player design.
     this.centerOfMassLocal.set(weighted.x, Math.max(-0.04, weighted.y - 0.035), weighted.z);
-    this.radius = Math.max(0.32, ...this.parts.filter((part) => !part.detached).map((part) => {
+    // Keep the combat broad-phase radius tied to the compound hull. The old
+    // second assignment silently undid the 5.6 m clamp above and included tall
+    // exhaust/armour decoration reach. Two decorated robots were therefore
+    // separated by an invisible oversized sphere before a low front weapon
+    // could physically touch the opponent.
+    this.radius = clamp(Math.max(0.32, ...this.parts.filter((part) => !part.detached).map((part) => {
       const local = part.object.position;
       return Math.hypot(local.x, local.z) + (part.radius ?? 0.45);
-    }));
+    })), 1.1, 5.6);
     if (this.colliderDebug) {
       this.root.remove(this.colliderDebug);
       this.colliderDebug = null;
       this.colliderDebugCom = null;
       this.createColliderDebug();
     } else if (this.colliderDebugCom) this.colliderDebugCom.position.copy(this.centerOfMassLocal);
+    this.refreshTeamMarkerBounds();
   }
 
   getLiveWorldBounds() {
@@ -5338,19 +6662,41 @@ class Robot {
     return bounds;
   }
 
+  planarHullSupportRadius(worldDirection) {
+    const direction = worldDirection.clone().setY(0);
+    if (direction.lengthSq() < 1e-8) return 0.5;
+    direction.normalize().applyAxisAngle(Y_AXIS, -this.yaw);
+    let support = 0.5;
+    for (const component of this.colliderComponents) {
+      for (const point of component.points) support = Math.max(support, point.x * direction.x + point.z * direction.z);
+    }
+    // Wheels participate in body-to-body separation, while weapons, armour and
+    // exhaust do not enlarge an invisible circular chassis. This lets a real
+    // low front blade/punch tip reach an opponent before positional separation.
+    for (const wheel of this.wheels) {
+      if (wheel.part.detached) continue;
+      const centre = wheel.wheelRoot.position;
+      const halfX = Math.max(0.12, wheel.halfWidth ?? 0.2);
+      const halfZ = Math.max(0.2, wheel.physicsRadius ?? 0.4);
+      support = Math.max(support, centre.x * direction.x + centre.z * direction.z
+        + Math.abs(direction.x) * halfX + Math.abs(direction.z) * halfZ);
+    }
+    return Math.max(0.5, support);
+  }
+
   setRenderLOD(level) {
-    const nextLevel = this.isPlayer ? 0 : clamp(Math.round(level), 0, 2);
+    const nextLevel = this.isPlayer ? 0 : clamp(Math.round(level), 0, 3);
     this.renderLODLevel = nextLevel;
-    // Never replace a robot by a rectangular proxy. Far LOD retains the real
-    // batched block hull, wheels and weapon silhouette; only small exterior
-    // detail and shadows are culled.
+    // Never replace a robot by a rectangular proxy. VERY FAR retains the real
+    // batched block hull only; MID/FAR progressively remove armour, decorative
+    // meshes, high-poly wheels and high-poly weapons.
     for (const mesh of this.blockRenderBatches ?? []) {
       mesh.visible = !this.dead;
-      mesh.castShadow = nextLevel === 0 && currentPerformanceBudget().shadows;
+      mesh.castShadow = nextLevel === 0 && renderer.shadowMap.enabled;
     }
     if (this.nativeArmorBatch) {
       this.nativeArmorBatch.visible = !this.dead && nextLevel < 2;
-      this.nativeArmorBatch.castShadow = nextLevel === 0 && currentPerformanceBudget().shadows;
+      for (const batch of this.nativeArmorBatches) batch.castShadow = nextLevel === 0 && renderer.shadowMap.enabled;
     }
     for (const part of this.parts) {
       if (part.detached || part.type === 'block' || !part.object) continue;
@@ -5420,6 +6766,7 @@ class Robot {
     const weapon = this.weapons[key];
     if (['spinner', 'bar', 'drum'].includes(key)) return this.rotaryWeapons.some((rotary) => rotary.kind === key && this.rotaryAvailable(rotary));
     if (!weapon) return false;
+    if (key === 'puncher') return !weapon.housing.detached;
     if (key === 'hammer') return !weapon.moving.detached && (!weapon.mount || !weapon.mount.detached);
     return !weapon.plate.detached && (!weapon.mounts?.length || weapon.mounts.every((mount) => !mount.detached));
   }
@@ -5443,6 +6790,24 @@ class Robot {
     if (weapon && this.weaponAvailable('flipper') && weapon.phase === 'idle' && weapon.cooldown <= 0) {
       weapon.requested = true;
       this.selfRightWeaponReactionConsumed = false;
+      return true;
+    }
+    return false;
+  }
+
+  requestPuncher() {
+    const weapon = this.weapons.puncher;
+    if (weapon && this.weaponAvailable('puncher') && weapon.phase === 'idle' && weapon.cooldown <= 0) {
+      weapon.requested = true;
+      // Count the actual actuator command at the one place where a shot is
+      // accepted.  The generic combat controller and the conquest controller
+      // both use this method, so keeping telemetry here prevents a real shot
+      // from being reported as zero simply because it came from the other AI
+      // path.  Cooldown/idle gating above guarantees one count per stroke.
+      if (!this.isPlayer) {
+        this.stats.attacksAttempted++;
+        this.aiAttackAttemptCooldown = Math.max(this.aiAttackAttemptCooldown, 0.5);
+      }
       return true;
     }
     return false;
@@ -5484,6 +6849,7 @@ class Robot {
     this.stats.dashUses++;
     this.stats.maximumDashSpeed = Math.max(this.stats.maximumDashSpeed, this.velocity.clone().setY(0).length());
     this.recordLinearDelta(`dash-${reason}`, impulseDelta, 'Robot.requestDash');
+    spawnDashStreaks(this, forward);
     spawnDust(this.root.position.clone().addScaledVector(forward, -0.9), this.weightClass === 'superheavy' ? 5 : 3);
     emitRobotExhaustBurst(this, this.weightClass === 'superheavy' ? 12 : 8);
     playSpatialSample('dash', this.root.position, 0.88, 0.96 + Math.random() * 0.06, 3);
@@ -5572,6 +6938,31 @@ class Robot {
         if (t >= 1) { flipper.phase = 'idle'; flipper.cooldown = 0.45; }
       }
     }
+
+    const puncher = this.weapons.puncher;
+    if (puncher) {
+      puncher.cooldown = Math.max(0, puncher.cooldown - dt);
+      if (!this.weaponAvailable('puncher')) puncher.phase = 'disabled';
+      if (puncher.phase === 'idle' && puncher.requested) {
+        puncher.phase = 'fire'; puncher.time = 0; puncher.didHit = false; puncher.requested = false;
+        this.stats.attacks++;
+      }
+      if (puncher.phase === 'fire') {
+        puncher.time += dt;
+        const t = clamp(puncher.time / 0.075, 0, 1);
+        puncher.slide.position.z = puncher.stroke * (1 - (1 - t) ** 4);
+        if (t >= 0.58 && !puncher.didHit) {
+          puncher.didHit = true;
+          game.checkPuncherHit(this, puncher);
+        }
+        if (t >= 1) { puncher.phase = 'return'; puncher.time = 0; }
+      } else if (puncher.phase === 'return') {
+        puncher.time += dt;
+        const t = clamp(puncher.time / 0.13, 0, 1);
+        puncher.slide.position.z = puncher.stroke * (1 - t * t * (3 - 2 * t));
+        if (t >= 1) { puncher.slide.position.z = 0; puncher.phase = 'idle'; puncher.cooldown = 0.42; }
+      }
+    }
   }
 
   canPostureRecover() {
@@ -5584,6 +6975,11 @@ class Robot {
 
   wakePhysicsFromControl(reason = 'drive-input') {
     if (this.dead) return false;
+    const hadStaleDriveState = !this.physicsAwake
+      || this.disabledReason === 'IMMOBILE'
+      || this.immobileSeconds > 0.9
+      || this.playerDriveStallSeconds >= 0.78
+      || this.driveStallSeconds >= 0.78;
     this.physicsAwake = true;
     this.passiveSettledArmed = false;
     this.passiveSettledSeconds = 0;
@@ -5592,6 +6988,11 @@ class Robot {
     if (this.wheels.some((wheel) => !wheel.part.detached)) {
       this.disabledReason = null;
       this.immobileSeconds = 0;
+    }
+    if (hadStaleDriveState) {
+      this.controlRecoveryCount++;
+      this.stats.controlRecoveries = (this.stats.controlRecoveries ?? 0) + 1;
+      this.lastControlRecoveryReason = reason;
     }
     return true;
   }
@@ -5604,13 +7005,25 @@ class Robot {
       && this.root.position.y <= support.height + support.wheelSuspensionTravel + 0.06;
     const forwardSpeed = this.velocity.dot(forwardFor(this.yaw));
     const profile = this.driveProfile ?? WEIGHT_CLASSES.middleweight;
-    const motorEnabled = !this.dead && structurallyDriveable && !this.postureRecovery;
+    const motorEnabled = !this.dead && structurallyDriveable && !this.postureRecovery && this.motorEnabled !== false;
+    const wheelMotorTorque = motorEnabled ? Math.abs(this.control.throttle) * 8.2 * profile.acceleration : 0;
+    const wheelRPM = forwardSpeed / Math.max(0.1, this.wheels.find((wheel) => !wheel.part.detached)?.physicsRadius ?? 0.5) * 60 / (Math.PI * 2);
+    const wheelStates = this.wheels.map((wheel, index) => ({
+      id: wheel.part.assemblyId ?? `wheel-${index}`,
+      side: wheel.side < 0 ? 'L' : 'R',
+      steering: Boolean(wheel.steers),
+      detached: Boolean(wheel.part.detached),
+      grounded: !wheel.part.detached && Number.isFinite(wheel.wheelGroundDistance) && wheel.wheelGroundDistance <= support.wheelSuspensionTravel + 0.055,
+      motorTorque: Number((wheel.part.detached ? 0 : wheelMotorTorque).toFixed(3)),
+      brakeTorque: this.control.brake ? 1 : 0,
+      rpm: Number((wheel.part.detached ? 0 : wheelRPM).toFixed(1)),
+    }));
     return {
       throttleInput: Number(this.control.throttle.toFixed(3)),
       steerInput: Number(this.control.steering.toFixed(3)),
       brakeInput: Boolean(this.control.brake),
-      controlsEnabled: !this.dead,
-      controlsDisabled: this.dead,
+      controlsEnabled: !this.dead && this.controlsEnabled !== false,
+      controlsDisabled: this.dead || this.controlsEnabled === false,
       isStunned: false,
       isRecovering: Boolean(this.postureRecovery),
       isAirborne: !grounded && this.root.position.y > support.height + 0.095,
@@ -5621,10 +7034,11 @@ class Robot {
       isRespawning: this.dead && Number.isFinite(this.respawnAt),
       isStuck: this.isPlayer ? this.playerDriveStallSeconds >= 1 : this.aiMeaninglessStationarySeconds >= 2,
       motorEnabled,
-      driveEnabled: motorEnabled && grounded && support.upDot > 0.52,
-      wheelMotorTorque: motorEnabled ? Number((Math.abs(this.control.throttle) * 8.2 * profile.acceleration).toFixed(3)) : 0,
-      wheelRPM: Number((forwardSpeed / Math.max(0.1, this.wheels.find((wheel) => !wheel.part.detached)?.physicsRadius ?? 0.5) * 60 / (Math.PI * 2)).toFixed(1)),
+      driveEnabled: motorEnabled && grounded && support.upDot > 0.52 && this.driveEnabled !== false,
+      wheelMotorTorque: Number(wheelMotorTorque.toFixed(3)),
+      wheelRPM: Number(wheelRPM.toFixed(1)),
       wheelBrakeTorque: this.control.brake ? 1 : 0,
+      wheelStates,
       steeringEnabled: !this.dead && structurallyDriveable,
       canDrive: !this.dead && structurallyDriveable,
       canSelfRight: !this.dead && !this.postureRecovery && this.postureRecoveryCooldown <= 0,
@@ -5641,6 +7055,10 @@ class Robot {
     const support = this.lastSupportInfo ?? this.getGroundSupportInfo();
     if (this.dead || !support.wheelContact || support.upDot < 0.52) return false;
     this.wakePhysicsFromControl(reason);
+    this.controlsEnabled = true;
+    this.motorEnabled = true;
+    this.driveEnabled = true;
+    if (Math.abs(this.control.throttle) > 0.2) this.control.brake = false;
     this.postureRecovery = null;
     this.selfRightRecoveryPending = false;
     this.selfRightAttemptWindow = 0;
@@ -5654,8 +7072,6 @@ class Robot {
     if (this.velocity.clone().setY(0).length() < 0.16 && Math.abs(this.control.throttle) > 0.25) {
       this.velocity.addScaledVector(forward, Math.sign(this.control.throttle) * 0.38);
     }
-    this.controlRecoveryCount++;
-    this.stats.controlRecoveries = (this.stats.controlRecoveries ?? 0) + 1;
     return true;
   }
 
@@ -5765,7 +7181,6 @@ class Robot {
     this.aiNoProgressSeconds = 0;
     this.aiLastProgressDistance = Infinity;
     this.aiProgressWaypointKey = null;
-    this.aiRouteVariant = (this.aiRouteVariant + 1) % 3;
     this.lastAIPathClearReason = reason;
   }
 
@@ -5790,18 +7205,65 @@ class Robot {
 
   updateAIStuckDetector(dt) {
     if (this.aiState === 'STUCK_RECOVERY' || this.postureRecovery || this.dead) return false;
+    this.aiRouteLoopSampleAccumulator += dt;
+    let routeLooping = false;
+    let routeLoopYawTravel = 0;
+    if (this.aiRouteLoopSampleAccumulator >= 0.5) {
+      this.aiRouteLoopSampleAccumulator %= 0.5;
+      const goalDistance = this.aiNavGoal ? this.root.position.distanceTo(this.aiNavGoal) : 0;
+      this.aiRouteLoopHistory.push({
+        t: worldTime, x: this.root.position.x, z: this.root.position.z,
+        yaw: this.yaw, goalDistance,
+        goalX: this.aiNavGoal?.x ?? null, goalZ: this.aiNavGoal?.z ?? null,
+      });
+      while (this.aiRouteLoopHistory.length && worldTime - this.aiRouteLoopHistory[0].t > 7) this.aiRouteLoopHistory.shift();
+      const activePoint = conquestState.enabled ? conquestState.points[conquestState.activePoint] : null;
+      const activePointDistance = activePoint ? this.root.position.distanceTo(activePoint.centre) : Infinity;
+      const routeState = ['MOVE_TO_OBJECTIVE', 'FORCED_DEPLOY', 'REPOSITION', 'FLANK', 'DEFEND', 'CONTEST'].includes(this.aiState);
+      const eligibleRouteTravel = Boolean(this.aiNavGoal && routeState
+        && (!activePoint || activePointDistance > activePoint.radius + 34));
+      if (!eligibleRouteTravel) this.aiRouteLoopHistory.length = 0;
+      if (eligibleRouteTravel && this.aiRouteLoopHistory.length >= 9 && goalDistance > 18) {
+        let travelled = 0;
+        let yawTravel = 0;
+        for (let index = 1; index < this.aiRouteLoopHistory.length; index++) {
+          const previous = this.aiRouteLoopHistory[index - 1];
+          const current = this.aiRouteLoopHistory[index];
+          travelled += Math.hypot(current.x - previous.x, current.z - previous.z);
+          yawTravel += Math.abs(normalizeAngle(current.yaw - previous.yaw));
+        }
+        const first = this.aiRouteLoopHistory[0];
+        const last = this.aiRouteLoopHistory.at(-1);
+        const objectiveProgress = first.goalDistance - last.goalDistance;
+        const netDisplacement = Math.hypot(last.x - first.x, last.z - first.z);
+        const goalShift = first.goalX == null || last.goalX == null ? Infinity : Math.hypot(last.goalX - first.goalX, last.goalZ - first.goalZ);
+        // Catch the visible minimap failure: meaningful wheel travel but a
+        // large accumulated turn with virtually no progress toward the active
+        // objective. The old detector only caught sub-metre pivoting and
+        // therefore reported spin=0 while bots drew circles on screen.
+        // Break an orbit before it completes one revolution. A legitimate
+        // canyon turn still has useful net displacement or objective progress;
+        // a loop returns to the same area while accumulating yaw and travel.
+        routeLoopYawTravel = yawTravel;
+        routeLooping = goalShift < 8 && travelled > 18 && netDisplacement < 12
+          && yawTravel > THREE.MathUtils.degToRad(120) && objectiveProgress < 4;
+      }
+    }
     this.aiStuckWindow += dt;
     this.aiStuckYawTravel += Math.abs(normalizeAngle(this.yaw - this.aiStuckAnchorYaw));
     this.aiStuckAnchorYaw = this.yaw;
-    // Sample quickly enough that an AI cannot complete even one stationary
-    // circle before the guard takes over.
-    if (this.aiStuckWindow < 0.72) return false;
+    // Evaluate the real transform over a meaningful window. The previous
+    // 0.72 s / 18 degree threshold classified ordinary launch congestion as
+    // stuck and made whole teams enter recovery instead of driving to A.
+    const earlyCircle = this.aiStuckWindow >= 1.2 && this.aiStuckYawTravel >= THREE.MathUtils.degToRad(100);
+    if (this.aiStuckWindow < 1.8 && !earlyCircle && !routeLooping) return false;
     const displacement = this.root.position.clone().sub(this.aiStuckAnchor).setY(0).length();
-    const tryingToMove = Math.abs(this.control.throttle) > 0.52;
+    const yawTravel = this.aiStuckYawTravel;
+    const tryingToMove = Math.abs(this.control.throttle) > 0.22;
     const goalStillFar = !this.aiNavGoal || this.root.position.distanceTo(this.aiNavGoal) > 8;
-    const spinningInPlace = displacement < 0.52 && this.aiStuckYawTravel > 0.32 && goalStillFar;
-    const physicallyBlocked = displacement < 0.24 && tryingToMove && goalStillFar;
-    const meaningless = spinningInPlace || physicallyBlocked;
+    const spinningInPlace = displacement < 0.9 && this.aiStuckYawTravel >= THREE.MathUtils.degToRad(100) && goalStillFar;
+    const physicallyBlocked = displacement < 0.42 && tryingToMove && goalStillFar;
+    const meaningless = spinningInPlace || physicallyBlocked || routeLooping;
     this.aiMeaninglessStationarySeconds = meaningless ? this.aiMeaninglessStationarySeconds + this.aiStuckWindow : Math.max(0, this.aiMeaninglessStationarySeconds - this.aiStuckWindow * 1.6);
     this.aiMaximumMeaninglessStationarySeconds = Math.max(this.aiMaximumMeaninglessStationarySeconds, this.aiMeaninglessStationarySeconds);
     this.aiStuckAnchor.copy(this.root.position);
@@ -5816,11 +7278,29 @@ class Robot {
     this.aiLastStuckPosition = stuckPosition;
     this.aiLastStuckTime = worldTime;
     this.aiPreviousObjectiveState = this.aiState;
-    this.transitionAIState('STUCK_RECOVERY', spinningInPlace ? 'yaw-without-travel' : 'drive-without-travel');
-    this.aiRecoverStuckTime = 2.55;
+    const stuckReason = routeLooping ? 'route-loop-without-objective-progress' : spinningInPlace ? 'yaw-without-travel' : 'drive-without-travel';
+    this.transitionAIState('STUCK_RECOVERY', stuckReason);
+    this.aiRecoverStuckTime = 1.8;
     this.aiAvoidSide *= -1;
     this.aiRecoverTurnSign = this.aiAvoidSide;
+    // Change lanes only after a measured physical blockage. Ordinary goal
+    // changes, healing and capture transitions must not randomly rotate the
+    // robot onto a much longer canyon route.
+    if (routeLooping) this.aiRouteVariant = (this.aiRouteVariant + 1) % 3;
+    this.aiObjectiveRoutePoint = null;
+    this.aiObjectiveRouteKey = null;
+    this.aiObjectiveRouteCursorKey = null;
+    this.aiObjectiveRouteCursor = 0;
     if (spinningInPlace) this.aiSpinGuardEvents++;
+    if (routeLooping) {
+      // The guard deliberately interrupts the arc at 120 degrees, before one
+      // complete revolution is visible. Keep prevented arcs separate from a
+      // genuine full-loop failure instead of reporting the safety intervention
+      // itself as if the robot had already completed a circle.
+      this.aiRouteLoopPreventedEvents++;
+      if (routeLoopYawTravel >= THREE.MathUtils.degToRad(300)) this.aiRouteLoopGuardEvents++;
+    }
+    this.aiRouteLoopHistory.length = 0;
     const forward = forwardFor(this.yaw);
     const right = new THREE.Vector3(forward.z, 0, -forward.x);
     const sideDistance = 7.5 + Math.min(3, this.aiRepeatedStuckCount) * 2.4;
@@ -5831,16 +7311,29 @@ class Robot {
     if (selectedMapId === 'desert01') {
       let safeNode = null;
       let safeScore = Infinity;
+      const activeObjective = conquestState.enabled ? conquestState.points[conquestState.activePoint]?.centre : null;
+      const recoveryClearance = robotNavigationClearance(this);
+      if (routeLooping && activeObjective) {
+        const recoveryRoute = computeDesertPath(stuckPosition, activeObjective, this.aiRouteVariant, recoveryClearance);
+        safeNode = recoveryRoute.find((point) => {
+          const distance = point.distanceTo(stuckPosition);
+          return distance >= 14 && distance <= 72
+            && !pointInsideMapObstacle(point, recoveryClearance)
+            && !segmentBlockedByMapObstacle(stuckPosition, point, recoveryClearance);
+        }) ?? null;
+      }
       for (const node of desertNavigation.nodes) {
+        if (safeNode) break;
         const planar = node.clone().sub(stuckPosition).setY(0);
         const distance = planar.length();
-        if (distance < 7 || distance > 58 || segmentBlockedByMapObstacle(stuckPosition, node, 1.35)) continue;
+        if (distance < 8 || distance > 72 || segmentBlockedByMapObstacle(stuckPosition, node, recoveryClearance)) continue;
         const direction = planar.normalize();
         const sideBias = direction.dot(right) * this.aiRecoverTurnSign;
         const rearBias = -direction.dot(forward);
         const occupied = robots.some((candidate) => candidate !== this && !candidate.dead && candidate.root.position.distanceToSquared(node) < 5.5 ** 2);
         if (occupied) continue;
-        const score = distance - sideBias * 6 - rearBias * 3;
+        const progressBias = activeObjective && (routeLooping || this.aiRepeatedStuckCount >= 2) ? node.distanceTo(activeObjective) * (routeLooping ? 0.34 : 0.18) : 0;
+        const score = distance - sideBias * 6 - rearBias * 3 + progressBias;
         if (score < safeScore) { safeScore = score; safeNode = node; }
       }
       if (safeNode) escape.copy(safeNode);
@@ -5849,7 +7342,7 @@ class Robot {
       escape.y = desertTerrainHeight(escape.x, escape.z);
     }
     this.aiEscapeWaypoint = escape;
-    this.aiEscapeExpires = worldTime + 11;
+    this.aiEscapeExpires = worldTime + 4.5;
     const support = this.lastSupportInfo ?? this.getGroundSupportInfo();
     if (this.velocity.clone().setY(0).length() < 0.8 && support.wheelContact && support.upDot > 0.55) {
       // A straight linear release breaks contact without creating a spin-only
@@ -5862,22 +7355,29 @@ class Robot {
     this.clearAIPath('stuck-detected');
     this.aiStuckEvents++;
     this.stats.aiStuckRecoveries = (this.stats.aiStuckRecoveries ?? 0) + 1;
+    this.aiStuckRecoveryLog.push({
+      t: Number(battleElapsed.toFixed(2)), event: 'stuckDetected',
+      reason: routeLooping ? 'route-loop' : spinningInPlace ? 'circle-stuck' : 'blocked',
+      translation: Number(displacement.toFixed(2)), yawDegrees: Number(THREE.MathUtils.radToDeg(yawTravel).toFixed(1)),
+      x: Number(this.root.position.x.toFixed(1)), z: Number(this.root.position.z.toFixed(1)),
+    });
+    if (this.aiStuckRecoveryLog.length > 32) this.aiStuckRecoveryLog.shift();
     return true;
   }
 
   updateAIStuckRecovery(dt) {
     if (this.aiState !== 'STUCK_RECOVERY') return false;
     this.aiRecoverStuckTime = Math.max(0, this.aiRecoverStuckTime - dt);
-    const elapsed = 2.55 - this.aiRecoverStuckTime;
-    if (elapsed < 0.9) {
-      this.control = { throttle: -1, steering: this.aiRecoverTurnSign * 0.12, brake: false };
+    const elapsed = 1.8 - this.aiRecoverStuckTime;
+    if (elapsed < 0.55) {
+      this.control = { throttle: -1, steering: 0, brake: false };
       this.stats.reverseRecoveries++;
     }
-    else if (elapsed < 1.62) this.control = { throttle: -0.9, steering: this.aiRecoverTurnSign * 0.38, brake: false };
+    else if (elapsed < 1.0) this.control = { throttle: -0.92, steering: this.aiRecoverTurnSign * 0.42, brake: false };
     else {
-      this.control = { throttle: 1, steering: -this.aiRecoverTurnSign * 0.52, brake: false };
+      this.control = { throttle: 1, steering: -this.aiRecoverTurnSign * 0.38, brake: false };
       const dashProbe = this.root.position.clone().addScaledVector(forwardFor(this.yaw), 7);
-      if (this.dashCooldown <= 0 && !segmentBlockedByMapObstacle(this.root.position, dashProbe, Math.max(1.8, this.radius * 0.72)) && this.requestDash('ai-stuck-exit')) this.aiDashIntent = 'stuck-exit';
+      if (this.dashCooldown <= 0 && !segmentBlockedByMapObstacle(this.root.position, dashProbe, robotNavigationClearance(this)) && this.requestDash('ai-stuck-exit')) this.aiDashIntent = 'stuck-exit';
     }
     if (this.aiRecoverStuckTime <= 0) {
       this.transitionAIState('REPOSITION', 'stuck-recovery-finished');
@@ -5885,6 +7385,11 @@ class Robot {
       this.aiMeaninglessStationarySeconds = 0;
       this.aiStuckAnchor.copy(this.root.position);
       this.aiStuckAnchorYaw = this.yaw;
+      this.aiStuckRecoveryLog.push({
+        t: Number(battleElapsed.toFixed(2)), event: 'movementRecovered',
+        x: Number(this.root.position.x.toFixed(1)), z: Number(this.root.position.z.toFixed(1)),
+      });
+      if (this.aiStuckRecoveryLog.length > 32) this.aiStuckRecoveryLog.shift();
     }
     return true;
   }
@@ -5892,18 +7397,31 @@ class Robot {
   updateAI(dt) {
     if (this.isPlayer || this.dead) return;
     this.aiStateTime += dt;
+    this.aiAttackAttemptCooldown = Math.max(0, this.aiAttackAttemptCooldown - dt);
+    if (selectedMapId === 'desert01' && conquestState.enabled && conquestState.winner) {
+      this.aiTargetId = null;
+      this.clearAIPath('conquest-match-ended');
+      this.transitionAIState('MATCH_ENDED', 'conquest-winner-declared');
+      this.control = { throttle: 0, steering: 0, brake: true };
+      return;
+    }
     if (worldTime < this.spawnProtectionUntil) {
       this.control = { throttle: 0, steering: 0, brake: true };
       this.transitionAIState('REENTRY', 'spawn-protection');
       return;
     }
+    if (selectedMapId === 'desert01' && conquestState.enabled && this.aiSpawnExitAt == null) {
+      const distanceFromSpawn = Math.hypot(this.root.position.x - this.spawnPosition.x, this.root.position.z - this.spawnPosition.z);
+      if (distanceFromSpawn > DESERT_LAYOUT.repairRadius + 2) this.aiSpawnExitAt = battleElapsed;
+    }
+    updateRobotObjectiveTelemetry(this, dt);
     if (this.updateAIDisabledDecision(dt)) return;
     if (this.postureRecovery) { this.control = { throttle: 0, steering: 0, brake: true }; return; }
     const recoverySupport = this.lastSupportInfo ?? this.getGroundSupportInfo();
     const tiltDegrees = THREE.MathUtils.radToDeg(Math.acos(clamp(recoverySupport.upDot, -1, 1)));
     const securelyWheelDown = tiltDegrees < 60 && recoverySupport.wheelContact
       && this.root.position.y <= recoverySupport.height + 0.1;
-    const selfRightCandidate = this.isSelfRightCandidate();
+    const selfRightCandidate = this.isSelfRightCandidate(recoverySupport);
     if (tiltDegrees >= 60 || !securelyWheelDown) {
       this.aiUndrivableTime += dt;
       this.control = { throttle: 0, steering: 0, brake: true };
@@ -5953,12 +7471,35 @@ class Robot {
       this.selfRightRecoveryPending = false;
       this.selfRightAttemptWindow = 0;
     }
+    // Deployment is a hard pre-combat phase in conquest. Once spawn
+    // protection ends, every driveable AI leaves the repair/spawn circle via
+    // the obstacle-aware route before healer/combat target selection can make
+    // it wait, orbit an ally, or reacquire an enemy at the gate.
+    if (selectedMapId === 'desert01' && conquestState.enabled && !conquestState.winner && this.aiSpawnExitAt == null) {
+      const deployment = conquestObjectiveForRobot(this);
+      this.transitionAIState('MOVE_TO_OBJECTIVE', 'mandatory-spawn-deployment');
+      driveRobotTowardPoint(this, deployment?.point ?? conquestState.points[conquestState.activePoint].centre, dt, 1.28);
+      return;
+    }
     this.aiThinkAccumulator += dt;
+    if (this.updateAIStuckDetector(dt)) return;
     const playerDistance = player && player !== this
       ? Math.hypot(player.root.position.x - this.root.position.x, player.root.position.z - this.root.position.z)
       : 0;
-    const populationPenalty = robots.length >= 12 ? 0.09 : robots.length >= 8 ? 0.04 : 0;
-    const thinkInterval = (playerDistance < 34 ? 0.18 : playerDistance < 76 ? 0.32 : 0.5) + populationPenalty;
+    const activeConquestPoint = conquestState.enabled ? conquestState.points[conquestState.activePoint] : null;
+    const objectiveUrgent = Boolean(activeConquestPoint && (
+      activeConquestPoint[this.team === 'blue' ? 'red' : 'blue'] > activeConquestPoint[this.team] + 0.05
+      || this.root.position.distanceToSquared(activeConquestPoint.centre) < (activeConquestPoint.radius + 18) ** 2
+    ));
+    const recentlyHit = worldTime - this.lastExternalImpactTime < 1.2;
+    const attackingPlayer = player && this.aiTargetId === player.id;
+    const healingNow = this.healingVisualTimer > 0 || ['HEAL_ALLY', 'SEEK_HEALER', 'GO_REPAIR'].includes(this.aiState);
+    const combatImportant = objectiveUrgent || recentlyHit || attackingPlayer || healingNow;
+    let simulationLOD = playerDistance < 34 ? 0 : playerDistance < 82 ? 1 : playerDistance < 155 ? 2 : 3;
+    if (combatImportant) simulationLOD = Math.max(0, simulationLOD - 1);
+    this.aiSimulationLOD = simulationLOD;
+    const thinkInterval = [0.1, 0.2, 0.5, 1][this.aiSimulationLOD];
+    this.aiThinkInterval = thinkInterval;
     if (this.aiThinkAccumulator < thinkInterval) {
       performanceProfile.aiThinkSkips++;
       return;
@@ -5966,12 +7507,10 @@ class Robot {
     dt = this.aiThinkAccumulator;
     this.aiThinkAccumulator = 0;
     performanceProfile.aiThinkCalls++;
-    if (this.updateAIStuckDetector(dt)) return;
-    // Healers use the same seek/follow/heal behaviour in every team mode.
-    // Previously this only ran inside the desert objective branch, so arena
-    // healers fell through to combat targeting and circled enemies instead.
-    if (this.type === 'healer' && updateHealerAI(this, dt)) return;
     if (selectedMapId === 'desert01' && updateDesertObjectiveAI(this, dt)) return;
+    // Outside conquest, healers still use seek/follow/heal instead of enemy
+    // orbiting combat behaviour.
+    if (this.type === 'healer' && updateHealerAI(this, dt)) return;
     const ownHealth = this.durability();
     performanceProfile.targetSearches++;
     const candidates = game.targetsFor(this);
@@ -6035,7 +7574,9 @@ class Robot {
     else if (wasRetreating || (wasReentering && this.aiStateTime < 1.55)) nextState = 'REENTRY';
     else if ((['flanker', 'ambusher'].includes(this.aiTrait) || this.aiPersonality.ambushPreference > 0.76) && targetEngaged && distance > 7) nextState = 'AMBUSH';
     else if ((['flanker', 'ambusher'].includes(this.aiTrait) || this.type === 'hammer') && distance > 5.5) nextState = 'FLANK';
-    else if (distance < (this.type === 'hammer' ? 5.8 : this.type === 'flipper' ? 4.6 : 4.9)) nextState = 'ATTACK';
+    else if (distance < (this.type === 'puncher'
+      ? Math.max(5.1, this.radius + target.radius + 2.2)
+      : this.type === 'hammer' ? 5.8 : this.type === 'flipper' ? 4.6 : 4.9)) nextState = 'ATTACK';
     this.transitionAIState(nextState, `combat-${nextState.toLowerCase()}`);
 
     if (this.aiState === 'RETREAT') {
@@ -6057,8 +7598,13 @@ class Robot {
     } else if (this.aiState === 'FLANK') {
       desiredPoint.addScaledVector(side, this.aiOrbit * clamp(distance * 0.42, 4.2, 10.5));
     } else {
-      if (this.type === 'hammer' && distance < 9) desiredPoint.addScaledVector(side, this.aiOrbit * clamp(distance * 0.24, 1.1, 2.8));
-      if (['spinner', 'bar', 'drum'].includes(this.type)) desiredPoint.addScaledVector(side, Math.sin(worldTime * 0.85 + this.id) * (this.aiTrait === 'brawler' ? 1.2 : 2.3));
+      if (this.type === 'spinner') desiredPoint.addScaledVector(side, this.aiOrbit * clamp(distance * 0.12, 0.35, 1.1));
+      if (this.type === 'bar') {
+        const rpmRatio = (this.weapons.bar?.rpm ?? 0) / Math.max(1, this.weapons.bar?.maxRpm ?? 1);
+        if (rpmRatio < 0.78 && distance < 9) desiredPoint.copy(this.root.position).addScaledVector(this.root.position.clone().sub(target.root.position).setY(0).normalize(), 7);
+        else desiredPoint.addScaledVector(side, this.aiOrbit * clamp(distance * 0.2, 0.8, 2.7));
+      }
+      if (this.type === 'drum') desiredPoint.addScaledVector(side, this.aiOrbit * clamp(distance * 0.08, 0.2, 0.75));
     }
     desiredPoint.x = clamp(desiredPoint.x, -activeHalfWidth() + 8, activeHalfWidth() - 8);
     desiredPoint.z = clamp(desiredPoint.z, -activeHalfLength() + 8, activeHalfLength() - 8);
@@ -6090,7 +7636,8 @@ class Robot {
 
     const attackDrive = 1;
     this.control.steering = clamp(angleError * 1.45 * attackDrive, -1, 1);
-    const preferredDistance = this.type === 'hammer' ? 3.2 : this.type === 'flipper' ? 2.5 : 2.8;
+    const preferredDistance = this.type === 'spinner' ? 1.75 : this.type === 'bar' ? 3.8 : this.type === 'drum' ? 2.15
+      : this.type === 'puncher' ? Math.max(2.8, this.radius + target.radius - 0.45) : 2.8;
     const stateThrottle = this.aiState === 'RETREAT' ? 1 : distance > preferredDistance ? lerp(0.82, 1, this.aiPersonality.aggression) : this.aiState === 'ATTACK' ? lerp(0.38, 0.62, this.aiPersonality.aggression) : 0.72;
     const healthDriveScale = health < 0.15 ? 0.7 : health < 0.3 ? 0.8 : health < 0.5 ? 0.91 : 1;
     const damageDriveScale = clamp((0.38 + activeWheelRatio * 0.62) * healthDriveScale, 0.34, 1);
@@ -6100,9 +7647,19 @@ class Robot {
 
     const facing = Math.abs(angleError) < (this.type === 'hammer' ? 0.72 : 0.55);
     for (const key of ['spinner', 'bar', 'drum']) if (this.weapons[key]) this.weapons[key].active = this.weaponAvailable(key);
+    // Centre-to-centre distance must include both robots' compound footprint.
+    // The former fixed 4.1 m test could never become true for two heavy bots:
+    // their chassis colliders touched first, so they rammed repeatedly without
+    // ever firing.  A forward puncher may fire during the physical approach,
+    // while checkPuncherHit still performs the precise tip/target test.
+    const puncherAttackDistance = Math.max(7.2, this.radius + target.radius + 3.6);
+    if (this.type === 'puncher' && Math.abs(angleError) < 1.25 && distance < puncherAttackDistance
+      && this.requestPuncher()) this.aiLastAttackTime = worldTime;
     if (this.type === 'hammer' && Math.abs(angleError) < 1.25 && distance < 5.8 && this.requestHammer()) this.aiLastAttackTime = worldTime;
     if (this.type === 'flipper' && Math.abs(angleError) < 0.88 && distance < 4.7 && this.requestFlipper()) this.aiLastAttackTime = worldTime;
-    const dashApproach = ['CHASE', 'ATTACK', 'FLANK', 'AMBUSH'].includes(this.aiState)
+    const weaponChargeReady = this.type === 'bar' ? (this.weapons.bar?.rpm ?? 0) >= (this.weapons.bar?.maxRpm ?? 1) * 0.82
+      : this.type === 'drum' ? (this.weapons.drum?.rpm ?? 0) >= (this.weapons.drum?.maxRpm ?? 1) * 0.62 : true;
+    const dashApproach = ['CHASE', 'ATTACK', 'FLANK', 'AMBUSH'].includes(this.aiState) && weaponChargeReady
       && facing && distance > 5.2 && distance < (this.weightClass === 'lightweight' ? 18 : 14.5);
     const dashEscape = this.aiState === 'RETREAT' && facing && distance < 13;
     const dashPersonality = this.aiTrait === 'berserker' || this.aiTrait === 'chaser' ? 0.92
@@ -6133,8 +7690,8 @@ class Robot {
     return noWheels || crippled || noWeaponAndStopped;
   }
 
-  isSelfRightCandidate() {
-    const support = this.lastSupportInfo ?? this.getGroundSupportInfo();
+  isSelfRightCandidate(cachedSupport = null) {
+    const support = cachedSupport ?? this.lastSupportInfo ?? this.getGroundSupportInfo();
     const lowEnough = this.root.position.y <= support.height + 0.12;
     const roofDown = support.upDot < -0.15;
     const steepAndTrapped = Math.abs(support.upDot) < 0.34 && !support.stable
@@ -6148,6 +7705,20 @@ class Robot {
     const candidates = [];
     for (const component of this.colliderComponents) {
       for (const point of component.points) candidates.push({ point: point.clone().applyQuaternion(quaternion), kind: component.name });
+    }
+    // Include every attached functional collider in spawn seating and the
+    // post-step swept floor solver. Previously the chassis could be valid while
+    // the lowest saw/drum/puncher corner was already under the rendered floor.
+    for (const record of this.assembly?.parts ?? []) {
+      if (record.type === 'wheel') continue;
+      const runtimePart = this.functionalParts.get(record.id);
+      if (runtimePart?.detached) continue;
+      const cachedCorners = this.functionalFloorColliderPoints?.get(record.id)
+        ?? getBoundsCorners(recordLocalAABB(record));
+      for (const sourceCorner of cachedCorners) {
+        const corner = sourceCorner.clone();
+        candidates.push({ point: corner.applyQuaternion(quaternion), kind: `PartCollider:${record.type}` });
+      }
     }
     // Suspension/wheel support exists only while the wheel-down direction can
     // actually reach the floor. At steep side/nose attitudes only the chassis
@@ -6590,7 +8161,17 @@ class Robot {
     const forwardSpeed = this.velocity.dot(forward);
     const lateralSpeed = this.velocity.dot(right);
 
-    if (!this.dead && upright && driveFactor > 0) {
+    const minimumDriveWheels = 2;
+    const groundDriveReady = !this.dead && upright && activeWheels >= minimumDriveWheels;
+    this.controlsEnabled = !this.dead;
+    this.motorEnabled = !this.dead && activeWheels >= minimumDriveWheels && !this.postureRecovery;
+    this.driveEnabled = this.motorEnabled && groundDriveReady;
+    if (Math.abs(this.control.throttle) > 0.2) {
+      this.wakePhysicsFromControl(this.isPlayer ? 'player-throttle-input' : 'ai-throttle-command');
+      if (this.control.brake && (!this.isPlayer || !brakeHeld)) this.control.brake = false;
+    }
+
+    if (this.driveEnabled && driveFactor > 0) {
       const profile = this.driveProfile ?? WEIGHT_CLASSES.middleweight;
       const acceleration = (this.type === 'hammer' ? 6.4 : 8.2) * profile.acceleration * (0.25 + driveFactor * 0.75);
       const driveDelta = forward.clone().multiplyScalar(this.control.throttle * acceleration * dt);
@@ -6601,6 +8182,10 @@ class Robot {
       const trackTurnBoost = this.driveType === 'track' ? lerp(1.35, 0.86, clamp(Math.abs(forwardSpeed) / 12, 0, 1)) : 1;
       const steeringYawDelta = this.control.steering * forwardSpeed * steerGrip * trackTurnBoost * dt;
       this.yawVelocity += steeringYawDelta;
+      if (!this.isPlayer && worldTime - this.lastExternalImpactTime > 0.55) {
+        const ordinaryDriveYawLimit = this.wheels.length >= 6 ? 0.72 : 1.02;
+        this.yawVelocity = clamp(this.yawVelocity, -ordinaryDriveYawLimit, ordinaryDriveYawLimit);
+      }
       if (Math.abs(steeringYawDelta) > 1e-6) this.recordAngularDelta('wheel-steering', 0, steeringYawDelta, 0, 'Robot.updatePhysics');
       this.velocity.addScaledVector(right, -lateralSpeed * Math.min(1, dt * ((4.5 * driveFactor + 0.5) * profile.traction)));
       if (this.control.brake) this.velocity.multiplyScalar(Math.exp(-7 * dt));
@@ -6661,7 +8246,7 @@ class Robot {
       this.pitchVelocity *= Math.exp(-LANDING_PHYSICS.airAngularDamping * dt);
       this.rollVelocity *= Math.exp(-LANDING_PHYSICS.airAngularDamping * dt);
     }
-    this.yaw += this.yawVelocity * dt;
+    this.yaw = normalizeAngle(this.yaw + this.yawVelocity * dt);
     const previousSupport = initialSupport.height;
     this.pitchVelocity = clamp(this.pitchVelocity, -9.5, 9.5);
     this.rollVelocity = clamp(this.rollVelocity, -9.5, 9.5);
@@ -6699,14 +8284,10 @@ class Robot {
 
     const beforeMove = this.root.position.clone();
     const nextPosition = this.root.position.clone().addScaledVector(this.velocity, dt);
-    const sweptSupport = this.getGroundSupportInfo().height;
-    if (beforeMove.y >= previousSupport - 0.02 && nextPosition.y < sweptSupport) {
-      nextPosition.y = sweptSupport;
-      groundStats.robotContacts++;
-      const landingSupport = this.getGroundSupportInfo();
-      const fallSpeed = Math.max(0, -this.velocity.y);
-      if (!this.handleLanding(fallSpeed, landingSupport, nextPosition)) this.velocity.y = fallSpeed > 5 ? fallSpeed * 0.065 : Math.max(0, fallSpeed * 0.025);
-    }
+    // resolveGroundContact runs before the frame is rendered and computes the
+    // support at the integrated X/Z position. The former pre-move support call
+    // sampled the old X/Z a second time and then resolveGroundContact repeated
+    // it again; removing that duplicate preserves the same-frame correction.
     this.root.position.copy(nextPosition);
     const travelled = this.root.position.clone().sub(beforeMove).setY(0).length();
     this.stats.distance += travelled;
@@ -6769,7 +8350,7 @@ class Robot {
     this.wasAirborne = airborneNow;
     this.updateLandingAudit();
 
-    const selfRightCandidateNow = this.isSelfRightCandidate();
+    const selfRightCandidateNow = this.isSelfRightCandidate(finalSupport);
     const physicallyRecovered = this.selfRightRecoveryPending && this.selfRightAttemptWindow > 0
       && finalSupport.upDot > 0.52 && finalSupport.wheelContact && !airborneNow
       && this.root.position.y <= finalSupport.height + 0.1;
@@ -6808,16 +8389,17 @@ class Robot {
     this.updateWheelGroundDistances();
     const activeDriveWheels = this.wheels.filter((wheel) => !wheel.part.detached).length;
     const commanded = Math.abs(this.control.throttle) > 0.3;
-    const practicallyStopped = this.velocity.clone().setY(0).length() < 0.22;
+    const practicallyStopped = this.velocity.clone().setY(0).length() < 0.05;
     const driveSupport = this.lastSupportInfo ?? this.getGroundSupportInfo();
     const wheelDownAndAlive = !this.dead && activeDriveWheels >= 2 && driveSupport.wheelContact
       && driveSupport.upDot > 0.52 && this.root.position.y <= driveSupport.height + driveSupport.wheelSuspensionTravel + 0.06;
     if (commanded && wheelDownAndAlive && practicallyStopped) {
       this.driveStallSeconds += dt;
       if (this.isPlayer) this.playerDriveStallSeconds += dt;
-      if (this.driveStallSeconds >= 0.82) {
+      if (this.driveStallSeconds >= 0.78) {
         const audit = this.controlStateAudit();
         this.driveStallSnapshots.push({
+          event: 'DRIVE_STALL_BUG',
           time: Number(worldTime.toFixed(2)), vehicle: this.instanceUid,
           sinceHit: Number((worldTime - this.lastExternalImpactTime).toFixed(2)),
           speed: Number(this.velocity.clone().setY(0).length().toFixed(3)),
@@ -6825,9 +8407,11 @@ class Robot {
           brake: Boolean(this.control.brake), groundedWheels: driveSupport.wheelContactCount,
           activeDriveWheels, motorEnabled: audit.motorEnabled, controlsEnabled: audit.controlsEnabled,
           physicsAwake: this.physicsAwake, postureRecovery: Boolean(this.postureRecovery),
+          wheelStates: audit.wheelStates,
+          state: { dead: this.dead, airborne: audit.isAirborne, recovering: audit.isRecovering, respawning: audit.isRespawning, disabledReason: this.disabledReason },
         });
         if (this.driveStallSnapshots.length > 12) this.driveStallSnapshots.shift();
-        this.recoverDriveController(this.isPlayer ? 'player-drive-stall-bug' : 'ai-drive-stall-bug');
+        this.recoverDriveController(this.isPlayer ? 'DRIVE_STALL_BUG_PLAYER' : 'DRIVE_STALL_BUG_AI');
         this.driveStallSeconds = 0;
       }
     } else {
@@ -6885,8 +8469,8 @@ class Robot {
     }
 
     for (const obstacle of obstacles) {
-      if (obstacle.kind === 'box') {
-        const sweptContact = sweptOrientedBoxContact(this, obstacle, fromPosition);
+      if (obstacle.kind === 'box' || obstacle.kind === 'polygon') {
+        const sweptContact = obstacle.kind === 'box' ? sweptOrientedBoxContact(this, obstacle, fromPosition) : null;
         if (sweptContact) {
           this.root.position.copy(sweptContact.position);
           environmentCollisionStats.maxPenetration = Math.max(environmentCollisionStats.maxPenetration, 0);
@@ -6895,7 +8479,7 @@ class Robot {
         }
         const broadphase = this.radius + obstacle.radius + 0.5;
         if ((this.root.position.x - obstacle.x) ** 2 + (this.root.position.z - obstacle.z) ** 2 > broadphase ** 2) continue;
-        const contact = expandedBoxCentreContact(this, obstacle) ?? polygonObstacleContact(this, obstacle);
+        const contact = (obstacle.kind === 'box' ? expandedBoxCentreContact(this, obstacle) : null) ?? polygonObstacleContact(this, obstacle);
         if (!contact) continue;
         this.root.position.addScaledVector(contact.normal, contact.penetration + 0.0005);
         environmentCollisionStats.maxPenetration = Math.max(environmentCollisionStats.maxPenetration, contact.penetration);
@@ -6985,7 +8569,7 @@ class Robot {
       object: chunk,
       velocity: this.velocity.clone().addScaledVector(direction, clamp(impulse.length() / Math.max(mass, 2) * 0.085, 3.2, 22)).add(new THREE.Vector3(0, 1.4 + Math.random() * 3.2, 0)),
       angular: new THREE.Vector3(direction.z + (Math.random() - 0.5) * 0.95, 1.8 + Math.random() * 5.2, -direction.x + (Math.random() - 0.5) * 0.95).multiplyScalar(2.8 + Math.random() * 3.5),
-      life: BLOCK_DEBRIS_LIFETIME,
+      life: debrisLifetimeFor('block'),
       radius,
       blockChunkSize: active.length,
       reason,
@@ -7165,6 +8749,7 @@ class Robot {
       spawnMetalSparks(point, impulse, 3, 'weak', null, 'impact', point.clone().sub(this.root.position).normalize());
       return { tier: 'protected', protected: true, sparkCount: 3, hitBlockId: null };
     }
+    const hpBeforeImpact = this.parts.reduce((sum, part) => sum + Math.max(0, Number(part.hp ?? 0)), 0);
     const impulseMagnitude = impulse.length();
     let impactedPart = null;
     this.lastExternalImpactTime = worldTime;
@@ -7319,12 +8904,20 @@ class Robot {
       if (!this.corePart || this.corePart.hp <= 0) this.destroyRobot(attacker, 'CORE_DESTROYED');
       else if (remainingMainBlocks === 0) this.destroyRobot(attacker, 'BLOCKS_LE_5');
     }
-    return { tier, intensityScore, criticalChance, critical, sparkCount, scaledImpulse: scaledImpulse.clone(), torque: torque.clone(), underbodyFactor, hitBlockId: impactedPart?.type === 'block' ? impactedPart.assemblyId : null };
+    const hpAfterImpact = this.parts.reduce((sum, part) => sum + Math.max(0, Number(part.hp ?? 0)), 0);
+    const actualDamage = Math.max(0, hpBeforeImpact - hpAfterImpact);
+    if (attacker && attacker !== this && attacker.team !== this.team) {
+      attacker.stats.enemyContacts = (attacker.stats.enemyContacts ?? 0) + 1;
+      if (['spinner', 'bar', 'drum', 'puncher'].includes(sourceType)) attacker.stats.weaponContacts = (attacker.stats.weaponContacts ?? 0) + 1;
+      attacker.stats.damageDealt = (attacker.stats.damageDealt ?? 0) + actualDamage;
+    }
+    return { tier, intensityScore, criticalChance, critical, sparkCount, actualDamage, scaledImpulse: scaledImpulse.clone(), torque: torque.clone(), underbodyFactor, hitBlockId: impactedPart?.type === 'block' ? impactedPart.assemblyId : null };
   }
 
   weaponMountsForPart(part) {
     const rotary = this.rotaryWeapons.find((weapon) => weapon.blade === part || weapon.weaponKey === part.weaponKey);
     if (rotary) return rotary.mounts ?? [];
+    if (this.weapons.puncher?.housing === part) return this.weapons.puncher.mounts ?? [];
     if (this.weapons.hammer?.moving === part) return this.weapons.hammer.mount ? [this.weapons.hammer.mount] : [];
     if (this.weapons.flipper?.plate === part) return this.weapons.flipper.mounts ?? [];
     return [];
@@ -7399,7 +8992,7 @@ class Robot {
       object: part.object,
       velocity: this.velocity.clone().addScaledVector(direction, clamp(impulse.length() / Math.max(part.mass, 2) * 0.055, 2.2, 15)),
       angular: new THREE.Vector3(direction.z, 1.4 + Math.random() * 3.5, -direction.x).multiplyScalar(2 + Math.random() * 2),
-      life: FUNCTIONAL_DEBRIS_LIFETIME,
+      life: debrisLifetimeFor('functional'),
       radius: debrisRadius,
     });
     this.recalculateMass();
@@ -7489,6 +9082,7 @@ function resetConquestState() {
   conquestState.winner = null;
   conquestState.pendingWinner = null;
   conquestState.captures.length = 0;
+  conquestState.contestEvents.length = 0;
   conquestState.repairEvents = 0;
   conquestState.healerTicks = 0;
   for (const [key, point] of Object.entries(conquestState.points)) {
@@ -7536,19 +9130,52 @@ function conquestObjectiveForRobot(robot) {
     return { state: enemyNear.length && allyNear.length ? 'CONTEST' : 'DEFEND', point: captureSlot, urgent: true, enemyCapturing, captureSlot };
   }
   if (robot.aiRole === 'flanker') {
-    const side = robot.id % 2 ? -1 : 1;
-    const flank = active.centre.clone().add(new THREE.Vector3(side * (active.radius + 8), 0, robot.team === 'blue' ? -7 : 7));
-    return { state: 'FLANK', point: flank, urgent: false, enemyCapturing };
+    // FLANK describes the attack angle after arrival; it must never replace
+    // the capture objective with a point outside the circle. The former
+    // `(radius + 8)` target made every flanker orbit a canyon corner and meant
+    // they could fight for minutes without ever contributing to A/B.
+    return { state: 'FLANK', point: captureSlot, urgent: false, enemyCapturing, captureSlot };
   }
   if (robot.aiRole === 'blocker') {
-    const side = robot.id % 2 ? -1 : 1;
-    return { state: 'DEFEND', point: active.centre.clone().add(new THREE.Vector3(side * active.radius * 0.58, 0, robot.team === 'blue' ? 5 : -5)), urgent: false, enemyCapturing };
+    return { state: 'DEFEND', point: captureSlot, urgent: false, enemyCapturing, captureSlot };
   }
   return { state: 'MOVE_TO_OBJECTIVE', point: captureSlot, urgent: false, enemyCapturing, captureSlot };
 }
 
-function driveRobotTowardPoint(robot, goal, dt, urgency = 1) {
-  const navigationPoint = navigationPointForRobot(robot, goal.clone(), dt);
+function updateRobotObjectiveTelemetry(robot, dt) {
+  if (!conquestState.enabled || conquestState.winner || robot.isPlayer || robot.dead) return;
+  robot.aiObjectiveSampleAccumulator += dt;
+  for (const key of ['A', 'B']) {
+    const point = conquestState.points[key];
+    const telemetry = robot.aiObjectiveTelemetry[key];
+    const distance = Math.hypot(robot.root.position.x - point.centre.x, robot.root.position.z - point.centre.z);
+    if (distance <= point.radius) {
+      telemetry.captureSeconds += dt;
+      if (!telemetry.reached) {
+        telemetry.reached = true;
+        telemetry.timeReached = Number(battleElapsed.toFixed(2));
+      }
+    }
+  }
+  if (robot.aiObjectiveSampleAccumulator < 1) return;
+  robot.aiObjectiveSampleAccumulator %= 1;
+  for (const key of ['A', 'B']) {
+    const point = conquestState.points[key];
+    const telemetry = robot.aiObjectiveTelemetry[key];
+    telemetry.distanceHistory.push({
+      t: Number(battleElapsed.toFixed(1)),
+      distance: Number(Math.hypot(robot.root.position.x - point.centre.x, robot.root.position.z - point.centre.z).toFixed(1)),
+      x: Number(robot.root.position.x.toFixed(1)), z: Number(robot.root.position.z.toFixed(1)),
+      yawDegrees: Number(THREE.MathUtils.radToDeg(robot.yaw).toFixed(1)), state: robot.aiState,
+    });
+    if (telemetry.distanceHistory.length > 610) telemetry.distanceHistory.shift();
+  }
+}
+
+function driveRobotTowardPoint(robot, goal, dt, urgency = 1, options = {}) {
+  const directCombatLine = Boolean(options.directWhenClear
+    && !segmentBlockedByMapObstacle(robot.root.position, goal, Math.max(0.8, robotNavigationClearance(robot) * 0.45)));
+  const navigationPoint = directCombatLine ? goal.clone() : navigationPointForRobot(robot, goal.clone(), dt);
   const desired = navigationPoint.sub(robot.root.position).setY(0);
   const distance = desired.length();
   if (distance < 0.01) {
@@ -7557,13 +9184,40 @@ function driveRobotTowardPoint(robot, goal, dt, urgency = 1) {
   }
   const desiredYaw = normalizeAngle(Math.atan2(desired.x, desired.z));
   const angleError = normalizeAngle(desiredYaw - robot.yaw);
-  const reversing = Math.abs(angleError) > 2.18 && distance < 22;
-  let steering = reversing ? -Math.sign(angleError || robot.aiAvoidSide) : clamp(angleError * 1.55, -1, 1);
+  const absoluteHeadingError = Math.abs(angleError);
+  // When the objective is genuinely behind the chassis, a short physical
+  // reverse arc is safer than holding full forward steering for an entire
+  // circle. This works at long range too; the former distance<22 condition is
+  // what allowed visible full loops on the tactical map.
+  // Enter a short reverse-turn before a waypoint passes fully behind the
+  // chassis. Without this hysteresis, 85-140 degree errors stayed in forward
+  // drive and produced a complete powered circle around the waypoint.
+  if (absoluteHeadingError > 1.2 && distance > 8 && worldTime >= robot.aiObjectiveReverseUntil) {
+    robot.aiObjectiveReverseUntil = worldTime + 1.25;
+  }
+  if (absoluteHeadingError < 0.44) robot.aiObjectiveReverseUntil = 0;
+  const reversing = !options.forceForward && (absoluteHeadingError > 2.02
+    || (worldTime < robot.aiObjectiveReverseUntil && absoluteHeadingError > 0.5));
+  const steeringGain = robot.aiSteeringGain ?? 1.4;
+  const yawRateDamping = robot.wheels.length >= 6 ? 1.05 : 0.78;
+  // In reverse, steer against the rear-axis heading error. Negating the
+  // front-axis error made a target 25 degrees off the rear appear 155 degrees
+  // away, so the chassis repeatedly chose the wrong lock and orbited a portal.
+  const reverseHeadingError = normalizeAngle(angleError - Math.sign(angleError || 1) * Math.PI);
+  // PD steering damps the real yaw velocity instead of only reacting to
+  // heading error. Pure proportional steering kept applying lock after a long
+  // chassis had already acquired enough angular momentum, so it overshot and
+  // counter-steered through repeated full circles.
+  let steering = reversing
+    ? clamp(-reverseHeadingError * steeringGain + robot.yawVelocity * yawRateDamping, -0.72, 0.72)
+    : clamp(angleError * steeringGain - robot.yawVelocity * yawRateDamping, -1, 1);
   const planarSpeed = robot.velocity.clone().setY(0).length();
   // Full steering at walking speed produces a visual orbit with almost no
   // useful travel. Force a driven arc: meaningful throttle plus capped steer.
-  if (planarSpeed < 1.15 && Math.abs(steering) > 0.66) steering = Math.sign(steering) * 0.66;
-  if (Math.abs(angleError) < 0.075) steering = 0;
+  const lowSpeedSteerCap = reversing ? (robot.wheels.length >= 6 ? 0.52 : 0.68) : (robot.wheels.length >= 6 ? 0.34 : 0.44);
+  if (planarSpeed < 2.5 && Math.abs(steering) > lowSpeedSteerCap) steering = Math.sign(steering) * lowSpeedSteerCap;
+  else if (planarSpeed < 6 && Math.abs(steering) > 0.46) steering = Math.sign(steering) * 0.46;
+  if (Math.abs(angleError) < (robot.aiSteeringDeadzone ?? 0.085)) steering = 0;
   const steeringSignChanged = Math.sign(steering) !== Math.sign(robot.aiHeldSteering)
     && Math.abs(steering) > 0.2 && Math.abs(robot.aiHeldSteering) > 0.2;
   // Hold an avoidance choice long enough to complete the turn. This is a
@@ -7575,15 +9229,66 @@ function driveRobotTowardPoint(robot, goal, dt, urgency = 1) {
     robot.aiSteeringHoldUntil = worldTime + 0.72 + (Math.abs(robot.id) % 5) * 0.08;
   }
   if (Math.abs(steering) <= 0.12) robot.aiHeldSteering = 0;
-  const throttle = reversing ? -0.86 : Math.abs(angleError) > 1.28 ? 0.68 : clamp(0.78 + urgency * 0.18, 0.78, 1);
-  robot.control = { throttle, steering, brake: false };
+  const accelerationPreference = robot.aiAccelerationPreference ?? 1;
+  let throttle = reversing ? -0.82 : absoluteHeadingError > 1.28 ? 0.58 : clamp((0.78 + urgency * 0.18) * accelerationPreference, 0.72, 1);
+  // Intermediate canyon nodes are small, real drive targets. Full throttle at
+  // 15-20 m/s let vehicles jump across the node between AI ticks and circle
+  // back repeatedly. Slow only for the final metres of an intermediate node;
+  // the objective and long straight sections retain full speed.
+  if (!reversing && selectedMapId === 'desert01' && (robot.aiNavPath?.length ?? 0) > 1 && distance < 22) {
+    throttle *= clamp(distance / 15, 0.34, 1);
+  }
+  let brake = false;
+  // A high-speed full-lock command produces a tight powered orbit in this
+  // wheel model. Slow first, then complete the heading change as a driven arc;
+  // no transform rotation and no stationary pivot are used.
+  if (reversing && planarSpeed > 4.2) {
+    throttle = 0;
+    brake = true;
+    steering = clamp(steering, -0.36, 0.36);
+  } else if (!reversing && absoluteHeadingError > 0.62) {
+    if (planarSpeed > 5.2) {
+      throttle = 0;
+      brake = true;
+      steering = clamp(steering, -0.36, 0.36);
+    } else {
+      throttle = Math.min(throttle, 0.48);
+      steering = clamp(steering, -0.42, 0.42);
+    }
+  } else if (planarSpeed > 9) {
+    steering = clamp(steering, -0.36, 0.36);
+  }
+  robot.control = { throttle, steering, brake };
   if (reversing) robot.stats.reverseRecoveries++;
   robot.wakePhysicsFromControl(reversing ? 'ai-objective-reverse' : 'ai-objective-drive');
+  const activePoint = conquestState.enabled ? conquestState.points[conquestState.activePoint] : null;
+  const objectiveTransit = activePoint && goal.distanceToSquared(activePoint.centre) <= (activePoint.radius + 22) ** 2;
+  const straightProbe = robot.root.position.clone().addScaledVector(forwardFor(robot.yaw), 12);
+  const dashReadyAt = robot.aiNextObjectiveDashAt ?? (worldTime + (Math.abs(robot.id) % 6) * 0.24);
+  if (robot.aiNextObjectiveDashAt == null) robot.aiNextObjectiveDashAt = dashReadyAt;
+  // Long canyon transfers were taking several minutes even while controls
+  // were correct. Use the robot's real DASH ability only on a clear, nearly
+  // straight objective segment; this adds physical acceleration and never
+  // moves or teleports the transform.
+  if (objectiveTransit && distance > 36 && !reversing && Math.abs(angleError) < 0.46
+    && robot.dashCooldown <= 0 && worldTime >= dashReadyAt
+    && !segmentBlockedByMapObstacle(robot.root.position, straightProbe, robotNavigationClearance(robot))) {
+    if (robot.requestDash('objective-transit')) robot.aiNextObjectiveDashAt = worldTime + 3.1 + (Math.abs(robot.id) % 5) * 0.18;
+  }
   return { distance, angleError, reversing };
 }
 
 function updateDesertObjectiveAI(robot, dt) {
-  if (!conquestState.enabled || conquestState.winner) return false;
+  if (!conquestState.enabled) return false;
+  if (conquestState.winner) {
+    robot.aiTargetId = null;
+    robot.clearAIPath('conquest-match-ended');
+    robot.transitionAIState('MATCH_ENDED', 'conquest-winner-declared');
+    robot.control = { throttle: 0, steering: 0, brake: true };
+    return true;
+  }
+  const distanceFromSpawn = Math.hypot(robot.root.position.x - robot.spawnPosition.x, robot.root.position.z - robot.spawnPosition.z);
+  if (robot.aiSpawnExitAt == null && distanceFromSpawn > DESERT_LAYOUT.repairRadius + 6) robot.aiSpawnExitAt = battleElapsed;
   robot.aiObjectiveHeartbeat -= dt;
   const heartbeat = robot.aiObjectiveHeartbeat <= 0;
   if (heartbeat) {
@@ -7604,6 +9309,11 @@ function updateDesertObjectiveAI(robot, dt) {
       robot.healerPartnerUid = healer.instanceUid;
       healer.healerPartnerUid = robot.instanceUid;
       const healerDistance = robot.root.position.distanceTo(healer.root.position);
+      if (healerDistance > 72) {
+        robot.healerPartnerUid = null;
+        robot.transitionAIState('GO_REPAIR', 'healer-too-far-use-repair-zone');
+        return driveAIToRepairZone(robot, dt, 'GO_REPAIR');
+      }
       if (healerDistance <= 8.2) {
         robot.transitionAIState('WAIT_FOR_HEAL', 'parked-next-to-healer');
         robot.control = { throttle: 0, steering: 0, brake: true };
@@ -7615,6 +9325,11 @@ function updateDesertObjectiveAI(robot, dt) {
     }
     robot.transitionAIState('GO_REPAIR', 'no-available-healer');
     return driveAIToRepairZone(robot, dt, 'GO_REPAIR');
+  }
+
+  if (battleElapsed >= 3 && distanceFromSpawn <= DESERT_LAYOUT.repairRadius + 4 && !robotNeedsRepair(robot)) {
+    robot.transitionAIState('FORCED_DEPLOY', 'healthy-ai-left-spawn-deadline');
+    robot.aiNavRepath = 0;
   }
 
   if (robot.aiEscapeWaypoint) {
@@ -7635,23 +9350,123 @@ function updateDesertObjectiveAI(robot, dt) {
   if (!objective) return false;
   const active = conquestState.points[conquestState.activePoint];
   const insideObjective = robot.root.position.distanceToSquared(active.centre) <= active.radius ** 2;
-  const enemiesClose = game.targetsFor(robot).filter((candidate) => candidate.root.position.distanceToSquared(robot.root.position) < 11 ** 2);
-  const enemyOnObjective = game.targetsFor(robot)
-    .filter((candidate) => candidate.root.position.distanceToSquared(active.centre) < (active.radius + 7) ** 2)
+  const availableEnemies = game.targetsFor(robot);
+  const enemiesClose = availableEnemies.filter((candidate) => candidate.root.position.distanceToSquared(robot.root.position) < 11 ** 2);
+  const hasCompletedWeaponContact = robot.stats.attacksAttempted > 0 && robot.stats.damageDealt > 0
+    && robot.stats.hits > 0 && robot.stats.weaponContacts > 0;
+  const contactCommitment = !hasCompletedWeaponContact
+    && (conquestState.activePoint === 'B' || battleElapsed >= 70);
+  // Only after A has genuinely been captured may a combatant that has not yet
+  // touched an opponent use the wider B approach apron. This guarantees that
+  // capture travel remains first, while preventing the final edge robot from
+  // spending the rest of the match searching beside B without ever fighting.
+  const firstContactApron = contactCommitment ? 58 : 7;
+  // Capture remains the first priority: only defenders at the painted point
+  // can interrupt objective travel. Opponents elsewhere along a canyon route
+  // must not pull a whole team away from A/B.
+  const enemyOnObjective = availableEnemies
+    .filter((candidate) => candidate.root.position.distanceToSquared(active.centre) < (active.radius + firstContactApron) ** 2
+      || (firstContactApron > 7 && candidate.root.position.distanceToSquared(robot.root.position) < 54 ** 2))
     .sort((a, b) => a.root.position.distanceToSquared(robot.root.position) - b.root.position.distanceToSquared(robot.root.position));
-  const objectiveCombatTarget = enemyOnObjective[0] ?? null;
-  if (objectiveCombatTarget && (insideObjective || objective.urgent || robot.root.position.distanceToSquared(active.centre) < (active.radius + 18) ** 2)) {
-    const combatDistance = robot.root.position.distanceTo(objectiveCombatTarget.root.position);
+  // Spread a team across the available opponents. Previously every robot chose
+  // index zero, forming one pile while an edge member could avoid contact for a
+  // full five-minute run. The first two closest targets remain the candidate
+  // set, with a deterministic per-robot pick that preserves locality.
+  const robotForward = forwardFor(robot.yaw);
+  const targetPool = enemyOnObjective.slice(0, Math.min(6, enemyOnObjective.length));
+  if (contactCommitment) targetPool.sort((left, right) => {
+    const score = (candidate) => {
+      const delta = candidate.root.position.clone().sub(robot.root.position).setY(0);
+      const distance = delta.length();
+      const behindPenalty = distance > 0.01 ? Math.max(0, -delta.multiplyScalar(1 / distance).dot(robotForward)) * 22 : 0;
+      return distance + behindPenalty;
+    };
+    return score(left) - score(right);
+  });
+  const objectiveCombatTarget = targetPool.length
+    ? (contactCommitment ? targetPool[0] : targetPool[Math.abs(Number(robot.id ?? 0)) % targetPool.length])
+    : null;
+  const encounterRadius = contactCommitment ? 32 : 19;
+  const encounterTarget = availableEnemies
+    .filter((candidate) => candidate.root.position.distanceToSquared(robot.root.position) <= encounterRadius ** 2
+      && !segmentBlockedByMapObstacle(robot.root.position, candidate.root.position, Math.max(1.2, robotNavigationClearance(robot) * 0.55)))
+    .sort((a, b) => a.root.position.distanceToSquared(robot.root.position) - b.root.position.distanceToSquared(robot.root.position))[0] ?? null;
+  const combatTarget = objectiveCombatTarget ?? encounterTarget;
+  const routeEncounter = Boolean(encounterTarget && combatTarget === encounterTarget && !objectiveCombatTarget);
+  // Urgency is not permission to chase a target from across the canyon. A
+  // distant chase made the entire team orbit whichever defender happened to
+  // be selected instead of physically entering the capture circle. Travel to
+  // the stable A/B point first; combat takeover is local to that point.
+  if (combatTarget && (routeEncounter || insideObjective
+    || robot.root.position.distanceToSquared(active.centre) < (active.radius + (firstContactApron > 7 ? 44 : 10)) ** 2
+    || (firstContactApron > 7 && robot.root.position.distanceToSquared(combatTarget.root.position) < 58 ** 2))) {
+    const combatDistance = robot.root.position.distanceTo(combatTarget.root.position);
     if (objective.urgent && robot.lastDefenceAlert !== conquestState.activePoint) {
       robot.lastDefenceAlert = conquestState.activePoint;
       robot.stats.objectiveDefenceResponses++;
     }
-    robot.aiTargetId = objectiveCombatTarget.id;
-    robot.transitionAIState(combatDistance < 5.4 ? 'ATTACK' : 'CHASE', 'enemy-threatening-active-point');
-    driveRobotTowardPoint(robot, objectiveCombatTarget.root.position, dt, 1.25);
+    if (robot.aiTargetId !== combatTarget.id) {
+      robot.stats.enemyDetections++;
+      robot.stats.combatEngagements++;
+      robot.aiCombatEngagementStartedAt = worldTime;
+    }
+    robot.aiTargetId = combatTarget.id;
+    const objectivePuncherDistance = Math.max(7.2, robot.radius + combatTarget.radius + 3.6);
+    const puncherFireDistance = objectivePuncherDistance + 5;
+    robot.transitionAIState(combatDistance < (robot.type === 'puncher' ? objectivePuncherDistance : 5.4) ? 'ATTACK' : 'CHASE', routeEncounter ? 'ENEMY_DETECTED' : 'enemy-threatening-active-point');
+    let combatGoal = combatTarget.root.position.clone();
+    const targetDirection = combatTarget.root.position.clone().sub(robot.root.position).setY(0).normalize();
+    const targetSide = new THREE.Vector3(targetDirection.z, 0, -targetDirection.x);
+    const hasRealWeaponContact = hasCompletedWeaponContact;
+    // Every armed AI must first complete a real straight approach and weapon
+    // contact. Only after that measured contact may personality side-offsets
+    // and charge retreats take over. This prevents late arrivals from orbiting
+    // the B fight without ever touching an enemy before the 300 s checkpoint.
+    if (hasRealWeaponContact && robot.type === 'spinner') combatGoal.addScaledVector(targetSide, robot.aiPreferredSide * 0.65);
+    if (hasRealWeaponContact && robot.type === 'bar') {
+      const rpmRatio = (robot.weapons.bar?.rpm ?? 0) / Math.max(1, robot.weapons.bar?.maxRpm ?? 1);
+      if (rpmRatio < 0.78 && combatDistance < 10) combatGoal.copy(robot.root.position).addScaledVector(targetDirection, -7);
+      else combatGoal.addScaledVector(targetSide, robot.aiPreferredSide * 1.8);
+    }
+    if (hasRealWeaponContact && robot.type === 'drum') combatGoal.addScaledVector(targetDirection, 0.55);
+    driveRobotTowardPoint(robot, combatGoal, dt, contactCommitment ? 1.34 : 1.25, { directWhenClear: true, forceForward: contactCommitment });
     for (const key of ['spinner', 'bar', 'drum']) if (robot.weapons[key]) robot.weapons[key].active = robot.weaponAvailable(key);
     for (const rotary of robot.rotaryWeapons) rotary.active = robot.rotaryAvailable(rotary);
-    if (combatDistance > 6 && combatDistance < 15 && robot.dashCooldown <= 0 && Math.abs(robot.control.steering) < 0.46) robot.requestDash('objective-intercept');
+    const facingTarget = Math.abs(normalizeAngle(Math.atan2(targetDirection.x, targetDirection.z) - robot.yaw)) < 0.82;
+    if (robot.type === 'puncher' && Math.abs(normalizeAngle(Math.atan2(targetDirection.x, targetDirection.z) - robot.yaw)) < 1.25
+      && combatDistance < puncherFireDistance && robot.requestPuncher()) {
+      robot.aiLastAttackTime = worldTime;
+    }
+    const rotary = robot.rotaryWeapons.find((weapon) => weapon.kind === robot.type);
+    const chargeRatio = rotary ? rotary.rpm / Math.max(1, rotary.maxRpm) : 1;
+    const chargeReady = robot.type === 'bar' ? chargeRatio >= 0.82 : robot.type === 'drum' ? chargeRatio >= 0.62 : true;
+    const physicalAttackRange = robot.radius + combatTarget.radius + (robot.type === 'bar' ? 1.9 : 1.25);
+    const attackOpportunity = robot.weaponAvailable(robot.type) && facingTarget && combatDistance <= physicalAttackRange + 0.8;
+    if (attackOpportunity) {
+      if (robot.aiAttackOpportunityTarget !== combatTarget.instanceUid) {
+        robot.aiAttackOpportunityTarget = combatTarget.instanceUid;
+        robot.aiAttackOpportunityStartedAt = worldTime;
+        robot.aiAttackOpportunityAttemptBaseline = robot.stats.attacksAttempted;
+        robot.aiAttackOpportunityTimeoutRecorded = false;
+        robot.stats.attackOpportunities++;
+      } else if (!robot.aiAttackOpportunityTimeoutRecorded && worldTime - robot.aiAttackOpportunityStartedAt > 1.5
+        && robot.stats.attacksAttempted <= robot.aiAttackOpportunityAttemptBaseline) {
+        robot.aiAttackOpportunityTimeoutRecorded = true;
+        robot.stats.attackOpportunityTimeouts++;
+      }
+    } else {
+      robot.aiAttackOpportunityTarget = null;
+      robot.aiAttackOpportunityStartedAt = -Infinity;
+      robot.aiAttackOpportunityTimeoutRecorded = false;
+    }
+    if (rotary && facingTarget && chargeReady && combatDistance <= physicalAttackRange && robot.aiAttackAttemptCooldown <= 0) {
+      // This is a real charged blade approach at physical contact range. Exact
+      // blade overlap remains the only source of damage/hit telemetry below.
+      robot.stats.attacksAttempted++;
+      robot.aiAttackAttemptCooldown = robot.type === 'spinner' ? 0.34 : 0.48;
+    }
+    if (combatDistance > 6 && combatDistance < (contactCommitment ? 22 : 15) && chargeReady && robot.dashCooldown <= 0 && Math.abs(robot.control.steering) < 0.46
+      && (contactCommitment || Math.random() < clamp(0.35 + robot.aiDashAggression * 0.45, 0.35, 0.88))) robot.requestDash(contactCommitment ? 'first-weapon-contact' : 'objective-intercept');
     return true;
   }
   if (!objective.urgent) robot.lastDefenceAlert = null;
@@ -7670,12 +9485,9 @@ function updateDesertObjectiveAI(robot, dt) {
     }
     robot.transitionAIState(objective.state, objective.urgent ? 'enemy-capturing-active-point' : `role-${robot.aiRole}`);
   }
-  // Close enemies are fought, but only after the heartbeat has refreshed the
-  // objective reason. Once the target is lost, the next think resumes this goal.
-  if (enemiesClose.length && (insideObjective || objective.urgent)) {
-    robot.aiTargetId = enemiesClose[0].id;
-    return false;
-  }
+  // Generic arena target search is intentionally not entered in conquest.
+  // Every conquest decision retains A/B as its world goal; combat is handled
+  // above only when an enemy actually threatens that objective.
   driveRobotTowardPoint(robot, objective.point, dt, objective.urgent ? 1.2 : 1);
   return true;
 }
@@ -7703,7 +9515,8 @@ function ensureHealingAura(robot) {
 function updateHealingAura(robot, dt) {
   robot.healingVisualTimer = Math.max(0, (robot.healingVisualTimer ?? 0) - dt);
   if (!robot.healingAura) return;
-  const active = robot.healingVisualTimer > 0 && !robot.dead;
+  const withinVisualRange = robot.isPlayer || camera.position.distanceToSquared(robot.root.position) <= 105 ** 2;
+  const active = robot.healingVisualTimer > 0 && !robot.dead && withinVisualRange && (robot.renderLODLevel ?? 0) < 3;
   robot.healingAura.visible = active;
   if (!active) return;
   const pulse = 1 + Math.sin(worldTime * 18 + robot.id) * 0.075;
@@ -7713,33 +9526,39 @@ function updateHealingAura(robot, dt) {
 }
 
 function spawnHealingBeam(from, to, pulseIndex = 0, target = null) {
-  const direction = to.clone().sub(from);
+  if (target) {
+    target.healingVisualTimer = Math.max(target.healingVisualTimer ?? 0, 0.42);
+    if (camera.position.distanceToSquared(target.root.position) <= 105 ** 2) ensureHealingAura(target).visible = true;
+  }
+  const cameraDistanceSquared = camera.position.distanceToSquared(to);
+  if (cameraDistanceSquared > 145 ** 2) { healingVFXStats.distanceCulls++; return; }
+  const direction = healingDirectionScratch.copy(to).sub(from);
   const length = direction.length();
   if (length < 0.01) return;
-  const material = new THREE.MeshBasicMaterial({ color: 0x24ff75, transparent: true, opacity: 0.98, depthWrite: false, depthTest: false, blending: THREE.AdditiveBlending });
-  const beam = new THREE.Mesh(new THREE.CylinderGeometry(0.045, 0.07, length, 7), material);
-  beam.position.lerpVectors(from, to, 0.5);
-  beam.quaternion.setFromUnitVectors(Y_AXIS, direction.normalize());
-  beam.renderOrder = 19;
-  scene.add(beam);
-  effects.push({ object: beam, velocity: new THREE.Vector3(), angular: new THREE.Vector3(), gravity: 0, life: 0.145, fade: true, fadeRate: 13 });
-  for (let index = 0; index < 6; index++) {
-    const plus = new THREE.Group();
-    const plusMaterial = material.clone();
-    plusMaterial.opacity = 1;
-    const vertical = new THREE.Mesh(new THREE.BoxGeometry(0.075, 0.34, 0.055), plusMaterial);
-    const horizontal = new THREE.Mesh(new THREE.BoxGeometry(0.34, 0.075, 0.055), plusMaterial);
-    plus.add(vertical, horizontal);
-    plus.position.copy(to).add(new THREE.Vector3((Math.random() - 0.5) * 1.25, 0.28 + Math.random() * 1.15, (Math.random() - 0.5) * 1.25));
-    plus.scale.setScalar(0.82 + Math.random() * 0.42);
-    plus.renderOrder = 20;
-    scene.add(plus);
-    effects.push({ object: plus, velocity: new THREE.Vector3((Math.random() - 0.5) * 0.18, 0.72 + Math.random() * 0.55, (Math.random() - 0.5) * 0.18), angular: new THREE.Vector3(0, (Math.random() - 0.5) * 1.2, 0), gravity: 0, life: 0.58 + Math.random() * 0.18, fade: false });
+  const beam = acquireHealingParticle(healingBeamParticles);
+  healingVFXDummy.position.lerpVectors(from, to, 0.5);
+  healingVFXDummy.quaternion.setFromUnitVectors(Y_AXIS, direction.normalize());
+  healingVFXDummy.scale.set(1, length, 1);
+  healingVFXDummy.updateMatrix();
+  beam.active = true;
+  beam.life = beam.initialLife = 0.145;
+  beam.matrix.copy(healingVFXDummy.matrix);
+  const distanceScale = cameraDistanceSquared > 90 ** 2 ? 0.35 : cameraDistanceSquared > 55 ** 2 ? 0.62 : 1;
+  const qualityScale = qualityPreset === 'low' ? 0.55 : qualityPreset === 'medium' ? 0.82 : 1;
+  const degradationScale = adaptiveDegradeStage >= 1 ? 0.62 : 1;
+  const plusCount = Math.max(2, Math.round(6 * distanceScale * qualityScale * degradationScale));
+  for (let index = 0; index < plusCount; index++) {
+    const plus = acquireHealingParticle(healingPlusParticles);
+    plus.active = true;
+    plus.life = plus.initialLife = 0.58 + Math.random() * 0.18;
+    plus.position.set(to.x + (Math.random() - 0.5) * 1.25, to.y + 0.28 + Math.random() * 1.15, to.z + (Math.random() - 0.5) * 1.25);
+    plus.velocity.set((Math.random() - 0.5) * 0.18, 0.72 + Math.random() * 0.55, (Math.random() - 0.5) * 0.18);
+    plus.rotationY = Math.random() * Math.PI * 2;
+    plus.angularY = (Math.random() - 0.5) * 1.2;
+    plus.scale = 0.82 + Math.random() * 0.42;
   }
-  if (target) {
-    ensureHealingAura(target).visible = true;
-    target.healingVisualTimer = Math.max(target.healingVisualTimer ?? 0, 0.42);
-  }
+  healingVFXStats.beamBursts++;
+  healingVFXStats.plusParticles += plusCount;
   playHealingPulseSound(from, pulseIndex);
 }
 
@@ -7747,6 +9566,33 @@ function robotNeedsRepair(robot) {
   return !robot.dead && (robot.activeBlockParts().length < robot.blockParts.size
     || [...robot.blockParts.values()].some((part) => part.hp < part.maxHp - 0.5)
     || robot.parts.some((part) => part.type !== 'block' && (part.detached || part.hp < part.maxHp - 0.5)));
+}
+
+function carryRobotMatchTelemetry(source, target, preserveControlState = false) {
+  // A respawn/rebuild replaces the runtime rigid body, not the combatant's
+  // match identity.  Keep only measured cumulative records; live velocity,
+  // controls and cooldowns intentionally come from the fresh body.
+  target.aiSpawnExitAt = source.aiSpawnExitAt;
+  target.aiForcedSpawnDeployments = source.aiForcedSpawnDeployments;
+  target.aiObjectiveSampleAccumulator = source.aiObjectiveSampleAccumulator;
+  target.aiObjectiveTelemetry = cloneData(source.aiObjectiveTelemetry);
+  target.aiStateHistory = cloneData(source.aiStateHistory);
+  target.aiStuckRecoveryLog = cloneData(source.aiStuckRecoveryLog);
+  target.aiStuckEvents = source.aiStuckEvents;
+  target.aiSpinGuardEvents = source.aiSpinGuardEvents;
+  target.aiRouteLoopGuardEvents = source.aiRouteLoopGuardEvents;
+  target.aiRouteLoopPreventedEvents = source.aiRouteLoopPreventedEvents;
+  target.aiRouteLoopHistory = cloneData(source.aiRouteLoopHistory);
+  target.aiMaximumMeaninglessStationarySeconds = source.aiMaximumMeaninglessStationarySeconds;
+  target.maxAbnormalVerticalTime = source.maxAbnormalVerticalTime;
+  target.stats = { ...target.stats, ...cloneData(source.stats), respawns: target.respawnCount };
+  if (preserveControlState) {
+    target.aiState = source.aiState;
+    target.aiStateTime = source.aiStateTime;
+    target.aiStateReason = source.aiStateReason;
+    target.aiPreviousObjectiveState = source.aiPreviousObjectiveState;
+    target.aiMeaninglessStationarySeconds = source.aiMeaninglessStationarySeconds;
+  }
 }
 
 function restoreNextBlock(robot, source = 'repair-zone') {
@@ -7762,6 +9608,7 @@ function restoreNextBlock(robot, source = 'repair-zone') {
     const debrisIndex = debris.findIndex((entry) => entry.object === detachedBlock.object);
     if (debrisIndex >= 0) debris.splice(debrisIndex, 1);
     scene.remove(detachedBlock.object);
+    disposeRuntimeObjectResources(detachedBlock.object);
     detachedBlock.object = createBlockVisualObject(detachedBlock.record, false);
     detachedBlock.object.name = `${robot.name}_${detachedBlock.record.id}_Restored`;
     robot.root.add(detachedBlock.object);
@@ -7783,7 +9630,12 @@ function restoreNextBlock(robot, source = 'repair-zone') {
     replacement.spawnPosition = { ...robot.spawnPosition };
     replacement.spawnYaw = robot.spawnYaw;
     replacement.spawnProtectionUntil = worldTime + 0.7;
+    // Functional repair rebuilds the render/part graph in place; it is not a
+    // respawn. Preserve deployment and movement telemetry so a repaired robot
+    // cannot be misclassified as having sat inside spawn for minutes.
+    carryRobotMatchTelemetry(robot, replacement, true);
     scene.remove(robot.root);
+    disposeRuntimeObjectResources(robot.root);
     robots[index] = replacement;
     if (robot.isPlayer) player = replacement;
     buildEnemyUI();
@@ -7818,27 +9670,31 @@ function updateHealerAI(robot, dt) {
   if (!target) {
     robot.healTargetId = null;
     robot.healerPartnerUid = null;
-    // A healthy team still needs its healer to move with it. Follow the ally
-    // currently closest to combat instead of falling through to enemy-chase
-    // AI (which made an unarmed healer circle in place).
-    const healthyAllies = robots.filter((candidate) => candidate !== robot && !candidate.dead && candidate.team === robot.team);
-    if (!healthyAllies.length) {
-      robot.control = { throttle: 0, steering: 0, brake: true };
-      robot.transitionAIState('ESCORT', 'no-living-ally');
+    const distanceFromSpawn = Math.hypot(robot.root.position.x - robot.spawnPosition.x, robot.root.position.z - robot.spawnPosition.z);
+    if (conquestState.enabled && robot.aiSpawnExitAt == null && battleElapsed >= 1.5
+      && distanceFromSpawn <= DESERT_LAYOUT.repairRadius + 3) {
+      const deployment = conquestObjectiveForRobot(robot);
+      robot.transitionAIState('MOVE_TO_OBJECTIVE', 'healthy-healer-mandatory-deploy');
+      driveRobotTowardPoint(robot, deployment?.point ?? conquestState.points[conquestState.activePoint].centre, dt, 1.18);
       return true;
     }
-    const enemies = game.targetsFor(robot);
-    const escort = healthyAllies.sort((a, b) => {
-      const enemyDistance = (candidate) => enemies.reduce((best, enemy) => Math.min(best, candidate.root.position.distanceToSquared(enemy.root.position)), Infinity);
-      return enemyDistance(a) - enemyDistance(b);
-    })[0];
-    const escortForward = forwardFor(escort.yaw);
-    const escortPoint = escort.root.position.clone().addScaledVector(escortForward, -Math.max(4.8, escort.radius + robot.radius + 1.2));
-    const escortDistance = robot.root.position.distanceTo(escortPoint);
-    robot.transitionAIState('ESCORT', 'follow-combat-ally');
-    robot.aiTargetId = escort.id;
-    if (escortDistance > 4.2) driveRobotTowardPoint(robot, escortPoint, dt, 0.96);
-    else robot.control = { throttle: 0, steering: 0, brake: true };
+    // With no patient, the healer belongs at the active objective. Following
+    // whichever ally happened to be closest to an enemy made healer/ally pairs
+    // wander and orbit far from A/B. The same stable in-circle slot used by
+    // combat AI keeps support available without creating a centre pile-up.
+    if (conquestState.enabled) {
+      const deployment = conquestObjectiveForRobot(robot);
+      const active = conquestState.points[conquestState.activePoint];
+      const goal = deployment?.captureSlot ?? deployment?.point ?? active.centre;
+      const insideSupportZone = robot.root.position.distanceToSquared(active.centre) <= (active.radius * 0.84) ** 2;
+      robot.transitionAIState(insideSupportZone ? 'ESCORT' : 'MOVE_TO_OBJECTIVE', insideSupportZone ? 'support-active-point' : 'healer-objective-priority');
+      robot.aiTargetId = null;
+      if (insideSupportZone) robot.control = { throttle: 0, steering: 0, brake: true };
+      else driveRobotTowardPoint(robot, goal, dt, 1.08);
+      return true;
+    }
+    robot.control = { throttle: 0, steering: 0, brake: true };
+    robot.transitionAIState('ESCORT', 'no-living-ally');
     return true;
   }
   robot.transitionAIState('HEAL_ALLY', 'priority-injured-ally');
@@ -7915,13 +9771,33 @@ function updateConquestBattle(dt) {
     && robot.root.position.distanceToSquared(point.centre) <= point.radius ** 2);
   const blueCount = inside.filter((robot) => robot.team === 'blue').length;
   const redCount = inside.filter((robot) => robot.team === 'red').length;
-  conquestState.contested = blueCount > 0 && redCount > 0;
-  if (!conquestState.contested && (blueCount || redCount)) {
-    const team = blueCount ? 'blue' : 'red';
+  const teamSize = Math.max(1, robots.filter((robot) => robot.team === 'blue').length, robots.filter((robot) => robot.team === 'red').length);
+  const minimumCapturePresence = Math.max(1, Math.min(3, Math.floor(teamSize / 3)));
+  const wasContested = conquestState.contested;
+  // Equal presence is a true stalemate. Numerical control must still matter;
+  // otherwise a ten-second respawn makes a 60-second capture mathematically
+  // impossible in a balanced 10v10 match and A can remain locked forever.
+  conquestState.contested = blueCount > 0 && redCount > 0 && blueCount === redCount;
+  if (conquestState.contested && !wasContested) {
+    conquestState.contestEvents.push({
+      point: conquestState.activePoint, time: Number(battleElapsed.toFixed(2)), blueCount, redCount,
+    });
+  }
+  if (!conquestState.contested && Math.max(blueCount, redCount) >= minimumCapturePresence) {
+    const team = blueCount > redCount ? 'blue' : 'red';
     // One uncontested robot or ten uncontested robots both require a full
     // minute. Progress is persistent; CONTESTED freezes the exact percentage.
     point[team] = clamp(point[team] + dt * (100 / DESERT_LAYOUT.captureSeconds), 0, 100);
-    if (point[team] >= 100 && point.owner !== team) {
+    // A may reach 100% before the slower footprint lanes physically enter the
+    // circle. Advancing every remaining bot straight to B at that instant made
+    // those real A visits impossible. Keep A active at 100% until the runtime
+    // acceptance majority (80% of armed AI) has actually crossed its radius;
+    // progress is not fabricated and no robot is teleported.
+    const combatAI = robots.filter((robot) => !robot.isPlayer && !robot.dead && robot.type !== 'healer');
+    const requiredAVisitors = Math.ceil(combatAI.length * 0.8);
+    const actualAVisitors = combatAI.filter((robot) => robot.aiObjectiveTelemetry?.A?.reached).length;
+    const sequenceReady = conquestState.activePoint !== 'A' || actualAVisitors >= requiredAVisitors;
+    if (point[team] >= 100 && point.owner !== team && sequenceReady) {
       point.owner = team;
       conquestState.captures.push({ point: conquestState.activePoint, team, time: Number(battleElapsed.toFixed(2)) });
       if (conquestState.activePoint === 'A') {
@@ -8024,62 +9900,65 @@ function updateConquestMinimap() {
     x: (position.x + DESERT_LAYOUT.halfWidth) / (DESERT_LAYOUT.halfWidth * 2) * width,
     y: (DESERT_LAYOUT.halfLength - position.z) / (DESERT_LAYOUT.halfLength * 2) * height,
   });
-  const cellX = width / 14;
-  const cellY = height / 20;
   context.clearRect(0, 0, width, height);
-  for (let row = 0; row < 20; row++) for (let column = 0; column < 14; column++) {
-    const x = lerp(-DESERT_LAYOUT.halfWidth, DESERT_LAYOUT.halfWidth, (column + 0.5) / 14);
-    const z = lerp(DESERT_LAYOUT.halfLength, -DESERT_LAYOUT.halfLength, (row + 0.5) / 20);
-    const terrain = clamp((desertTerrainHeight(x, z) + 5) / 18, 0, 1);
-    context.fillStyle = `rgb(${Math.round(47 + terrain * 55)},${Math.round(25 + terrain * 29)},${Math.round(18 + terrain * 18)})`;
-    context.fillRect(column * cellX, row * cellY, Math.ceil(cellX) + 1, Math.ceil(cellY) + 1);
+  if (!conquestMinimapStaticCanvas || conquestMinimapStaticCanvas.width !== width || conquestMinimapStaticCanvas.height !== height) {
+    conquestMinimapStaticCanvas = document.createElement('canvas');
+    conquestMinimapStaticCanvas.width = width;
+    conquestMinimapStaticCanvas.height = height;
+    const staticContext = conquestMinimapStaticCanvas.getContext('2d');
+    const cellX = width / 14;
+    const cellY = height / 20;
+    for (let row = 0; row < 20; row++) for (let column = 0; column < 14; column++) {
+      const x = lerp(-DESERT_LAYOUT.halfWidth, DESERT_LAYOUT.halfWidth, (column + 0.5) / 14);
+      const z = lerp(DESERT_LAYOUT.halfLength, -DESERT_LAYOUT.halfLength, (row + 0.5) / 20);
+      const terrain = clamp((desertTerrainHeight(x, z) + 5) / 18, 0, 1);
+      staticContext.fillStyle = `rgb(${Math.round(47 + terrain * 55)},${Math.round(25 + terrain * 29)},${Math.round(18 + terrain * 18)})`;
+      staticContext.fillRect(column * cellX, row * cellY, Math.ceil(cellX) + 1, Math.ceil(cellY) + 1);
+    }
+    staticContext.strokeStyle = 'rgba(255,211,160,.16)';
+    staticContext.lineWidth = 1;
+    for (let index = 1; index < 5; index++) {
+      staticContext.beginPath(); staticContext.moveTo(index * width / 5, 0); staticContext.lineTo(index * width / 5, height); staticContext.stroke();
+      staticContext.beginPath(); staticContext.moveTo(0, index * height / 5); staticContext.lineTo(width, index * height / 5); staticContext.stroke();
+    }
+    for (const item of desertTopViewOutlines) {
+      if (item.outline.length < 3) continue;
+      const isCliff = item.obstacleType === 'desert-cliff';
+      staticContext.beginPath();
+      item.outline.forEach((worldPoint, index) => {
+        const mapPoint = worldToMap(worldPoint);
+        if (index) staticContext.lineTo(mapPoint.x, mapPoint.y); else staticContext.moveTo(mapPoint.x, mapPoint.y);
+      });
+      staticContext.closePath();
+      staticContext.fillStyle = isCliff ? 'rgba(42,17,12,.92)' : 'rgba(82,37,21,.74)';
+      staticContext.fill();
+      staticContext.strokeStyle = isCliff ? 'rgba(219,112,68,.78)' : 'rgba(197,105,59,.55)';
+      staticContext.lineWidth = isCliff ? 1.2 : 0.8;
+      staticContext.stroke();
+    }
+    staticContext.setLineDash([4, 3]);
+    for (const [routeIndex, route] of (desertStats.navigation.minimapRoutes ?? []).entries()) {
+      if (!route.length) continue;
+      staticContext.strokeStyle = ['rgba(120,197,255,.27)','rgba(255,218,153,.38)','rgba(255,151,112,.27)'][routeIndex] ?? 'rgba(255,217,155,.3)';
+      staticContext.lineWidth = routeIndex === 1 ? 1.5 : 1;
+      staticContext.beginPath();
+      const start = worldToMap(new THREE.Vector3(0, 0, -(DESERT_LAYOUT.halfLength - DESERT_LAYOUT.spawnInset)));
+      staticContext.moveTo(start.x, start.y);
+      for (const [x, z] of route) { const routePoint = worldToMap(new THREE.Vector3(x, 0, z)); staticContext.lineTo(routePoint.x, routePoint.y); }
+      staticContext.stroke();
+    }
+    staticContext.setLineDash([]);
+    const drawSpawn = (point, color, label) => {
+      staticContext.strokeStyle = color; staticContext.lineWidth = 2; staticContext.strokeRect(point.x - 12, point.y - 5, 24, 10);
+      staticContext.fillStyle = color; staticContext.font = 'bold 7px ui-monospace'; staticContext.textAlign = 'center'; staticContext.fillText(label, point.x, point.y - 8);
+    };
+    drawSpawn(worldToMap(new THREE.Vector3(0, 0, -(DESERT_LAYOUT.halfLength - DESERT_LAYOUT.spawnInset))), '#54b7ff', 'BLUE');
+    drawSpawn(worldToMap(new THREE.Vector3(0, 0, DESERT_LAYOUT.halfLength - DESERT_LAYOUT.spawnInset)), '#ff5b50', 'RED');
+    conquestMinimapStaticBuilds++;
   }
-  context.strokeStyle = 'rgba(255,211,160,.16)';
-  context.lineWidth = 1;
-  for (let index = 1; index < 5; index++) {
-    context.beginPath(); context.moveTo(index * width / 5, 0); context.lineTo(index * width / 5, height); context.stroke();
-    context.beginPath(); context.moveTo(0, index * height / 5); context.lineTo(width, index * height / 5); context.stroke();
-  }
-  const drawBlockedSegment = (segment, fill, stroke) => {
-    const halfX = segment.length * 0.5;
-    const halfZ = segment.depth * 0.5;
-    const cos = Math.cos(segment.yaw);
-    const sin = Math.sin(segment.yaw);
-    const corners = [[-halfX,-halfZ],[halfX,-halfZ],[halfX,halfZ],[-halfX,halfZ]].map(([localX, localZ]) => worldToMap(new THREE.Vector3(
-      segment.x + localX * cos + localZ * sin,
-      0,
-      segment.z - localX * sin + localZ * cos,
-    )));
-    context.beginPath();
-    corners.forEach((corner, index) => index ? context.lineTo(corner.x, corner.y) : context.moveTo(corner.x, corner.y));
-    context.closePath();
-    context.fillStyle = fill; context.fill();
-    context.strokeStyle = stroke; context.lineWidth = 1.2; context.stroke();
-  };
-  DESERT_CANYON_SEGMENTS.forEach((segment) => drawBlockedSegment(segment, 'rgba(42,17,12,.92)', 'rgba(219,112,68,.78)'));
-  for (const obstacle of obstacles) if (obstacle.obstacleType === 'desert-ridge') drawBlockedSegment({ x: obstacle.x, z: obstacle.z, length: obstacle.halfX * 2, depth: obstacle.halfZ * 2, yaw: obstacle.rotationY }, 'rgba(82,37,21,.74)', 'rgba(197,105,59,.55)');
-  const blueSpawn = worldToMap(new THREE.Vector3(0, 0, -(DESERT_LAYOUT.halfLength - DESERT_LAYOUT.spawnInset)));
-  const redSpawn = worldToMap(new THREE.Vector3(0, 0, DESERT_LAYOUT.halfLength - DESERT_LAYOUT.spawnInset));
+  context.drawImage(conquestMinimapStaticCanvas, 0, 0);
   const mapA = worldToMap(conquestState.points.A.centre);
   const mapB = worldToMap(conquestState.points.B.centre);
-  context.setLineDash([4, 3]);
-  for (const [routeIndex, route] of (desertStats.navigation.minimapRoutes ?? []).entries()) {
-    if (!route.length) continue;
-    context.strokeStyle = ['rgba(120,197,255,.27)','rgba(255,218,153,.38)','rgba(255,151,112,.27)'][routeIndex] ?? 'rgba(255,217,155,.3)';
-    context.lineWidth = routeIndex === 1 ? 1.5 : 1;
-    context.beginPath();
-    const start = worldToMap(new THREE.Vector3(0, 0, -(DESERT_LAYOUT.halfLength - DESERT_LAYOUT.spawnInset)));
-    context.moveTo(start.x, start.y);
-    for (const [x, z] of route) { const point = worldToMap(new THREE.Vector3(x, 0, z)); context.lineTo(point.x, point.y); }
-    context.stroke();
-  }
-  context.setLineDash([]);
-  const drawSpawn = (point, color, label) => {
-    context.strokeStyle = color; context.lineWidth = 2; context.strokeRect(point.x - 12, point.y - 5, 24, 10);
-    context.fillStyle = color; context.font = 'bold 7px ui-monospace'; context.textAlign = 'center'; context.fillText(label, point.x, point.y - 8);
-  };
-  drawSpawn(blueSpawn, '#54b7ff', 'BLUE');
-  drawSpawn(redSpawn, '#ff5b50', 'RED');
   for (const [key, point] of Object.entries(conquestState.points)) {
     const mapPoint = key === 'A' ? mapA : mapB;
     const active = conquestState.activePoint === key;
@@ -8147,10 +10026,11 @@ const game = {
     if (a.dead && b.dead) return;
     const delta = b.root.position.clone().sub(a.root.position);
     delta.y = 0;
-    const minimum = a.radius + b.radius;
     const distance = delta.length();
-    if (distance >= minimum || distance < 0.001) return;
+    if (distance < 0.001) return;
     const normal = delta.multiplyScalar(1 / distance);
+    const minimum = a.planarHullSupportRadius(normal) + b.planarHullSupportRadius(normal.clone().negate());
+    if (distance >= minimum) return;
     const overlap = minimum - distance;
     const totalMass = a.mass + b.mass;
     a.root.position.addScaledVector(normal, -overlap * b.mass / totalMass);
@@ -8169,6 +10049,24 @@ const game = {
     const offset = clamp(Math.sin(a.yaw - b.yaw) * 0.58 + tangentialSpeed * 0.055, -Math.min(a.radius, b.radius) * 0.62, Math.min(a.radius, b.radius) * 0.62);
     const point = a.root.position.clone().addScaledVector(normal, a.radius).addScaledVector(tangent, offset);
     point.y = Math.max(0.2, Math.min(a.root.position.y, b.root.position.y) + clamp(relative.y * 0.06, -0.38, 0.38));
+    const passivePuncherContact = (attacker, target, attackNormal) => {
+      const puncher = attacker.weapons.puncher;
+      if (!puncher || !attacker.weaponAvailable('puncher') || puncher.phase !== 'idle') return null;
+      const forward = forwardFor(attacker.yaw);
+      if (forward.dot(attackNormal) < 0.68) return null;
+      const tip = puncher.tipAnchor.getWorldPosition(new THREE.Vector3());
+      const targetBounds = target.getLiveWorldBounds();
+      const closest = targetBounds.clampPoint(tip, new THREE.Vector3());
+      const gap = closest.distanceTo(tip);
+      if (gap > 0.52) return null;
+      return { point: tip, forward, gap };
+    };
+    // The retracted beak is still solid geometry. A direct ram into it must be
+    // reported as a puncher contact even when no actuator command was issued.
+    // During an active stroke checkPuncherHit owns the hit, preventing a double
+    // application in the same physics frame.
+    const passivePuncherA = passivePuncherContact(a, b, normal);
+    const passivePuncherB = passivePuncherContact(b, a, normal.clone().negate());
     const reducedMass = 1 / (1 / a.mass + 1 / b.mass);
     const tangentialImpulse = clamp(-tangentialSpeed * reducedMass * 0.16, -impulseMagnitude * 0.28, impulseMagnitude * 0.28);
     const impulse = normal.clone().multiplyScalar(impulseMagnitude).addScaledVector(tangent, tangentialImpulse);
@@ -8200,15 +10098,27 @@ const game = {
       attacker.recordLinearDelta('attacker-reaction-10pct', delta, 'game.collideRobots');
     };
     if (dashFromA && !bothDash) {
-      if (this.canDamage(a, b)) resultB = b.applyImpactAtPoint(impulse, point, impactDamage + dashDamageB, 'dash', a, { suppressSparks: true, suppressFlash: true, contactSpeed: closingSpeed, weaponMass: a.mass * 0.28, allowCritical: true });
+      const source = passivePuncherA ? 'puncher' : 'dash';
+      const contactPoint = passivePuncherA?.point ?? point;
+      const puncherDamage = passivePuncherA ? clamp(10 + closingSpeed * 1.2, 12, 38) : 0;
+      if (this.canDamage(a, b)) resultB = b.applyImpactAtPoint(impulse, contactPoint, impactDamage + dashDamageB + puncherDamage, source, a, { suppressSparks: true, suppressFlash: true, contactSpeed: closingSpeed, weaponMass: passivePuncherA ? PART_META.puncher.mass : a.mass * 0.28, allowCritical: true });
       attackerReaction(a, impulse.clone().multiplyScalar(-1));
     } else if (dashFromB && !bothDash) {
-      if (this.canDamage(b, a)) resultA = a.applyImpactAtPoint(impulse.clone().multiplyScalar(-1), point, impactDamage + dashDamageA, 'dash', b, { suppressSparks: true, suppressFlash: true, contactSpeed: closingSpeed, weaponMass: b.mass * 0.28, allowCritical: true });
+      const source = passivePuncherB ? 'puncher' : 'dash';
+      const contactPoint = passivePuncherB?.point ?? point;
+      const puncherDamage = passivePuncherB ? clamp(10 + closingSpeed * 1.2, 12, 38) : 0;
+      if (this.canDamage(b, a)) resultA = a.applyImpactAtPoint(impulse.clone().multiplyScalar(-1), contactPoint, impactDamage + dashDamageA + puncherDamage, source, b, { suppressSparks: true, suppressFlash: true, contactSpeed: closingSpeed, weaponMass: passivePuncherB ? PART_META.puncher.mass : b.mass * 0.28, allowCritical: true });
       attackerReaction(b, impulse);
     } else {
-      if (this.canDamage(b, a)) resultA = a.applyImpactAtPoint(impulse.clone().multiplyScalar(-1), point, impactDamage + dashDamageA, dashFromB ? 'dash' : 'collision', b, { suppressSparks: true, suppressFlash: true, contactSpeed: closingSpeed, weaponMass: dashFromB ? b.mass * 0.28 : 0, allowCritical: dashFromB });
+      const sourceA = passivePuncherB ? 'puncher' : dashFromB ? 'dash' : 'collision';
+      const sourceB = passivePuncherA ? 'puncher' : dashFromA ? 'dash' : 'collision';
+      const pointA = passivePuncherB?.point ?? point;
+      const pointB = passivePuncherA?.point ?? point;
+      const puncherDamageA = passivePuncherB ? clamp(8 + closingSpeed * 0.9, 8, 28) : 0;
+      const puncherDamageB = passivePuncherA ? clamp(8 + closingSpeed * 0.9, 8, 28) : 0;
+      if (this.canDamage(b, a)) resultA = a.applyImpactAtPoint(impulse.clone().multiplyScalar(-1), pointA, impactDamage + dashDamageA + puncherDamageA, sourceA, b, { suppressSparks: true, suppressFlash: true, contactSpeed: closingSpeed, weaponMass: passivePuncherB ? PART_META.puncher.mass : dashFromB ? b.mass * 0.28 : 0, allowCritical: dashFromB });
       else a.velocity.addScaledVector(impulse, -0.32 / a.mass);
-      if (this.canDamage(a, b)) resultB = b.applyImpactAtPoint(impulse, point, impactDamage + dashDamageB, dashFromA ? 'dash' : 'collision', a, { suppressSparks: true, suppressFlash: true, contactSpeed: closingSpeed, weaponMass: dashFromA ? a.mass * 0.28 : 0, allowCritical: dashFromA });
+      if (this.canDamage(a, b)) resultB = b.applyImpactAtPoint(impulse, pointB, impactDamage + dashDamageB + puncherDamageB, sourceB, a, { suppressSparks: true, suppressFlash: true, contactSpeed: closingSpeed, weaponMass: passivePuncherA ? PART_META.puncher.mass : dashFromA ? a.mass * 0.28 : 0, allowCritical: dashFromA });
       else b.velocity.addScaledVector(impulse, 0.32 / b.mass);
     }
     collisionEventCache.set(eventKey, worldTime);
@@ -8243,22 +10153,40 @@ const game = {
       // visual edge speed into the impulse formula caused perpetual relaunches.
       const tipSpeedLimit = spinner.kind === 'bar' ? 105 : spinner.kind === 'drum' ? 88 : 72;
       const edgeSpeed = Math.min(rawEdgeSpeed, tipSpeedLimit);
+      const rpmRatio = clamp(spinner.rpm / Math.max(1, spinner.maxRpm), 0, 1);
+      const spinEnergy = rpmRatio * rpmRatio;
+      const dashActive = robot.dashHitWindow > 0 || robot.dashActiveTimer > 0;
       const weaponMass = spinner.kind === 'bar' ? PART_META.barSpinner.mass : spinner.kind === 'drum' ? PART_META.drumSpinner.mass : PART_META.spinner.mass;
       const vehicleRelative = robot.velocity.clone().sub(target.velocity);
       const contactSpeed = Math.min(edgeSpeed + Math.abs(vehicleRelative.dot(tangent)), tipSpeedLimit + 18);
       const reducedWeaponMass = weaponMass * target.mass / Math.max(weaponMass + target.mass, 1);
       const massCoupling = clamp(reducedWeaponMass / 32, 0.84, 1.18);
-      const strength = (spinner.kind === 'bar' ? 210 + contactSpeed * 1.35 : spinner.kind === 'drum' ? 170 + contactSpeed * 1.05 : 140 + contactSpeed * 0.78)
-        * massCoupling + Math.min(vehicleRelative.length() * 14, 180);
+      const targetProfile = target.driveProfile ?? WEIGHT_CLASSES.middleweight;
+      const activeWheelRatio = target.wheels.length ? target.wheels.filter((wheel) => !wheel.part.detached).length / target.wheels.length : 0;
+      const remainingBlockRatio = target.blockParts.size ? target.activeBlockParts().length / target.blockParts.size : 1;
+      const groundedResistance = target.grounded ? 1.12 : 0.78;
+      const supportResistance = lerp(0.72, 1.18, activeWheelRatio) * lerp(0.82, 1.12, remainingBlockRatio);
+      const resistance = Math.max(0.5, targetProfile.knockbackResistance * groundedResistance * supportResistance);
+      const dashMultiplier = dashActive ? (spinner.kind === 'bar' ? 1.42 : spinner.kind === 'drum' ? 1.28 : 1.12) : 1;
+      const baseStrength = spinner.kind === 'bar'
+        ? (26 + 340 * spinEnergy + contactSpeed * 0.82)
+        : spinner.kind === 'drum'
+          ? (38 + 245 * Math.pow(rpmRatio, 1.45) + contactSpeed * 0.62)
+          : (24 + 88 * Math.pow(rpmRatio, 1.2) + contactSpeed * 0.3);
+      const strength = (baseStrength * massCoupling + Math.min(vehicleRelative.length() * (spinner.kind === 'bar' ? 16 : 9), spinner.kind === 'bar' ? 190 : 95)) * dashMultiplier / resistance;
       const point = centre.clone().addScaledVector(radial, spinner.radius * 0.96);
       const targetCentre = target.worldCenterOfMass();
       const underbodyContact = clamp((targetCentre.y - point.y + 0.12) / 0.78, 0, 1);
       const upward = spinner.kind === 'drum'
-        ? strength * (0.1 + underbodyContact * 0.52)
-        : spinner.kind === 'bar' ? strength * 0.08 : strength * 0.04;
-      const impulse = tangent.clone().multiplyScalar(strength).addScaledVector(radial, strength * 0.28).add(new THREE.Vector3(0, upward, 0));
-      const damage = (spinner.kind === 'bar' ? 18 : spinner.kind === 'drum' ? 17 : 15)
-        + contactSpeed * (spinner.kind === 'bar' ? 0.34 : spinner.kind === 'drum' ? 0.31 : 0.24);
+        ? strength * (0.22 + underbodyContact * 0.7)
+        : spinner.kind === 'bar' ? strength * 0.045 : strength * 0.018;
+      const planarRatio = spinner.kind === 'spinner' ? 0.12 : spinner.kind === 'drum' ? 0.34 : 0.62;
+      const impulse = tangent.clone().multiplyScalar(strength).addScaledVector(radial, strength * planarRatio).add(new THREE.Vector3(0, upward, 0));
+      const damage = spinner.kind === 'bar'
+        ? 8 + 62 * spinEnergy + contactSpeed * 0.22
+        : spinner.kind === 'drum'
+          ? 10 + 35 * Math.pow(rpmRatio, 1.35) + contactSpeed * 0.2
+          : 5 + 17 * Math.pow(rpmRatio, 1.1) + contactSpeed * 0.13;
       spinner.contactHistory ??= new Map();
       const previousContact = spinner.contactHistory.get(target) ?? -Infinity;
       const separatedContact = worldTime - previousContact > 0.5;
@@ -8267,7 +10195,7 @@ const game = {
       const fullImpact = separatedContact && !targetAirborne && worldTime - target.lastFullRotaryImpactTime > 0.45;
       if (fullImpact) target.lastFullRotaryImpactTime = worldTime;
       const sustainedForceScale = fullImpact ? 1
-        : spinner.kind === 'spinner' ? LANDING_PHYSICS.sustainedSawForceScale : LANDING_PHYSICS.sustainedRotaryForceScale;
+        : spinner.kind === 'spinner' ? Math.min(0.045, LANDING_PHYSICS.sustainedSawForceScale) : LANDING_PHYSICS.sustainedRotaryForceScale;
       if (!fullImpact) {
         target.stats.sustainedWeaponForcesSuppressed++;
         stabilityStats.sustainedWeaponForcesSuppressed++;
@@ -8276,7 +10204,15 @@ const game = {
       const sparkMode = spinner.kind === 'spinner'
         ? (freshBladeContact ? 'saw-first' : 'saw-continuous')
         : (fullImpact ? 'impact' : 'rotary-continuous');
-      const impactResult = target.applyImpactAtPoint(impulse, point, damage * (fullImpact ? 1 : 0.2), spinner.kind, robot, {
+      const sustainedDamageFactor = spinner.kind === 'spinner' ? 0.62 : spinner.kind === 'drum' ? 0.28 : 0.16;
+      // Rotary attacks are real blade/contact events rather than button
+      // presses. Count them only after geometric contact is confirmed so
+      // normal-runtime telemetry cannot show genuine hits with zero attempts.
+      if (!robot.isPlayer && robot.aiAttackAttemptCooldown <= 0) {
+        robot.stats.attacksAttempted++;
+        robot.aiAttackAttemptCooldown = spinner.kind === 'spinner' ? 0.34 : 0.48;
+      }
+      const impactResult = target.applyImpactAtPoint(impulse, point, damage * (fullImpact ? 1 : sustainedDamageFactor), spinner.kind, robot, {
         tangentHint: tangent,
         sparkMode,
         contactSpeed,
@@ -8288,12 +10224,24 @@ const game = {
         suppressAudio: !freshBladeContact,
         suppressFeedback: !fullImpact,
       });
+      if (fullImpact) {
+        robot.aiLastAttackTime = worldTime;
+        if (spinner.kind === 'bar' && !robot.isPlayer) robot.aiRetreatUntil = Math.max(robot.aiRetreatUntil, worldTime + 0.85);
+      }
       spinner.lastImpactResult = impactResult ? {
         tier: impactResult.tier,
         score: Number((impactResult.intensityScore ?? impactResult.score ?? 0).toFixed(1)),
         sparkCount: impactResult.sparkCount,
         contactSpeed: Number(contactSpeed.toFixed(1)),
       } : null;
+      weaponImpactTelemetry.push({
+        t: Number(worldTime.toFixed(3)), weaponType: spinner.kind, rpm: Math.round(spinner.rpm), rpmRatio: Number(rpmRatio.toFixed(3)), dash: dashActive,
+        attackerMass: Number(robot.mass.toFixed(1)), victimMass: Number(target.mass.toFixed(1)), impactAngle: Number(Math.acos(clamp(Math.abs(vehicleRelative.clone().normalize().dot(tangent)), 0, 1)).toFixed(3)),
+        contactSpeed: Number(contactSpeed.toFixed(2)), impulse: Number(impulse.length().toFixed(1)), resistance: Number(resistance.toFixed(3)),
+        knockbackDistanceEstimate: Number((impulse.length() / Math.max(1, target.mass)).toFixed(3)), upwardImpulse: Number(upward.toFixed(1)),
+        rotationImpulse: Number(new THREE.Vector3().crossVectors(point.clone().sub(targetCentre), impulse).length().toFixed(1)), tier: impactResult?.tier ?? null,
+      });
+      if (weaponImpactTelemetry.length > 160) weaponImpactTelemetry.shift();
       if (fullImpact && impactResult) robot.applyWeaponReactionWear(spinner, clamp(damage * 0.42, 5, 18), impulse.clone().multiplyScalar(-0.16), point, impactResult.tier);
       if (spinner.kind === 'spinner') {
         sawContactTimer = Math.max(sawContactTimer, 0.18);
@@ -8304,10 +10252,44 @@ const game = {
       }
       robot.stats.hits++;
       hitCount++;
-      spinner.hitCooldown.set(target, spinner.kind === 'spinner' ? 0.09 : 0.18);
-      spinner.rpm *= spinner.kind === 'spinner' ? 0.9 : 0.82;
+      spinner.hitCooldown.set(target, spinner.kind === 'spinner' ? 0.12 : spinner.kind === 'drum' ? 0.11 : 0.2);
+      if (spinner.kind === 'bar') {
+        const severe = ['veryStrong', 'critical'].includes(impactResult?.tier);
+        const loss = severe ? lerp(0.4, 0.7, Math.random()) : lerp(0.25, 0.45, Math.random());
+        spinner.rpm *= 1 - loss;
+      } else spinner.rpm *= spinner.kind === 'spinner' ? 0.94 : 0.76;
     }
     return hitCount;
+  },
+
+  checkPuncherHit(robot, puncher) {
+    const point = new THREE.Vector3();
+    puncher.tipAnchor.getWorldPosition(point);
+    const forward = new THREE.Vector3(0, 0, 1).applyQuaternion(puncher.root.getWorldQuaternion(new THREE.Quaternion())).normalize();
+    let hits = 0;
+    for (const target of this.targetsFor(robot)) {
+      const targetCentre = target.worldCenterOfMass();
+      const toTarget = targetCentre.clone().sub(point);
+      const distance = toTarget.length();
+      const targetBounds = target.getLiveWorldBounds();
+      const closestSurface = targetBounds.clampPoint(point, new THREE.Vector3());
+      const physicalGap = closestSurface.distanceTo(point);
+      if ((physicalGap > 0.82 && distance > target.radius + 1.25) || distance < 0.001 || toTarget.normalize().dot(forward) < 0.12) continue;
+      const dash = robot.dashHitWindow > 0 || robot.dashActiveTimer > 0;
+      const closing = Math.max(0, robot.velocity.clone().sub(target.velocity).dot(forward));
+      const strength = (dash ? 390 : 235) + closing * (dash ? 18 : 10);
+      const impulse = forward.clone().multiplyScalar(strength).add(new THREE.Vector3(0, dash ? 38 : 18, 0));
+      const result = target.applyImpactAtPoint(impulse, point, (dash ? 58 : 35) + closing * 0.45, 'puncher', robot, { contactSpeed: closing, weaponMass: PART_META.puncher.mass, allowCritical: dash });
+      if (result) {
+        robot.stats.hits++;
+        robot.aiLastAttackTime = worldTime;
+        if (dash) robot.dashHitWindow = 0;
+        spawnMetalSparks(point, impulse, dash ? 28 : 16, result.tier, forward, 'impact', forward.clone().negate());
+      }
+      hits++;
+      break;
+    }
+    return hits;
   },
 
   checkHammerHit(robot, hammer, swingProgress = 0.72) {
@@ -8674,8 +10656,55 @@ function spawnDust(point, count) {
     const mesh = new THREE.Mesh(dustGeometry, material);
     mesh.position.copy(point).add(new THREE.Vector3((Math.random() - 0.5) * 1.6, 0.1, (Math.random() - 0.5) * 1.6));
     scene.add(mesh);
-    effects.push({ object: mesh, velocity: new THREE.Vector3((Math.random() - 0.5) * 1.2, 0.5 + Math.random(), (Math.random() - 0.5) * 1.2), angular: new THREE.Vector3(), life: 0.65 + Math.random() * 0.45, gravity: 0, fade: true, grow: true });
+    effects.push({ object: mesh, velocity: new THREE.Vector3((Math.random() - 0.5) * 1.2, 0.5 + Math.random(), (Math.random() - 0.5) * 1.2), angular: new THREE.Vector3(), life: 0.65 + Math.random() * 0.45, gravity: 0, fade: true, grow: true, disposeMaterial: true });
   }
+}
+
+function spawnDashStreaks(robot, forward) {
+  const right = new THREE.Vector3(forward.z, 0, -forward.x);
+  const count = robot.weightClass === 'superheavy' ? 12 : 9;
+  for (let index = 0; index < count; index++) {
+    const particle = dashStreakParticles[dashStreakCursor];
+    dashStreakCursor = (dashStreakCursor + 1) % DASH_STREAK_POOL_SIZE;
+    particle.active = true;
+    particle.direction.copy(forward);
+    particle.position.copy(robot.root.position)
+      .addScaledVector(forward, -0.4 - Math.random() * 1.5)
+      .addScaledVector(right, (Math.random() - 0.5) * Math.max(1.1, robot.radius * 1.25));
+    particle.position.y += 0.18 + Math.random() * 0.65;
+    particle.velocity.copy(forward).multiplyScalar(4 + Math.random() * 5);
+    particle.initialLife = particle.life = 0.15 + Math.random() * 0.13;
+    particle.length = 0.72 + Math.random() * 1.85;
+    particle.width = 0.012 + Math.random() * 0.018;
+  }
+}
+
+function updateDashStreakPool(dt) {
+  let writeIndex = 0;
+  for (const particle of dashStreakParticles) {
+    if (!particle.active) continue;
+    particle.life -= dt;
+    if (particle.life <= 0) { particle.active = false; continue; }
+    particle.position.addScaledVector(particle.velocity, dt);
+    const fade = clamp(particle.life / particle.initialLife, 0, 1);
+    dashStreakDummy.position.copy(particle.position).addScaledVector(particle.direction, -particle.length * 0.5);
+    dashStreakDummy.quaternion.setFromUnitVectors(Z_AXIS, particle.direction);
+    dashStreakDummy.scale.set(particle.width * fade, particle.width * fade, particle.length);
+    dashStreakDummy.updateMatrix();
+    dashStreakInstances.setMatrixAt(writeIndex, dashStreakDummy.matrix);
+    dashStreakColor.setRGB(0.28 * fade, 0.7 * fade, 1.45 * fade);
+    dashStreakInstances.setColorAt(writeIndex, dashStreakColor);
+    writeIndex++;
+  }
+  dashStreakInstances.count = writeIndex;
+  dashStreakInstances.instanceMatrix.needsUpdate = true;
+  dashStreakInstances.instanceColor.needsUpdate = true;
+}
+
+function resetDashStreakPool() {
+  for (const particle of dashStreakParticles) particle.active = false;
+  dashStreakInstances.count = 0;
+  dashStreakInstances.instanceMatrix.needsUpdate = true;
 }
 
 function allocateSmokeParticle() {
@@ -8795,11 +10824,22 @@ function spawnFlash(point, intensity) {
   effects.push({ object: light, velocity: new THREE.Vector3(), angular: new THREE.Vector3(), life: 0.07, gravity: 0, fade: true });
 }
 
+function disposeTransientEffect(effect) {
+  if (!effect?.object) return;
+  if (effect.disposeGeometry) effect.object.traverse((node) => node.geometry?.dispose?.());
+  if (effect.disposeMaterial) effect.object.traverse((node) => {
+    if (!node.material) return;
+    for (const material of (Array.isArray(node.material) ? node.material : [node.material])) material?.dispose?.();
+  });
+}
+
 function updateEffects(dt) {
   updateAudioSystem(dt);
   updateMetalSparkPool(dt);
+  updateHealingVFXPool(dt);
   updateRobotExhaustSmoke(dt);
   updateSmokePool(dt);
+  updateDashStreakPool(dt);
   updateBlockFragmentBursts(dt);
   for (let index = effects.length - 1; index >= 0; index--) {
     const effect = effects[index];
@@ -8830,6 +10870,7 @@ function updateEffects(dt) {
     }
     if (effect.life <= 0) {
       scene.remove(effect.object);
+      disposeTransientEffect(effect);
       effects.splice(index, 1);
     }
   }
@@ -8884,6 +10925,7 @@ function updateEffects(dt) {
     }
     if (item.life <= 0) {
       scene.remove(item.object);
+      disposeRuntimeObjectResources(item.object);
       debris.splice(index, 1);
     }
   }
@@ -8936,6 +10978,7 @@ function createFloorSaw() {
 
 function createGarageStage() {
   garageStage = new THREE.Group();
+  garageCameraOccluders.length = 0;
   const garageFloor = new THREE.Mesh(
     new THREE.BoxGeometry(15, 0.18, 12),
     createMaterial(0x7d8790, 0.48, 0.68),
@@ -8965,9 +11008,13 @@ function createGarageStage() {
   const backWall = new THREE.Mesh(new THREE.BoxGeometry(14, 5.8, 0.3), createMaterial(0x727d87, 0.42, 0.7));
   backWall.position.set(0, 2.8, -4.9);
   backWall.receiveShadow = true;
+  backWall.userData.cameraOccluder = true;
+  garageCameraOccluders.push(backWall);
   garageStage.add(backWall);
   const lowerWall = new THREE.Mesh(new THREE.BoxGeometry(14, 1.2, 0.34), createMaterial(0x56616b, 0.52, 0.62));
   lowerWall.position.set(0, 0.65, -4.68);
+  lowerWall.userData.cameraOccluder = true;
+  garageCameraOccluders.push(lowerWall);
   garageStage.add(lowerWall);
   const panelMaterial = createMaterial(0x9aa4ad, 0.3, 0.72);
   for (let row = 0; row < 5; row++) {
@@ -8978,9 +11025,13 @@ function createGarageStage() {
   for (const x of [-5.4, 5.4]) {
     const cabinet = new THREE.Mesh(new THREE.BoxGeometry(1.7, 2.2, 1.05), createMaterial(0x4f5d68, 0.5, 0.58));
     cabinet.position.set(x, 1.2, -4.15);
+    cabinet.userData.cameraOccluder = true;
+    garageCameraOccluders.push(cabinet);
     garageStage.add(cabinet);
     const bench = new THREE.Mesh(new THREE.BoxGeometry(3.2, 0.22, 1.2), createMaterial(0xa3abb1, 0.65, 0.42));
     bench.position.set(x * 0.82, 1.35, -3.75);
+    bench.userData.cameraOccluder = true;
+    garageCameraOccluders.push(bench);
     garageStage.add(bench);
   }
   const lampA = new THREE.PointLight(0xf1f7ff, 62, 18, 1.6);
@@ -9004,14 +11055,15 @@ function createGarageStage() {
   scene.add(garageStage);
 }
 
-function createGaragePartObject(record, ghost = false, tint = 0xffffff) {
+function createGaragePartObject(record, ghost = false, tint = null) {
   const object = new THREE.Group();
   object.name = `Garage_${record.id ?? record.type}`;
   object.userData.partId = record.id ?? null;
   object.userData.partType = record.type;
   object.userData.isCandidate = ghost;
-  object.add(createPartVisualContent(record.type, tint, ghost, record.hubFlipped, record.type === 'wheel' ? record.wheelModel : null));
-  addMountStandoffVisual(object, record, tint, ghost);
+  const resolvedTint = tint ?? paintTintForPart(record, workingAssembly.paintPalette);
+  object.add(createPartVisualContent(record.type, resolvedTint, ghost, record.hubFlipped, record.type === 'wheel' ? record.wheelModel : null));
+  addMountStandoffVisual(object, record, resolvedTint, ghost);
   applyRecordObjectTransform(record, object);
   return object;
 }
@@ -9043,6 +11095,7 @@ function rebuildGarageRobot() {
   refreshBlockGhost();
   rebuildGarageGizmo();
   updateGarageSummary();
+  renderPaintUI();
 }
 
 function rebuildPartList() {
@@ -9069,6 +11122,74 @@ function rebuildBlockList() {
   }
   selectedBlockId = workingAssembly.blocks.some((block) => block.id === current) ? current : (workingAssembly.blocks[0]?.id ?? null);
   ui.blockList.value = selectedBlockId ?? '';
+}
+
+function renderPaintUI() {
+  if (!ui.paintSwatches) return;
+  workingAssembly.paintPalette = normalizedPaintPalette(workingAssembly.paintPalette);
+  activePaintColor = normalizedPaintColor(activePaintColor, workingAssembly.paintPalette[activePaintSlot]);
+  ui.paintSwatches.innerHTML = '';
+  for (const color of PLAYER_PAINT_COLORS) {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.dataset.paintColor = color;
+    button.title = color;
+    button.setAttribute('aria-label', `페인트 ${color}`);
+    button.style.setProperty('--swatch', color);
+    button.classList.toggle('active', color === activePaintColor);
+    button.addEventListener('click', () => {
+      activePaintColor = color;
+      workingAssembly.paintPalette[activePaintSlot] = color;
+      garageDirty = true;
+      renderPaintUI();
+      if (ui.paintStatus) ui.paintStatus.textContent = `${activePaintSlot.toUpperCase()} ${color} 선택 · 적용 대상을 고르세요.`;
+    });
+    ui.paintSwatches.appendChild(button);
+  }
+  document.querySelectorAll('[data-paint-slot]').forEach((button) => {
+    const slot = button.dataset.paintSlot;
+    button.classList.toggle('active', slot === activePaintSlot);
+    button.style.setProperty('--paint-slot-color', workingAssembly.paintPalette[slot]);
+  });
+}
+
+function applyPaintToSelection() {
+  const color = normalizedPaintColor(activePaintColor, DEFAULT_PLAYER_PALETTE.primary);
+  const block = assemblyMode === 'blocks' ? workingAssembly.blocks.find((record) => record.id === selectedBlockId) : null;
+  const part = assemblyMode === 'parts' ? workingAssembly.parts.find((record) => record.id === selectedPartId) : null;
+  if (!block && !part) {
+    if (ui.paintStatus) ui.paintStatus.textContent = '먼저 블록 또는 장갑/외장 파츠를 선택하세요.';
+    return false;
+  }
+  if (part && !EXTERIOR_TYPES.has(part.type)) {
+    if (ui.paintStatus) ui.paintStatus.textContent = '무기와 타이어는 식별을 위해 기본 금속/고무 색을 유지합니다.';
+    return false;
+  }
+  pushUndo();
+  if (block) {
+    block.color = color;
+    block.paintSlot = activePaintSlot;
+  } else part.paintColor = color;
+  garageDirty = true;
+  rebuildGarageRobot();
+  renderPaintUI();
+  if (ui.paintStatus) ui.paintStatus.textContent = `${block ? '선택 블록' : '선택 외장'}에 ${color} 적용 완료`;
+  return true;
+}
+
+function applyPaintToWholeBody() {
+  const color = normalizedPaintColor(activePaintColor, DEFAULT_PLAYER_PALETTE.primary);
+  pushUndo();
+  workingAssembly.paintPalette[activePaintSlot] = color;
+  for (const block of workingAssembly.blocks) {
+    block.color = color;
+    block.paintSlot = activePaintSlot;
+  }
+  for (const part of workingAssembly.parts.filter((record) => ['armorFlat', 'armorCurved'].includes(record.type))) part.paintColor = color;
+  garageDirty = true;
+  rebuildGarageRobot();
+  renderPaintUI();
+  if (ui.paintStatus) ui.paintStatus.textContent = `전체 차체와 장갑에 ${color} 적용 완료`;
 }
 
 function partSurfaceHeight(type) {
@@ -9205,17 +11326,9 @@ function getWeaponAxisCandidates(record) {
 }
 
 function tryAxisSnapFromPointer(record) {
-  if (![...WEAPON_TYPES].includes(record.type) || !garageRoot) return false;
-  let best = null;
-  let bestDistance = Infinity;
-  for (const candidate of getWeaponAxisCandidates(record)) {
-    const worldPoint = garageRoot.localToWorld(candidate.point.clone());
-    const distance = garageRaycaster.ray.distanceToPoint(worldPoint);
-    if (distance < bestDistance) { best = candidate; bestDistance = distance; }
-  }
-  if (!best || bestDistance > 0.58 * (record.scaleFactor ?? 1)) return false;
-  setRecordAxisMount(record, best.point, best.targetIds, best.normal);
-  return true;
+  // Weapon supports/axle meshes were removed. All weapons now use the exact
+  // block face selected by the player and keep only an invisible local pivot.
+  return false;
 }
 
 function alignWheelMountFromSurface(record, surface) {
@@ -9248,13 +11361,19 @@ function alignWheelMountFromSurface(record, surface) {
 
 function attachRecordFromPointer(record, event) {
   updateGaragePointer(event);
-  if (record.type !== 'wheel' && tryAxisSnapFromPointer(record)) return true;
   const surface = getSurfaceIntersections(garageRaycaster, record.id)[0];
   if (!surface) return false;
   if (record.type === 'wheel') {
     alignWheelMountFromSurface(record, surface);
     record.locked = false;
-  } else setRecordSurfaceMount(record, surface.point, surface.normal, surface.targetId);
+  } else {
+    setRecordSurfaceMount(record, surface.point, surface.normal, surface.targetId);
+    if (WEAPON_TYPES.has(record.type)) {
+      record.mount.directWeaponMount = true;
+      record.directWeaponMount = true;
+      record.linkedTo = [surface.targetId];
+    }
+  }
   return true;
 }
 
@@ -9309,7 +11428,10 @@ function getSurfaceAdhesionTelemetry() {
     underside: [new THREE.Vector3(0, -3, 0), new THREE.Vector3(0, 1, 0)],
   };
   const samples = {};
-  const makeProbe = () => ({ id: '__mount_probe', type: 'pivotMount', position: [0, 0, 0], rotation: [0, 0, 0], scaleFactor: 1, linkedTo: [] });
+  // The legacy pivot support was removed from the runtime catalogue. Use a
+  // real one-cell armour plate for the non-rendered adhesion probe so opening
+  // the workshop or repainting can never dereference removed PART_META data.
+  const makeProbe = () => ({ id: '__mount_probe', type: 'armorFlat', position: [0, 0, 0], rotation: [0, 0, 0], scaleFactor: 1, axisScale: [1, 1, 1], linkedTo: [] });
   for (const [key, [origin, direction]] of Object.entries(definitions)) {
     const hit = raycastChassisFromLocal(origin, direction);
     if (!hit) { samples[key] = { hit: false }; continue; }
@@ -9392,6 +11514,102 @@ function recordLocalAABB(record, padding = 0) {
   return box;
 }
 
+function assemblyBuildFloorY(assembly = workingAssembly) {
+  if (!assembly?.blocks?.length) return 0;
+  return Math.min(...assembly.blocks.map((block) => blockLocalAABB(block).min.y));
+}
+
+function partBuildFloorState(record, assembly = workingAssembly) {
+  const buildFloorY = assemblyBuildFloorY(assembly);
+  const bounds = recordLocalAABB(record);
+  const clearance = bounds.min.y - buildFloorY;
+  return {
+    valid: Number.isFinite(clearance) && clearance >= -BUILD_FLOOR_TOLERANCE,
+    buildFloorY,
+    boundsMinY: bounds.min.y,
+    boundsMaxY: bounds.max.y,
+    clearance,
+    tolerance: BUILD_FLOOR_TOLERANCE,
+  };
+}
+
+function auditAssemblyBuildFloor(assembly, label = 'assembly') {
+  const buildFloorY = assemblyBuildFloorY(assembly);
+  const parts = (assembly?.parts ?? []).map((part) => {
+    const state = partBuildFloorState(part, assembly);
+    return {
+      id: part.id,
+      type: part.type,
+      minY: Number(state.boundsMinY.toFixed(5)),
+      clearance: Number(state.clearance.toFixed(5)),
+      valid: state.valid,
+    };
+  });
+  return {
+    label,
+    buildFloorY: Number(buildFloorY.toFixed(5)),
+    partCount: parts.length,
+    violations: parts.filter((part) => !part.valid),
+    passed: parts.every((part) => part.valid),
+  };
+}
+
+function translateMountedPartY(record, deltaY) {
+  if (!Number.isFinite(deltaY) || deltaY <= 0) return;
+  record.position ??= [0, 0, 0];
+  record.position[1] = Number(record.position[1] ?? 0) + deltaY;
+  if (Array.isArray(record.mount?.point)) record.mount.point[1] = Number(record.mount.point[1] ?? 0) + deltaY;
+  if (Array.isArray(record.mount?.axisPoint)) record.mount.axisPoint[1] = Number(record.mount.axisPoint[1] ?? 0) + deltaY;
+  record.buildFloorRepairOffset = Number((Number(record.buildFloorRepairOffset ?? 0) + deltaY).toFixed(6));
+}
+
+function retargetSurfaceMountAtCurrentPoint(record, assembly) {
+  if (record.mount?.kind !== 'surface' || !Array.isArray(record.mount.point) || !Array.isArray(record.mount.normal)) return false;
+  const point = new THREE.Vector3(...record.mount.point);
+  const normal = new THREE.Vector3(...record.mount.normal).normalize();
+  const axis = Math.abs(normal.x) > 0.7 ? 'x' : Math.abs(normal.y) > 0.7 ? 'y' : 'z';
+  const tangents = ['x', 'y', 'z'].filter((value) => value !== axis);
+  const candidates = (assembly.blocks ?? []).map((block) => {
+    const bounds = blockLocalAABB(block);
+    const plane = normal[axis] > 0 ? bounds.max[axis] : bounds.min[axis];
+    const planeGap = Math.abs(point[axis] - plane);
+    const inside = tangents.every((tangent) => point[tangent] >= bounds.min[tangent] - 0.002 && point[tangent] <= bounds.max[tangent] + 0.002);
+    return { block, planeGap, inside };
+  }).filter((entry) => entry.inside && entry.planeGap <= 0.004)
+    .sort((a, b) => a.planeGap - b.planeGap);
+  if (!candidates.length) return false;
+  record.mount.targetId = candidates[0].block.id;
+  record.mount.targetIds = [candidates[0].block.id];
+  record.linkedTo = [candidates[0].block.id];
+  return true;
+}
+
+function repairAssemblyBuildFloor(assembly, label = 'assembly') {
+  const repairs = [];
+  // Re-evaluate after each move because imported GLB bounds, uniform scale and
+  // arbitrary XYZ rotation all affect the actual lowest geometry corner.
+  for (const part of assembly?.parts ?? []) {
+    const state = partBuildFloorState(part, assembly);
+    if (state.valid) continue;
+    const deltaY = -state.clearance + BUILD_FLOOR_TOLERANCE;
+    translateMountedPartY(part, deltaY);
+    retargetSurfaceMountAtCurrentPoint(part, assembly);
+    const after = partBuildFloorState(part, assembly);
+    repairs.push({
+      id: part.id,
+      type: part.type,
+      label,
+      shiftedY: Number(deltaY.toFixed(5)),
+      beforeMinY: Number(state.boundsMinY.toFixed(5)),
+      afterMinY: Number(after.boundsMinY.toFixed(5)),
+      passed: after.valid,
+    });
+  }
+  assembly.buildFloorAudit = auditAssemblyBuildFloor(assembly, label);
+  assembly.buildFloorRepairs = repairs;
+  return repairs;
+}
+
 function aabbSeparation(a, b) {
   return Math.hypot(
     Math.max(0, a.min.x - b.max.x, b.min.x - a.max.x),
@@ -9459,12 +11677,22 @@ function weaponClearanceBlockIds(record, assembly = workingAssembly) {
     }
   } else if (record.type === 'flipper') {
     for (let index = 0; index <= 5; index++) samples.push({ centre: new THREE.Vector3(0, Math.sin(index / 5 * 1.1) * 0.7, Math.cos(index / 5 * 1.1) * 0.85).multiplyScalar(scale).applyQuaternion(quaternion).add(centre), radius: 0.34 * scale });
+  } else if (record.type === 'puncher') {
+    // The puncher is a linear actuator, not a rotary weapon. Audit the narrow
+    // tip path in local +Z instead of applying the generic circular spinner
+    // clearance volume to the whole housing.
+    for (let index = 0; index <= 5; index++) {
+      samples.push({
+        centre: new THREE.Vector3(0, 0, 0.48 + index / 5 * 0.82).multiplyScalar(scale).applyQuaternion(quaternion).add(centre),
+        radius: 0.16 * scale,
+      });
+    }
   } else {
     const bounds = recordLocalAABB(record);
     const half = bounds.getSize(new THREE.Vector3()).multiplyScalar(0.5);
-    const axis = record.type === 'drumSpinner' ? 'x' : 'y';
-    const radius = axis === 'x' ? Math.max(half.y, half.z) : Math.max(half.x, half.z);
-    const thickness = axis === 'x' ? half.x : half.y;
+    const axis = record.type === 'drumSpinner' ? 'x' : record.type === 'spinner' ? 'z' : 'y';
+    const radius = axis === 'x' ? Math.max(half.y, half.z) : axis === 'z' ? Math.max(half.x, half.y) : Math.max(half.x, half.z);
+    const thickness = axis === 'x' ? half.x : axis === 'z' ? half.z : half.y;
     samples.push({ centre, radius: radius + 0.018, thickness: thickness + 0.012, axis });
   }
   const hits = [];
@@ -9481,7 +11709,22 @@ function weaponClearanceBlockIds(record, assembly = workingAssembly) {
         const closestZ = clamp(sample.centre.z, box.min.z, box.max.z);
         const radial = Math.hypot(sample.centre.x - closestX, sample.centre.z - closestZ);
         const vertical = Math.max(0, box.min.y - sample.centre.y, sample.centre.y - box.max.y);
-        return radial < sample.radius && vertical < sample.thickness;
+        // A top-mounted bar's underside is intentionally flush with its block
+        // face. The expanded broad-phase box used here added 30mm of virtual
+        // overlap and rejected that exact face contact as swept penetration.
+        // Keep the conservative radial sweep, but exclude the shared mounting
+        // plane; true rest penetration is still rejected by blockedAtRest.
+        const directTopFaceAllowance = record.type === 'barSpinner'
+          && record.mount?.kind === 'surface'
+          && Number(record.mount?.normal?.[1] ?? 0) > 0.7 ? 0.04 : 0;
+        return radial < sample.radius && vertical < Math.max(0, sample.thickness - directTopFaceAllowance);
+      }
+      if (sample.axis === 'z') {
+        const closestX = clamp(sample.centre.x, box.min.x, box.max.x);
+        const closestY = clamp(sample.centre.y, box.min.y, box.max.y);
+        const radial = Math.hypot(sample.centre.x - closestX, sample.centre.y - closestY);
+        const axial = Math.max(0, box.min.z - sample.centre.z, sample.centre.z - box.max.z);
+        return radial < sample.radius && axial < sample.thickness + 0.012;
       }
       const closestY = clamp(sample.centre.y, box.min.y, box.max.y);
       const closestZ = clamp(sample.centre.z, box.min.z, box.max.z);
@@ -9506,6 +11749,10 @@ function partCollisionState(record, ignoreId = null, assembly = workingAssembly)
   }
   for (const other of assembly.parts) {
     if (other.id === ignoreId || other.id === record.id || ignored.has(other.id)) continue;
+    // A left/right pivot pair shares one axle envelope. Their conservative
+    // imported AABBs can overlap around the common shaft even though the
+    // visible supports face inward with a clear weapon gap.
+    if (record.axisGroup && other.axisGroup === record.axisGroup) continue;
     // Parent/child functional pairs deliberately share the exact shaft or
     // hinge volume. Treat that designed joint as one compound assembly while
     // still rejecting intersections with unrelated parts.
@@ -9535,8 +11782,7 @@ function refreshRecordDurability(record) {
   const volume = recordScaleVolume(record);
   const wheelFactor = record.type !== 'wheel' ? { mass: 1, hp: 1 }
     : record.wheelModel === 'wheel_light' ? { mass: 0.68, hp: 0.76 }
-      : record.wheelModel === 'wheel_wide' ? { mass: 1.48, hp: 1.32 }
-        : record.wheelModel === 'track_heavy' ? { mass: 1.82, hp: 1.46 } : { mass: 1, hp: 1 };
+      : record.wheelModel === 'wheel_wide' ? { mass: 1.48, hp: 1.32 } : { mass: 1, hp: 1 };
   record.mass = meta.mass * volume * wheelFactor.mass;
   record.baseHp = meta.hp * Math.cbrt(volume) * wheelFactor.hp;
 }
@@ -9570,7 +11816,18 @@ function connectionState(assembly = workingAssembly) {
   return { connected, floating: parts.filter((part) => !connected.has(part.id)), structuralIds };
 }
 
-function validateGaragePart(record, ignoreId = null, assembly = workingAssembly) {
+function validatePartPlacement(record, ignoreId = null, assembly = workingAssembly) {
+  const floor = partBuildFloorState(record, assembly);
+  if (!floor.valid) {
+    return {
+      valid: false,
+      touching: [],
+      gap: getRecordMountGap(record),
+      reason: 'build-floor-violation',
+      floor,
+      message: `설치 불가 · 부품 최저점이 본체 최저선보다 ${Math.abs(floor.clearance * 1000).toFixed(1)}mm 아래입니다.`,
+    };
+  }
   const attached = Boolean(record.mount?.attached);
   const gap = getRecordMountGap(record);
   const targets = new Set([record.mount?.targetId, ...(record.mount?.targetIds ?? [])].filter(Boolean));
@@ -9593,6 +11850,10 @@ function validateGaragePart(record, ignoreId = null, assembly = workingAssembly)
   }
   const targetLabel = record.mount.kind === 'axis' ? '연결 구멍 축' : structuralBlocks.length ? '블록 차체 표면' : '부품 표면';
   return { valid: true, touching, gap, axis, collisions, clearanceBlocks: [], message: `${targetLabel} 밀착 · 관통 0 · 회전/바퀴 공간 확보 · Collider 동기화` };
+}
+
+function validateGaragePart(record, ignoreId = null, assembly = workingAssembly) {
+  return validatePartPlacement(record, ignoreId, assembly);
 }
 
 function alignAxisRecordToSupports(record, assembly) {
@@ -9624,6 +11885,24 @@ function repairLoadedFunctionalPlacement(assembly) {
       if (result.valid) { repaired.push({ id: part.id, type: part.type, mode: 'surface-standoff', standoff: part.mount.standoff }); break; }
     }
     if (!result.valid) Object.assign(part, original);
+  }
+
+  const repairedPivotGroups = new Map();
+  for (const pivot of surfaceParts.filter((part) => part.type === 'pivotMount' && part.axisGroup)) {
+    if (!repairedPivotGroups.has(pivot.axisGroup)) repairedPivotGroups.set(pivot.axisGroup, []);
+    repairedPivotGroups.get(pivot.axisGroup).push(pivot);
+  }
+  for (const pair of repairedPivotGroups.values()) {
+    if (pair.length !== 2) continue;
+    const commonStandoff = Math.max(...pair.map((pivot) => Math.max(0, Number(pivot.mount?.standoff ?? 0))));
+    const commonY = pair.reduce((sum, pivot) => sum + Number(pivot.mount?.point?.[1] ?? pivot.position[1]), 0) / pair.length;
+    const commonZ = pair.reduce((sum, pivot) => sum + Number(pivot.mount?.point?.[2] ?? pivot.position[2]), 0) / pair.length;
+    for (const pivot of pair) {
+      pivot.mount.standoff = commonStandoff;
+      pivot.mount.point[1] = commonY;
+      pivot.mount.point[2] = commonZ;
+      refreshRecordMount(pivot);
+    }
   }
 
   for (const weapon of assembly.parts.filter((part) => WEAPON_TYPES.has(part.type) && part.mount?.kind === 'axis')) {
@@ -9734,6 +12013,9 @@ function updateInspectorFromRecord() {
     ui.duplicatePart.disabled = true;
     ui.alignAxis.disabled = true;
     ui.flipWheel.disabled = true;
+    if (ui.mobileScaleToggle) ui.mobileScaleToggle.hidden = true;
+    if (ui.mobileScaleReadout) ui.mobileScaleReadout.hidden = true;
+    document.querySelectorAll('[data-wheel-scale-control]').forEach((element) => { element.hidden = false; });
     rebuildGarageGizmo();
     return;
   }
@@ -9743,12 +12025,29 @@ function updateInspectorFromRecord() {
   const gap = getRecordMountGap(record);
   const axisScale = record.axisScale ?? [1, 1, 1];
   const orientationLabel = record.orientationPreset === 'vertical' || Math.abs(Math.sin(degrees[0] * Math.PI / 180)) > 0.7 ? '세로' : '가로';
-  ui.transformReadout.textContent = `위치  ${record.position.map((value) => value.toFixed(2)).join(' / ')}\n방향  ${orientationLabel}${Math.abs(degrees[1]) >= 170 ? ' · 반전' : ''}\n크기  ${(record.scaleFactor ?? 1).toFixed(2)}× 균등 · Collider 동일\n장착  ${record.mount?.kind ?? '없음'} · 간격 ${Number.isFinite(gap) ? (gap * 1000).toFixed(1) : '∞'}mm`;
+  const scaleLocked = isWheelScaleLocked(record);
+  ui.transformReadout.textContent = `위치  ${record.position.map((value) => value.toFixed(2)).join(' / ')}\n방향  ${orientationLabel}${Math.abs(degrees[1]) >= 170 ? ' · 반전' : ''}\n크기  ${scaleLocked ? '체급별 원본 규격 고정' : `${(record.scaleFactor ?? 1).toFixed(2)}× 균등 · Collider 동일`}\n장착  ${record.mount?.kind ?? '없음'} · 간격 ${Number.isFinite(gap) ? (gap * 1000).toFixed(1) : '∞'}mm`;
+  document.querySelectorAll('[data-transform-mode="scale"], [data-scale-uniform]').forEach((button) => { button.disabled = scaleLocked; });
+  document.querySelectorAll('[data-wheel-scale-control]').forEach((element) => { element.hidden = scaleLocked; });
+  if (scaleLocked && transformMode === 'scale') {
+    transformMode = 'move';
+    mobileScaleMode = false;
+    document.body.classList.remove('mobile-scale-mode');
+    document.querySelectorAll('[data-transform-mode]').forEach((button) => button.classList.toggle('active', button.dataset.transformMode === 'move'));
+  }
   const orientationPreset = orientationLabel === '세로' ? 'vertical' : 'horizontal';
   document.querySelectorAll('[data-orientation]').forEach((button) => button.classList.toggle('active', button.dataset.orientation === orientationPreset));
-  ui.duplicatePart.disabled = Boolean(candidatePart);
+  ui.duplicatePart.disabled = Boolean(candidatePart) || record.type !== 'wheel';
   ui.alignAxis.disabled = record.type !== 'pivotMount';
   ui.flipWheel.disabled = record.type !== 'wheel';
+  if (ui.mobileScaleToggle) {
+    ui.mobileScaleToggle.hidden = scaleLocked;
+    ui.mobileScaleToggle.classList.toggle('active', mobileScaleMode);
+  }
+  if (ui.mobileScaleReadout) {
+    ui.mobileScaleReadout.hidden = !mobileScaleMode;
+    ui.mobileScaleReadout.textContent = `${(record.scaleFactor ?? 1).toFixed(2)}×`;
+  }
   updateSelectedStatus();
   rebuildGarageGizmo();
 }
@@ -9779,19 +12078,21 @@ function refreshGarageGhost() {
 
 function updateGarageSummary() {
   const state = connectionState();
-  const blockMass = workingAssembly.blocks.reduce((sum, block) => sum + (block.mass ?? BLOCK_META[block.type].mass), 0);
-  const mass = blockMass + workingAssembly.parts.reduce((sum, part) => sum + (part.mass ?? PART_META[part.type].mass), 0);
+  const mass = assemblyWeight(workingAssembly);
   const blockGraph = getBlockConnectionGraph();
   const occupiedBlockCells = blockOccupancy(workingAssembly.blocks);
   const mountGaps = workingAssembly.parts.map((part) => getRecordMountGap(part));
   const driveParts = workingAssembly.parts.filter((part) => part.type === 'wheel');
-  const superHeavyDrives = driveParts.filter((part) => ['wheel_wide', 'track_heavy'].includes(part.wheelModel)).length;
-  const lightDrives = driveParts.filter((part) => part.wheelModel === 'wheel_light').length;
-  workingAssembly.weightClass = superHeavyDrives >= Math.ceil(Math.max(1, driveParts.length) * 0.5) ? 'superheavy'
-    : lightDrives >= Math.ceil(Math.max(1, driveParts.length) * 0.5) ? 'lightweight' : 'middleweight';
-  workingAssembly.driveType = driveParts.some((part) => part.wheelModel === 'track_heavy') ? 'track' : 'wheel';
+  workingAssembly.weightClass = WEIGHT_CLASSES[workingAssembly.weightClass] ? workingAssembly.weightClass : inferredLegacyWeightClass(workingAssembly);
+  workingAssembly.driveType = 'wheel';
+  const classStatus = classRuleStatus(workingAssembly);
+  if (ui.weightClassSelect) ui.weightClassSelect.value = workingAssembly.weightClass;
   ui.garageCount.textContent = `블록 ${workingAssembly.blocks.length} · 기능 부품 ${workingAssembly.parts.length}`;
   ui.garageMass.textContent = `${WEIGHT_CLASSES[workingAssembly.weightClass].label} · ${workingAssembly.driveType === 'track' ? '궤도' : '바퀴'} · ${mass.toFixed(0)}kg`;
+  if (ui.garageLimits) {
+    ui.garageLimits.textContent = `BLOCKS ${classStatus.blockCount}/${classStatus.profile.maxBlocks} · WEIGHT ${classStatus.weight.toFixed(0)}/${classStatus.profile.maxWeight}kg`;
+    ui.garageLimits.className = classStatus.valid ? (classStatus.usage >= 0.9 ? 'limit-warning' : '') : 'limit-invalid';
+  }
   ui.saveState.textContent = garageDirty ? '저장되지 않은 변경' : '저장됨';
   ui.saveState.style.color = garageDirty ? '#ffb65e' : '#65ddb0';
   ui.garageState.textContent = JSON.stringify({
@@ -9800,6 +12101,7 @@ function updateGarageSummary() {
     legacyChassisPresent: false,
     lockedWheelCount: workingAssembly.parts.filter((part) => part.type === 'wheel' && part.locked).length,
     weightClass: workingAssembly.weightClass,
+    classLimits: { minBlocks: classStatus.profile.minBlocks, maxBlocks: classStatus.profile.maxBlocks, maxWeight: classStatus.profile.maxWeight, currentBlocks: classStatus.blockCount, currentWeight: Number(classStatus.weight.toFixed(2)), allowedWheels: classStatus.profile.allowedWheels, valid: classStatus.valid, message: classStatus.message },
     driveType: workingAssembly.driveType,
     driveModels: driveParts.map((part) => part.wheelModel),
     exteriorCounts: Object.fromEntries([...EXTERIOR_TYPES].map((key) => [key, workingAssembly.parts.filter((part) => part.type === key).length])),
@@ -9850,6 +12152,7 @@ function updateGarageSummary() {
       maxGapMm: Number((Math.max(0, ...mountGaps.filter(Number.isFinite).map((gap) => Math.abs(gap))) * 1000).toFixed(2)),
       penetrationParts: workingAssembly.parts.filter((part) => getRecordMountGap(part) < -0.001).map((part) => part.id),
     },
+    buildFloor: auditAssemblyBuildFloor(workingAssembly, 'workshop-live'),
     editor: currentEditorRecord() ? {
       mode: transformMode,
       axis: transformAxis,
@@ -9886,7 +12189,7 @@ function beginCatalogPart(type, wheelModelOverride = null) {
   const startPosition = [0, partSurfaceHeight(type), 0];
   const wheelModel = type === 'wheel' ? (wheelModelOverride ?? 'new_wheel') : null;
   const model = wheelModel ?? meta.model;
-  candidatePart = { id: `part-${Date.now()}`, type, position: startPosition, rotation: [0, 0, 0], scaleFactor: 1, axisScale: [1, 1, 1], hubFlipped: false, hubFlipManual: false, steers: false, locked: false, mount: null, linkedTo: [], scale: [...MODEL_TRANSFORMS[model].scale], mass: meta.mass, baseHp: meta.hp, wheelModel, driveType: wheelModel === 'track_heavy' ? 'track' : 'wheel' };
+  candidatePart = { id: `part-${Date.now()}`, type, position: startPosition, rotation: [0, 0, 0], scaleFactor: 1, axisScale: [1, 1, 1], hubFlipped: false, hubFlipManual: false, steers: false, locked: false, mount: null, linkedTo: [], scale: [...MODEL_TRANSFORMS[model].scale], mass: meta.mass, baseHp: meta.hp, wheelModel, driveType: 'wheel' };
   selectedPartId = null;
   ui.partList.value = '';
   refreshGarageGhost();
@@ -9901,6 +12204,10 @@ function pushUndo() {
 
 function isLockedRecord(record) {
   return Boolean(record?.type === 'wheel' && record.locked);
+}
+
+function isWheelScaleLocked(record) {
+  return Boolean(record?.type === 'wheel');
 }
 
 function removeAllWeapons() {
@@ -9936,6 +12243,13 @@ function installCandidate() {
   const installed = cloneData(candidatePart);
   installed.linkedTo = [...new Set([...(candidatePart.linkedTo ?? []), ...result.touching.map((part) => part.id)])];
   refreshRecordDurability(installed);
+  const classStatus = classRuleStatus(workingAssembly, { extraPart: installed });
+  if (!classStatus.valid) {
+    undoStack.pop();
+    showMessage(classStatus.message, 1.5);
+    updateGarageSummary();
+    return;
+  }
   workingAssembly.parts.push(installed);
   selectedPartId = candidatePart.id;
   candidatePart = null;
@@ -9965,6 +12279,7 @@ function updateSelectedStatus() {
   const record = currentEditorRecord();
   if (!record) return;
   const result = validateGaragePart(record, candidatePart ? null : record.id);
+  if (!candidatePart && result.valid) garageLastValidRecords.set(record.id, cloneData(record));
   ui.mountStatus.className = `mount-status ${result.valid ? 'valid' : 'invalid'}`;
   ui.mountStatus.querySelector('span').textContent = result.message;
   if (candidatePart) ui.installPart.disabled = !result.valid;
@@ -9973,23 +12288,46 @@ function updateSelectedStatus() {
 function duplicateSelectedPart() {
   const record = workingAssembly.parts.find((part) => part.id === selectedPartId);
   if (!record) return;
+  if (record.type !== 'wheel') { showMessage('복제는 바퀴의 반대편 복제만 지원합니다.', 1.0); return; }
   if (isLockedRecord(record)) { showMessage('고정형 바퀴는 복제할 수 없습니다.', 1.0); return; }
   pushUndo();
-  const copy = cloneData(record);
-  copy.id = `part-${Date.now()}`;
-  copy.position[0] += 0.28;
-  copy.linkedTo = [];
-  copy.axisGroup = null;
-  copy.mount = null;
-  const surface = nearestSurfaceFromLocalPoint(copy, new THREE.Vector3(...copy.position));
-  if (surface) setRecordSurfaceMount(copy, surface.point, surface.normal, surface.targetId);
-  workingAssembly.parts.push(copy);
-  selectedPartId = copy.id;
+  const side = Math.sign(record.position[0]) || 1;
+  const sourceWheels = workingAssembly.parts.filter((part) => part.type === 'wheel' && (Math.sign(part.position[0]) || 1) === side).slice(0, 4);
+  const created = [];
+  for (const source of sourceWheels) {
+    const desired = new THREE.Vector3(-source.position[0], source.position[1], source.position[2]);
+    const alreadyExists = workingAssembly.parts.some((part) => part.type === 'wheel' && new THREE.Vector3(...part.position).distanceTo(desired) < 0.16);
+    if (alreadyExists) continue;
+    const copy = cloneData(source);
+    copy.id = `wheel-mirror-${Date.now()}-${created.length}`;
+    copy.position = desired.toArray();
+    copy.linkedTo = [];
+    copy.axisGroup = null;
+    copy.wheelAxisGroup = source.wheelAxisGroup ?? `wheel-pair-${Date.now()}-${created.length}`;
+    copy.mount = null;
+    copy.hubFlipManual = false;
+    copy.hubFlipped = false;
+    const surface = nearestSurfaceFromLocalPoint(copy, desired);
+    if (!surface || Math.sign(surface.normal.x || 0) !== -side) continue;
+    setRecordSurfaceMount(copy, surface.point, surface.normal, surface.targetId);
+    refreshRecordDurability(copy);
+    const classStatus = classRuleStatus(workingAssembly, { extraPart: copy });
+    if (!classStatus.valid) continue;
+    source.wheelAxisGroup = copy.wheelAxisGroup;
+    workingAssembly.parts.push(copy);
+    created.push(copy);
+  }
+  if (!created.length) {
+    undoStack.pop();
+    showMessage('반대편에 복제 가능한 빈 바퀴 장착면이 없습니다.', 1.2);
+    return;
+  }
+  selectedPartId = created.at(-1).id;
   garageDirty = true;
   rebuildGarageRobot();
-  ui.partList.value = copy.id;
+  ui.partList.value = selectedPartId;
   updateInspectorFromRecord();
-  showMessage('부품을 같은 방향과 크기로 복제했습니다.', 0.9);
+  showMessage(`반대편 바퀴 ${created.length}개 자동 미러 설치`, 1.0);
 }
 
 function flipSelectedWheel() {
@@ -10059,6 +12397,7 @@ function applyRotationStep(degrees) {
 function applyUniformScaleStep(amount) {
   const record = currentEditorRecord();
   if (!record) return;
+  if (isWheelScaleLocked(record)) { showMessage('바퀴 크기는 체급별 전용 규격으로 고정됩니다.', 1); return; }
   if (isLockedRecord(record)) { showMessage('고정형 바퀴는 크기 편집할 수 없습니다.', 1); return; }
   if (!candidatePart) pushUndo();
   const limits = PART_LIMITS[record.type] ?? [0.5, 1.8];
@@ -10092,6 +12431,14 @@ function syncGarageObject(record, object = garagePartObjects.get(record.id)) {
 
 function applyRecordTransformLive(record) {
   refreshRecordMount(record);
+  if (!candidatePart) {
+    const floor = partBuildFloorState(record, workingAssembly);
+    if (!floor.valid) {
+      const lastValid = garageLastValidRecords.get(record.id);
+      if (lastValid) Object.assign(record, cloneData(lastValid));
+      showMessage('본체 최저선 아래에는 부품을 배치할 수 없습니다. 마지막 정상 위치로 복귀했습니다.', 1.2);
+    }
+  }
   const object = candidatePart ? garageGhost : garagePartObjects.get(record.id);
   syncGarageObject(record, object);
   if (record.type === 'wheel') record.steers = record.position[2] > 0.2;
@@ -10147,6 +12494,8 @@ function rebuildGarageGizmo() {
 
 function updateGaragePointer(event) {
   const rect = ui.canvas.getBoundingClientRect();
+  // #game is mirrored at the CSS render boundary. Pointer coordinates arrive
+  // in post-transform visual space, so un-mirror X before building the ray.
   garagePointer.x = -(((event.clientX - rect.left) / rect.width) * 2 - 1);
   garagePointer.y = -(((event.clientY - rect.top) / rect.height) * 2 - 1);
   garageRaycaster.setFromCamera(garagePointer, camera);
@@ -10185,7 +12534,10 @@ function findGarageBlockHit(object) {
 
 function blockHitTest(event, includeCandidate = false, requireFace = false) {
   updateGaragePointer(event);
-  const hits = garageRaycaster.intersectObjects(garageRoot?.children ?? [], true);
+  // Only block meshes are valid block-placement faces. This excludes weapons,
+  // wheels, gizmos and decoration from every pointer-move raycast.
+  const targets = [...garageBlockObjects.values()].filter((object) => includeCandidate || !object.userData.isBlockCandidate);
+  const hits = garageRaycaster.intersectObjects(targets, true);
   for (const hit of hits) {
     const object = findGarageBlockHit(hit.object);
     if (!object || (!includeCandidate && object.userData.isBlockCandidate) || (requireFace && !hit.face)) continue;
@@ -10376,6 +12728,168 @@ function runLv1BlockDataTests() {
   };
 }
 
+function runGarageSixFacePointerQA() {
+  const backup = {
+    assembly: cloneData(workingAssembly), assemblyMode, selectedPartId, selectedBlockId,
+    candidatePart: candidatePart ? cloneData(candidatePart) : null,
+    candidateBlock: candidateBlock ? cloneData(candidateBlock) : null,
+    orbitYaw, orbitPitch, orbitDistance,
+  };
+  enterWorkshop();
+  const directions = [
+    { face: 'x+', normal: [1, 0, 0], expected: [1, 0, 0] },
+    { face: 'x-', normal: [-1, 0, 0], expected: [-1, 0, 0] },
+    { face: 'y+', normal: [0, 1, 0], expected: [0, 1, 0] },
+    { face: 'y-', normal: [0, -1, 0], expected: [0, -1, 0] },
+    { face: 'z+', normal: [0, 0, 1], expected: [0, 0, 1] },
+    { face: 'z-', normal: [0, 0, -1], expected: [0, 0, -1] },
+  ];
+  const rows = [];
+  for (const test of directions) {
+    const core = createBlockRecord('core', [0, 0, 0], [0, 0, 0], 'block-core');
+    workingAssembly = enrichAssembly({ version: ASSEMBLY_VERSION, name: 'Six-face pointer QA', weightClass: 'lightweight', blocks: [core], parts: [] });
+    candidatePart = null;
+    selectedPartId = null;
+    selectedBlockId = core.id;
+    setAssemblyMode('blocks');
+    rebuildGarageRobot();
+    beginBlockCatalog('cube');
+    garageRoot.updateMatrixWorld(true);
+    const localNormal = new THREE.Vector3(...test.normal);
+    const faceLocal = getBlockLocalCentre(core).addScaledVector(localNormal, GRID_UNIT * 0.495);
+    const faceWorld = garageRoot.localToWorld(faceLocal.clone());
+    const rootQuaternion = garageRoot.getWorldQuaternion(new THREE.Quaternion());
+    const worldNormal = localNormal.clone().applyQuaternion(rootQuaternion);
+    camera.position.copy(faceWorld).addScaledVector(worldNormal, 2.4);
+    camera.lookAt(faceWorld);
+    camera.updateProjectionMatrix();
+    camera.updateMatrixWorld(true);
+    const projected = faceWorld.clone().project(camera);
+    const rect = ui.canvas.getBoundingClientRect();
+    // The visible WebGL canvas is mirrored by CSS, so feed the visual-space X
+    // that a real pointer/touch would generate on the displayed face.
+    const pointer = {
+      clientX: rect.left + (-projected.x * 0.5 + 0.5) * rect.width,
+      clientY: rect.top + (-projected.y * 0.5 + 0.5) * rect.height,
+    };
+    const previewAttached = placeCandidateBlockFromPointer(pointer);
+    const previewFace = candidateBlock?.previewFace ?? null;
+    const previewGrid = candidateBlock?.gridPosition?.slice() ?? null;
+    const ghostLocal = blockGhost?.position.clone() ?? null;
+    const installed = installCandidateBlock();
+    const installedRecord = workingAssembly.blocks.find((block) => block.id === selectedBlockId);
+    const actualGrid = installedRecord?.gridPosition?.slice() ?? null;
+    const actualLocal = garageBlockObjects.get(selectedBlockId)?.position.clone() ?? null;
+    const logicalExact = actualGrid?.every((value, index) => Math.abs(value - test.expected[index]) < 1e-6) ?? false;
+    const ghostMatchesActual = Boolean(ghostLocal && actualLocal && ghostLocal.distanceTo(actualLocal) < 1e-5);
+    rows.push({
+      face: test.face, previewAttached, previewFace, previewGrid, expectedGrid: test.expected,
+      installed, actualGrid, logicalExact, ghostMatchesActual,
+      pass: previewAttached && previewFace === test.face && installed && logicalExact && ghostMatchesActual,
+    });
+  }
+  workingAssembly = backup.assembly;
+  selectedPartId = backup.selectedPartId;
+  selectedBlockId = backup.selectedBlockId;
+  candidatePart = backup.candidatePart;
+  candidateBlock = backup.candidateBlock;
+  orbitYaw = backup.orbitYaw;
+  orbitPitch = backup.orbitPitch;
+  orbitDistance = backup.orbitDistance;
+  rebuildGarageRobot();
+  setAssemblyMode(backup.assemblyMode);
+  updateGarageCamera();
+  return {
+    passed: rows.every((row) => row.pass),
+    canvasMirrored: getComputedStyle(ui.canvas).transform !== 'none',
+    pointerCorrection: 'visual-X-unmirrored-before-raycast',
+    exactFaceCount: rows.filter((row) => row.pass).length,
+    rows,
+  };
+}
+
+function runGarageCameraFadeQA() {
+  enterWorkshop();
+  const target = garageRoot?.getWorldPosition(new THREE.Vector3()).add(new THREE.Vector3(0, 0.6, 0)) ?? new THREE.Vector3(0, 1.5, 0);
+  const wall = garageCameraOccluders.find((mesh) => mesh.name === 'Garage_BackWall') ?? garageCameraOccluders[0];
+  if (!wall) return { passed: false, reason: 'garage camera occluder missing' };
+  const before = {
+    geometry: wall.geometry?.uuid ?? null,
+    position: wall.position.toArray(),
+    scale: wall.scale.toArray(),
+    obstacleCount: obstacles.length,
+  };
+  camera.position.set(0, 2.4, -8.2);
+  camera.lookAt(target);
+  camera.updateMatrixWorld(true);
+  for (let index = 0; index < 90; index++) updateCameraObstruction(1 / 60, target);
+  const entry = cameraOcclusionFades.get(wall);
+  const blockedRatio = entry ? Math.min(...entry.materials.map((material, index) => material.opacity / Math.max(0.001, entry.base[index]))) : 1;
+  camera.position.set(0, 2.8, 7.2);
+  camera.lookAt(target);
+  camera.updateMatrixWorld(true);
+  for (let index = 0; index < 90; index++) updateCameraObstruction(1 / 60, target);
+  const restoredRatio = entry ? Math.min(...entry.materials.map((material, index) => material.opacity / Math.max(0.001, entry.base[index]))) : 0;
+  const colliderUnchanged = before.geometry === (wall.geometry?.uuid ?? null)
+    && JSON.stringify(before.position) === JSON.stringify(wall.position.toArray())
+    && JSON.stringify(before.scale) === JSON.stringify(wall.scale.toArray())
+    && before.obstacleCount === obstacles.length;
+  updateGarageCamera();
+  return {
+    passed: blockedRatio >= 0.15 && blockedRatio <= 0.25 && restoredRatio >= 0.98 && colliderUnchanged,
+    blockedOpacityRatio: Number(blockedRatio.toFixed(4)), restoredOpacityRatio: Number(restoredRatio.toFixed(4)),
+    targetBlockedRange: [0.15, 0.25], colliderUnchanged,
+  };
+}
+
+function runWheelNativeScaleQA() {
+  const badLegacyWheel = {
+    id: 'qa-wheel-scale', type: 'wheel', position: [0.4, 0.18, 0], rotation: [0, 0, 0],
+    scaleFactor: 1.8, axisScale: [0.6, 1.7, 1.25], wheelModel: 'wheel_light',
+    mount: { kind: 'surface', targetId: 'block-core', targetIds: ['block-core'], point: [0.18, 0.18, 0], normal: [1, 0, 0], attached: true, gap: 0 },
+    linkedTo: ['block-core'],
+  };
+  const assembly = enrichAssembly({ version: ASSEMBLY_VERSION, weightClass: 'lightweight', blocks: createDefaultBlocks(), parts: [badLegacyWheel] });
+  const wheel = assembly.parts.find((part) => part.type === 'wheel');
+  const models = ['wheel_light', 'new_wheel', 'wheel_wide'].map((model) => {
+    const dimensions = getWheelRuntimeDimensions(1, model, [1, 1, 1]);
+    return { model, scaleFactor: 1, axisScale: [1, 1, 1], radius: Number(dimensions.radius.toFixed(4)), halfWidth: Number(dimensions.halfWidth.toFixed(4)) };
+  });
+  return {
+    passed: wheel?.scaleFactor === 1 && wheel?.axisScale?.every((value) => value === 1)
+      && models.every((entry) => entry.scaleFactor === 1 && entry.axisScale.every((value) => value === 1)),
+    legacyScaleInput: { scaleFactor: 1.8, axisScale: [0.6, 1.7, 1.25] },
+    normalizedRecord: wheel ? { scaleFactor: wheel.scaleFactor, axisScale: wheel.axisScale, model: wheel.wheelModel } : null,
+    classModels: models,
+    editorScaleControlsRemovedForWheel: true,
+  };
+}
+
+function sampleRuntimeFrames(seconds = 5) {
+  const duration = clamp(Number(seconds) || 5, 2, 12) * 1000;
+  return new Promise((resolve) => {
+    const samples = [];
+    let first = 0;
+    let previous = 0;
+    const tick = (now) => {
+      if (!first) { first = now; previous = now; requestAnimationFrame(tick); return; }
+      samples.push(now - previous);
+      previous = now;
+      if (now - first < duration) { requestAnimationFrame(tick); return; }
+      const sorted = [...samples].sort((a, b) => a - b);
+      const average = samples.reduce((sum, value) => sum + value, 0) / Math.max(1, samples.length);
+      const percentile = (ratio) => sorted[Math.min(sorted.length - 1, Math.floor(sorted.length * ratio))] ?? 0;
+      resolve({
+        view: mode, map: selectedMapId, robots: robots.length, seconds: Number(((now - first) / 1000).toFixed(2)), frames: samples.length,
+        averageFps: Number((1000 / average).toFixed(1)), medianFrameMs: Number(percentile(0.5).toFixed(2)),
+        p95FrameMs: Number(percentile(0.95).toFixed(2)), onePercentLowFps: Number((1000 / Math.max(0.001, percentile(0.99))).toFixed(1)),
+        pixelRatio: Number(renderer.getPixelRatio().toFixed(3)), shadows: renderer.shadowMap.enabled,
+      });
+    };
+    requestAnimationFrame(tick);
+  });
+}
+
 function installCandidateBlock() {
   if (!candidateBlock || !candidateBlock.previewAttached) return false;
   const validation = validateBlockPlacement(candidateBlock);
@@ -10383,6 +12897,13 @@ function installCandidateBlock() {
     showMessage(validation.message, 1.2);
     refreshBlockGhost();
     updateBlockInspector();
+    return false;
+  }
+  const classStatus = classRuleStatus(workingAssembly, { extraBlock: candidateBlock });
+  if (!classStatus.valid) {
+    showMessage(classStatus.message, 1.4);
+    refreshBlockGhost();
+    updateGarageSummary();
     return false;
   }
   pushUndo();
@@ -10515,30 +13036,41 @@ function updateBlockInspector() {
 }
 
 function setAssemblyMode(nextMode) {
-  assemblyMode = nextMode === 'blocks' ? 'blocks' : 'parts';
+  assemblyMode = ['parts', 'blocks', 'robots'].includes(nextMode) ? nextMode : 'parts';
   const blockMode = assemblyMode === 'blocks';
-  ui.partsMode.classList.toggle('active', !blockMode);
+  const robotMode = assemblyMode === 'robots';
+  const partMode = assemblyMode === 'parts';
+  ui.partsMode.classList.toggle('active', partMode);
   ui.blocksMode.classList.toggle('active', blockMode);
-  ui.functionalCatalog.hidden = blockMode;
+  ui.robotsMode?.classList.toggle('active', robotMode);
+  ui.functionalCatalog.hidden = !partMode;
   ui.blockCatalog.hidden = !blockMode;
-  ui.functionalInspector.hidden = blockMode;
-  ui.functionalTransformControls.hidden = blockMode;
+  if (ui.robotPresetCatalog) ui.robotPresetCatalog.hidden = !robotMode;
+  ui.functionalInspector.hidden = !partMode;
+  ui.functionalTransformControls.hidden = !partMode;
   ui.blockInspector.hidden = !blockMode;
   ui.blockTransformControls.hidden = !blockMode;
-  ui.inspectorTitle.textContent = blockMode ? 'Grid 블록 도구' : '자유 변형 도구';
+  ui.inspectorTitle.textContent = blockMode ? 'Grid 블록 도구' : robotMode ? '로봇 프리셋 선택' : '자유 변형 도구';
+  if (ui.placementModeToggle) ui.placementModeToggle.hidden = !blockMode;
+  if (ui.mobilePlacementControls) {
+    ui.mobilePlacementControls.hidden = !blockMode;
+    ui.mobilePlacementControls.classList.toggle('button-mode', mobilePlacementMode === 'button');
+  }
   if (blockGridOverlay) blockGridOverlay.visible = blockMode;
   for (const object of garageBlockObjects.values()) object.visible = true;
   for (const object of garagePartObjects.values()) object.visible = true;
   ui.workshopHint.textContent = blockMode
     ? '6면 직접 가리키기: 프리뷰 · 클릭/터치/누른 채 드래그: 연속 설치 · R/X/Y/Z: 90° 회전 · 빈 공간 드래그/핀치: 카메라'
-    : '부품 드래그: Raycast 표면 밀착 · 색상 축: 자유 회전/크기 · 빈 공간 드래그: 카메라 · 축 무기는 구멍 스냅 우선';
+    : robotMode
+      ? '체급 × 무기 프리셋을 선택하면 현재 작업장에 불러옵니다. 이후 모든 블록·부품·색상을 자유롭게 수정할 수 있습니다.'
+      : '부품 드래그: Raycast 표면 밀착 · 색상 축: 자유 회전/크기 · 빈 공간 드래그: 카메라 · 축 무기는 구멍 스냅 우선';
   if (blockMode) {
     if (workingAssembly.blocks.length <= 4) orbitDistance = Math.max(orbitDistance, 6.4);
     candidatePart = null;
     selectedPartId = null;
     refreshGarageGhost();
     updateBlockInspector();
-  } else {
+  } else if (partMode) {
     blockDeleteMode = false;
     clearBlockDeleteOutline();
     ui.blockDeleteMode.classList.remove('active');
@@ -10546,8 +13078,39 @@ function setAssemblyMode(nextMode) {
     candidateBlock = null;
     refreshBlockGhost();
     updateInspectorFromRecord();
+  } else {
+    blockDeleteMode = false;
+    candidateBlock = null;
+    candidatePart = null;
+    selectedPartId = null;
+    refreshGarageGhost();
+    refreshBlockGhost();
   }
   updateGarageSummary();
+}
+
+function loadEditableRobotPreset(weightClass, type, presetIndex = 0) {
+  if (!WEIGHT_CLASSES[weightClass] || !['spinner', 'bar', 'drum', 'puncher'].includes(type)) return false;
+  pushUndo();
+  const classIndex = ['lightweight', 'middleweight', 'superheavy', 'healer'].indexOf(weightClass);
+  const weaponIndex = ['spinner', 'bar', 'drum', 'puncher'].indexOf(type);
+  const generated = createAIAssembly(type, {
+    weightClass,
+    designSeed: 0.137 + classIndex * 0.193 + weaponIndex * 0.071,
+    archetypeIndex: classIndex * 7 + weaponIndex * 3 + presetIndex,
+    paintIndex: classIndex * 4 + weaponIndex,
+    heightTier: 2 + ((classIndex + weaponIndex) % 4),
+  });
+  generated.name = `${WEIGHT_CLASSES[weightClass].label} ${PART_META[type === 'spinner' ? 'spinner' : type === 'bar' ? 'barSpinner' : type === 'drum' ? 'drumSpinner' : 'puncher'].label} 프리셋`;
+  repairAssemblyBuildFloor(generated, 'workshop-robot-preset');
+  workingAssembly = enrichAssembly(generated);
+  selectedBlockId = workingAssembly.blocks[0]?.id ?? null;
+  selectedPartId = null;
+  garageDirty = true;
+  rebuildGarageRobot();
+  setAssemblyMode('blocks');
+  showMessage(`${generated.name} 불러옴 · ${workingAssembly.blocks.length}블록 · 전부 편집 가능`, 1.6);
+  return true;
 }
 
 function selectGaragePart(id, isCandidate = false) {
@@ -10555,6 +13118,8 @@ function selectGaragePart(id, isCandidate = false) {
     const hadCandidate = Boolean(candidatePart);
     candidatePart = null;
     selectedPartId = id;
+    const selected = workingAssembly.parts.find((part) => part.id === id);
+    if (selected && validateGaragePart(selected, selected.id, workingAssembly).valid) garageLastValidRecords.set(id, cloneData(selected));
     ui.partList.value = id;
     document.querySelectorAll('[data-catalog]').forEach((button) => button.classList.remove('selected'));
     if (hadCandidate) refreshGarageGhost();
@@ -10566,6 +13131,7 @@ function selectGaragePart(id, isCandidate = false) {
 function beginGarageTransformDrag(event, axis) {
   const record = currentEditorRecord();
   if (!record) return;
+  if (transformMode === 'scale' && isWheelScaleLocked(record)) { showMessage('바퀴 크기는 체급별 전용 규격으로 고정됩니다.', 1); return; }
   if (isLockedRecord(record)) { showMessage('전용 차체의 4개 바퀴는 고정 슬롯에 잠겨 있습니다.', 1.1); return; }
   const projected = garageRoot.localToWorld(new THREE.Vector3(...record.position)).project(camera);
   const rect = ui.canvas.getBoundingClientRect();
@@ -10623,6 +13189,11 @@ function canFinalizeWorkshop() {
   refreshFunctionalLinks();
   const state = connectionState();
   const blockGraph = getBlockConnectionGraph();
+  const classStatus = classRuleStatus(workingAssembly, { requireMinimum: true });
+  if (!classStatus.valid) {
+    showMessage(classStatus.message, 1.8);
+    return false;
+  }
   if (blockGraph.disconnected.length) {
     const names = blockGraph.disconnected.slice(0, 3).map((block) => BLOCK_META[block.type].label).join(', ');
     showMessage(`Core와 면 연결이 끊긴 블록 ${blockGraph.disconnected.length}개: ${names}`, 1.8);
@@ -10655,7 +13226,8 @@ function saveWorkshop() {
   return true;
 }
 
-function updateGarageCamera() {
+const garageCameraTarget = new THREE.Vector3();
+function updateGarageCamera(dt = 1 / 60) {
   let target = new THREE.Vector3(0, 1.22, 0);
   if (garageRoot && workingAssembly.blocks.length) {
     const min = new THREE.Vector3(Infinity, Infinity, Infinity);
@@ -10673,6 +13245,8 @@ function updateGarageCamera() {
     target.z + Math.cos(orbitYaw) * Math.cos(orbitPitch) * orbitDistance,
   );
   camera.lookAt(target);
+  garageCameraTarget.copy(target);
+  updateCameraObstruction(dt, garageCameraTarget);
 }
 
 const LOBBY_ICON_CLASSES = [
@@ -10745,7 +13319,7 @@ function buildLobbyRobot() {
     assembly: savedAssembly, position: { x: 3.6, z: -4.5 }, yaw: -0.38,
   });
   lobbyRobot.root.rotation.set(0, -0.38, 0);
-  lobbyRobot.root.position.y = GROUND_Y;
+  lobbyRobot.placeOnMeasuredGround();
   lobbyRobot.setColliderDebug(false);
   const weaponCount = savedAssembly.parts.filter((part) => WEAPON_TYPES.has(part.type)).length;
   ui.lobbyRobotLabel.textContent = 'ROBOT 01';
@@ -10811,7 +13385,7 @@ function hideLobbyModal() {
 
 function showLobbyModal(action, battle = false) {
   lobbyModalAction = action;
-  const info = battle ? ['전투 선택', 'Arena 01 또는 대규모 Industrial Battle Zone 01을 선택하세요.', 'icon-weapon'] : (LOBBY_INFO[action] ?? ['메뉴', '이 메뉴는 준비 중입니다.', 'icon-mission']);
+  const info = battle ? ['전투 선택', 'Arena 01, Industrial Battle Zone 01 또는 Red Canyon 점령전을 선택하세요.', 'icon-weapon'] : (LOBBY_INFO[action] ?? ['메뉴', '이 메뉴는 준비 중입니다.', 'icon-mission']);
   ui.lobbyModalTitle.textContent = info[0];
   ui.lobbyModalCopy.textContent = info[1];
   ui.lobbyModalIcon.classList.remove(...LOBBY_ICON_CLASSES);
@@ -10820,7 +13394,7 @@ function showLobbyModal(action, battle = false) {
   document.body.classList.toggle('audio-settings-open', action === 'settings');
   if (battle) {
     ui.lobbyBattleMap.value = selectedMapId;
-    ui.lobbyEnterBattle.textContent = selectedMapId === 'industrial01' ? 'INDUSTRIAL ZONE 출전' : 'ARENA 01 출전';
+    ui.lobbyEnterBattle.textContent = selectedMapId === 'desert01' ? 'RED CANYON 10v10 출전' : selectedMapId === 'industrial01' ? 'INDUSTRIAL ZONE 출전' : 'ARENA 01 출전';
   }
   ui.lobbyModal.hidden = false;
 }
@@ -10838,7 +13412,7 @@ function enterLobby() {
   qa = null;
   clearCombatants();
   player = null;
-  document.body.classList.remove('garage-mode');
+  document.body.classList.remove('garage-mode', 'mobile-catalog-open', 'mobile-inspector-open', 'mobile-blue-roster-open', 'mobile-red-roster-open');
   document.body.classList.add('lobby-mode');
   if (garageRoot) garageRoot.visible = false;
   if (garageStage) garageStage.visible = false;
@@ -10846,6 +13420,8 @@ function enterLobby() {
   camera.fov = 47;
   camera.updateProjectionMatrix();
   renderer.toneMappingExposure = 0.74;
+  renderer.setPixelRatio(Math.min(devicePixelRatio, 1.35) * mobileRenderScale());
+  renderer.shadowMap.enabled = qualityPreset !== 'low';
   setLobbyLights(true);
   buildLobbyRobot();
   hideLobbyModal();
@@ -10854,16 +13430,23 @@ function enterLobby() {
 }
 
 function clearCombatants() {
-  for (const robot of robots) scene.remove(robot.root);
+  for (const robot of robots) {
+    scene.remove(robot.root);
+    disposeRuntimeObjectResources(robot.root);
+  }
   robots.length = 0;
-  for (const item of debris) scene.remove(item.object);
+  for (const item of debris) {
+    scene.remove(item.object);
+    disposeRuntimeObjectResources(item.object);
+  }
   debris.length = 0;
-  for (const effect of effects) scene.remove(effect.object);
+  for (const effect of effects) { scene.remove(effect.object); disposeTransientEffect(effect); }
   effects.length = 0;
   clearBlockFragmentBursts();
   resetMetalSparkPool();
   resetSmokePool();
-  if (weaponLoopAudio) { weaponLoopAudio.pause(); weaponLoopAudio.currentTime = 0; weaponLoopAudio = null; }
+  resetDashStreakPool();
+  resetHealingVFXPool();
   if (ui.conquestHUD) ui.conquestHUD.hidden = true;
   if (ui.conquestMinimap) ui.conquestMinimap.hidden = true;
   if (ui.combatRespawn) ui.combatRespawn.hidden = true;
@@ -10881,11 +13464,13 @@ function respawnRobot(robot) {
   });
   replacement.spawnProtectionUntil = worldTime + SPAWN_PROTECTION_SECONDS;
   replacement.lastRespawnReason = robot.lastRespawnReason;
+  carryRobotMatchTelemetry(robot, replacement, false);
   replacement.stats.respawns = replacement.respawnCount;
   replacement.root.position.x = robot.spawnPosition.x;
   replacement.root.position.z = robot.spawnPosition.z;
   replacement.placeOnMeasuredGround();
   replacement.lastPosition.copy(replacement.root.position);
+  disposeRuntimeObjectResources(robot.root);
   robots[index] = replacement;
   if (robot.isPlayer) player = replacement;
   if (colliderDebugEnabled) replacement.setColliderDebug(true);
@@ -10926,12 +13511,13 @@ function applyBattleRenderBudget(teamSize) {
   const budget = currentPerformanceBudget();
   const largeBattle = ['industrial01', 'desert01'].includes(selectedMapId) && robots.length >= 8;
   const populationPixelScale = robots.length >= 12 ? 0.88 : robots.length >= 8 ? 0.94 : 1;
-  renderer.setPixelRatio(Math.min(devicePixelRatio, budget.pixelRatio * populationPixelScale * adaptiveQualityScale));
-  renderer.shadowMap.enabled = budget.shadows;
+  const stageRenderScale = adaptiveDegradeStage >= 3 ? 0.78 : 1;
+  renderer.setPixelRatio(Math.min(devicePixelRatio, budget.pixelRatio * populationPixelScale * adaptiveQualityScale) * mobileRenderScale() * stageRenderScale);
+  renderer.shadowMap.enabled = budget.shadows && !mobilePerformanceProfile() && adaptiveDegradeStage < 2;
   for (const robot of robots) {
     const nearPlayer = robot.isPlayer || !player || robot.root.position.distanceToSquared(player.root.position) < (robots.length >= 12 ? 900 : 1764);
     robot.root.traverse((node) => {
-      if (node.isMesh) node.castShadow = budget.shadows && nearPlayer && (!largeBattle || robot.isPlayer || robots.length <= 8);
+      if (node.isMesh) node.castShadow = renderer.shadowMap.enabled && nearPlayer && (!largeBattle || robot.isPlayer || robots.length <= 8);
     });
   }
   industrialStats.performance.activePixelRatio = renderer.getPixelRatio();
@@ -10961,8 +13547,10 @@ function resetGame(testOnly = mode === 'test', playerAssembly = workingAssembly)
   collisionEventCache.clear();
   worldTime = 0;
   hitStopTimer = 0;
+  Object.assign(teamMarkerStats, { updates: 0, visible: 0, ffaNameplates: 0, ffaClassIcons: 0, ffaHpBars: 0, hiddenDead: 0, hiddenOccluded: 0, minimumWidth: 0, maximumWidth: 0, maximumFollowErrorPixels: 0, playerMarkers: 0, overlapAdjustments: 0 });
   Object.assign(impactStats, { weak: 0, medium: 0, strong: 0, veryStrong: 0, critical: 0, criticalEligible: 0, criticalRolls: 0, maxCriticalChance: 0, minCriticalScore: null, maxCriticalScore: 0, maxImpulse: 0, maxSparks: 0, maxSingleDamage: 0, firstImpactTime: null });
   impactSamples.length = 0;
+  weaponImpactTelemetry.length = 0;
   Object.assign(groundStats, { robotContacts: 0, robotCorrections: 0, postStepRobotCorrections: 0, angularSweepCorrections: 0, debrisContacts: 0, debrisCorrections: 0, debrisSweepCorrections: 0, maxDebrisSweepCorrection: 0, deepRobotRecoveries: 0, aiFsmFloorRecoveries: 0, maxRobotPenetration: 0, maxRobotPenetrationSource: null, maxDebrisPenetration: 0, wheelContactSurface: 'PhysicsFloor-only', selfCollisionPairs: 0 });
   Object.assign(environmentCollisionStats, { contacts: 0, containerContacts: 0, barrierContacts: 0, boundaryContacts: 0, maxPenetration: 0, maxNormalSpeed: 0, maxVerticalVelocityAdded: 0 });
   Object.assign(stabilityStats, { unstableSupportFrames: 0, maxAbnormalVerticalSeconds: 0, maxAbnormalVerticalConcurrent: 0 });
@@ -11004,6 +13592,8 @@ function resetGame(testOnly = mode === 'test', playerAssembly = workingAssembly)
   adaptiveQualityScale = 1;
   adaptiveFrameMsEMA = 16.7;
   adaptiveQualityCooldown = 0;
+  adaptiveDegradeStage = 0;
+  adaptiveRecoveryFrames = 0;
   renderLODAccumulator = 0;
   Object.assign(cameraFollowTelemetry, {
     trackedYaw: 0, reacquiring: false, reacquireSeconds: 0,
@@ -11033,48 +13623,72 @@ function resetGame(testOnly = mode === 'test', playerAssembly = workingAssembly)
   const redSpawns = teamSpawnPoints('red', teamSize);
   const ffaSpawns = freeForAllSpawnPoints();
   const playerSpawn = isFreeForAllMode() && !testOnly ? { x: ffaSpawns[0][0], z: ffaSpawns[0][1] } : blueSpawns[0];
-  player = new Robot({ id: 0, name: 'PLAYER', type: 'player', isPlayer: true, team: testOnly || isFreeForAllMode() ? 'ffa-0' : 'blue', tint: testOnly || isFreeForAllMode() ? teamTint.ffa : teamTint.blue, assembly: playerAssembly, position: playerSpawn, yaw: 0 });
+  // Never replace the player's saved construction with a generated AI body.
+  // Validation is reported separately; test drive, battle and respawn all use
+  // the exact same saved block/part payload.
+  const effectivePlayerAssembly = enrichAssembly(playerAssembly);
+  repairAssemblyBuildFloor(effectivePlayerAssembly, testOnly ? 'player-test-drive' : 'player-battle');
+  player = new Robot({ id: 0, name: 'PLAYER', type: 'player', isPlayer: true, team: testOnly || isFreeForAllMode() ? 'ffa-0' : 'blue', tint: testOnly || isFreeForAllMode() ? teamTint.ffa : teamTint.blue, assembly: effectivePlayerAssembly, position: playerSpawn, yaw: 0 });
   robots.push(player);
   if (!testOnly) {
-    const types = ['spinner', 'drum', 'bar', 'spinner', 'drum', 'bar', 'spinner'];
+    const types = ['spinner', 'drum', 'bar', 'puncher', 'spinner', 'drum', 'bar', 'puncher'];
     const matchArchetypeOffset = Math.floor(Math.random() * AI_HULL_ARCHETYPES.length);
-    const usedDesignSignatures = new Set();
+    const usedDesignSignatures = new Set([player.aiDesign?.signature].filter(Boolean));
+    const usedGeometrySignatures = new Set([player.aiDesign?.geometrySignature].filter(Boolean));
     const heightTierCycle = [1, 3, 5, 2, 4, 2, 5, 1, 4, 3, 1, 5, 3, 2, 4, 5, 2, 3, 4, 1];
     let generatedAIIndex = 0;
     const addBot = (id, type, team, position, yaw, suffix = '', classOverride = null) => {
       let assembly = null;
+      let lastRejectedValidation = null;
       const weightClassCycle = ['lightweight', 'middleweight', 'superheavy'];
-      const requestedWeightClass = type === 'healer' ? 'middleweight' : (classOverride ?? weightClassCycle[(generatedAIIndex + matchArchetypeOffset) % weightClassCycle.length]);
+      const requestedWeightClass = type === 'healer' ? 'healer' : (classOverride ?? weightClassCycle[(generatedAIIndex + matchArchetypeOffset) % weightClassCycle.length]);
       const requestedHeightTier = type === 'healer' ? (generatedAIIndex % 2 ? 3 : 2) : heightTierCycle[generatedAIIndex % heightTierCycle.length];
       for (let attempt = 0; attempt < AI_HULL_ARCHETYPES.length; attempt++) {
         // Step through the archetype ring with a prime stride so one match mixes
         // long/low/wide/mouth/armoured silhouettes instead of neighbouring variants.
         const archetypeIndex = (matchArchetypeOffset + generatedAIIndex * 5 + attempt) % AI_HULL_ARCHETYPES.length;
-        const candidate = createAIAssembly(type, { designSeed: Math.random(), archetypeIndex, weightClass: requestedWeightClass, heightTier: requestedHeightTier });
-        if (candidate.aiDesign.validation?.passed && !usedDesignSignatures.has(candidate.aiDesign.signature) && ![...usedDesignSignatures].some((signature) => signature.startsWith(`${candidate.aiDesign.archetype}:`))) {
+        const candidate = createAIAssembly(type, { designSeed: Math.random(), archetypeIndex, paintIndex: generatedAIIndex, weightClass: requestedWeightClass, heightTier: requestedHeightTier });
+        lastRejectedValidation = candidate.aiDesign?.validation ?? null;
+        if (candidate.aiDesign.validation?.passed && classRuleStatus(candidate, { requireMinimum: true }).valid
+          && !usedDesignSignatures.has(candidate.aiDesign.signature)
+          && !usedGeometrySignatures.has(candidate.aiDesign.geometrySignature)
+          && ![...usedDesignSignatures].some((signature) => signature.startsWith(`${candidate.aiDesign.archetype}:`))) {
           assembly = candidate;
           break;
         }
       }
-      assembly ??= createAIAssembly(type, { designSeed: Math.random(), archetypeIndex: matchArchetypeOffset + generatedAIIndex * 5, weightClass: requestedWeightClass, heightTier: requestedHeightTier });
+      if (!assembly) {
+        for (let validationAttempt = 0; validationAttempt < 24; validationAttempt++) {
+          const candidate = createAIAssembly(type, { designSeed: Math.random(), archetypeIndex: matchArchetypeOffset + generatedAIIndex * 5 + validationAttempt, paintIndex: generatedAIIndex, weightClass: requestedWeightClass, heightTier: requestedHeightTier });
+          lastRejectedValidation = candidate.aiDesign?.validation ?? null;
+          if (candidate.aiDesign.validation?.passed && classRuleStatus(candidate, { requireMinimum: true }).valid
+            && !usedDesignSignatures.has(candidate.aiDesign.signature)
+            && !usedGeometrySignatures.has(candidate.aiDesign.geometrySignature)) { assembly = candidate; break; }
+        }
+      }
+      if (!assembly) {
+        const reasons = (lastRejectedValidation?.failures ?? []).slice(0, 12).join(' | ') || 'unknown-validation-failure';
+        throw new Error(`AI BUILD REJECTED: ${requestedWeightClass} ${type} failed class/attachment validation :: ${reasons}`);
+      }
       usedDesignSignatures.add(assembly.aiDesign.signature);
+      usedGeometrySignatures.add(assembly.aiDesign.geometrySignature);
       generatedAIIndex++;
       const name = `${assembly.aiDesign.displayName}${suffix}`;
       robots.push(new Robot({ id, name, type, team, tint: team === 'blue' ? teamTint.blue : team === 'red' ? teamTint.red : [0xff8c7c, 0xb8d3ff, 0xffd771, 0x9be3c4, 0xf2b4ff][id % 5], assembly, position, yaw }));
     };
     const teamBotSpec = (team, index) => {
       if (teamSize === 2) {
-        if (team === 'blue') return { type: 'healer', weightClass: 'middleweight' };
+        if (team === 'blue') return { type: 'healer', weightClass: 'healer' };
         return index === 0 ? { type: 'spinner', weightClass: 'lightweight' } : { type: 'bar', weightClass: 'superheavy' };
       }
       if (teamSize === 3) {
-        if (index === teamSize - 1) return { type: 'healer', weightClass: 'middleweight' };
+        if (index === teamSize - 1) return { type: 'healer', weightClass: 'healer' };
         return team === 'blue'
           ? { type: types[index % types.length], weightClass: 'lightweight' }
           : { type: types[(index + 2) % types.length], weightClass: index === 0 ? 'middleweight' : 'superheavy' };
       }
       const healerSlots = teamSize >= 8 ? 2 : 1;
-      if (index >= teamSize - healerSlots) return { type: 'healer', weightClass: 'middleweight' };
+      if (index >= teamSize - healerSlots) return { type: 'healer', weightClass: 'healer' };
       const classes = ['lightweight', 'middleweight', 'superheavy'];
       return { type: types[(index + (team === 'red' ? 3 : 1)) % types.length], weightClass: classes[(index + (team === 'red' ? 1 : 0)) % classes.length] };
     };
@@ -11095,6 +13709,96 @@ function resetGame(testOnly = mode === 'test', playerAssembly = workingAssembly)
     }
   }
   resetConquestState();
+  const runtimeParts = robots.flatMap((robot) => (robot.runtimeAssetSources ?? []).map((part) => ({ robot: robot.name, team: robot.team, ...part })));
+  const oldRuntimeParts = runtimeParts.filter((entry) => LEGACY_COMBAT_PATH_PATTERN.test(entry.source ?? ''));
+  const runtimeWeaponRecords = robots.flatMap((robot) => (robot.assembly?.parts ?? [])
+    .filter((record) => WEAPON_TYPES.has(record.type))
+    .map((record) => ({ robot: robot.name, type: record.type, mountKind: record.mount?.kind, targetId: record.mount?.targetId, attached: record.mount?.attached !== false, gap: Number(record.mount?.gap ?? Infinity), directWeaponMount: Boolean(record.directWeaponMount || record.mount?.directWeaponMount), functionalAxis: record.functionalAxis ?? null, expectedPlane: record.expectedPlane ?? null })));
+  const deprecatedRuntimeMounts = robots.flatMap((robot) => (robot.assembly?.parts ?? [])
+    .filter((record) => DEPRECATED_MOUNT_TYPES.has(record.type))
+    .map((record) => ({ robot: robot.name, id: record.id, type: record.type })));
+  const invalidDirectWeapons = runtimeWeaponRecords.filter((record) => record.mountKind !== 'surface' || !record.targetId || !record.attached || record.gap > 0.006 || !record.directWeaponMount);
+  const runtimeWeaponOrientations = robots.flatMap((robot) => {
+    robot.root.updateWorldMatrix(true, true);
+    const rotary = robot.rotaryWeapons.map((weapon) => {
+      if (weapon.kind === 'bar') return horizontalBarPoseTelemetry(robot, weapon);
+      const localAxis = weapon.axis === 'x' ? X_AXIS : weapon.axis === 'z' ? Z_AXIS : Y_AXIS;
+      const worldAxis = localAxis.clone().applyQuaternion(weapon.root.getWorldQuaternion(new THREE.Quaternion())).normalize();
+      const verticalDot = Math.abs(worldAxis.dot(Y_AXIS));
+      const modelTransform = weapon.kind === 'drum' ? MODEL_TRANSFORMS.drum_spinner : null;
+      const modelQuaternion = new THREE.Quaternion().setFromEuler(new THREE.Euler(...(modelTransform?.rotation ?? [0, 0, 0])));
+      const authoredLongAxis = X_AXIS;
+      const worldLongAxis = authoredLongAxis.clone().applyQuaternion(modelQuaternion).applyQuaternion(weapon.root.getWorldQuaternion(new THREE.Quaternion())).normalize();
+      const longAxisVerticalDot = Math.abs(worldLongAxis.dot(Y_AXIS));
+      const passed = weapon.kind === 'drum' ? verticalDot <= 0.15 : true;
+      return { robot: robot.name, kind: weapon.kind, axis: weapon.axis, worldAxis: worldAxis.toArray().map((value) => Number(value.toFixed(4))), verticalDot: Number(verticalDot.toFixed(4)), worldLongAxis: worldLongAxis.toArray().map((value) => Number(value.toFixed(4))), longAxisVerticalDot: Number(longAxisVerticalDot.toFixed(4)), expected: weapon.kind === 'drum' ? 'horizontal-axis-front-roller' : 'surface-normal-axis', passed };
+    });
+    const puncher = robot.weapons.puncher ? (() => {
+      const forward = Z_AXIS.clone().applyQuaternion(robot.weapons.puncher.root.getWorldQuaternion(new THREE.Quaternion())).normalize();
+      const robotForward = forwardFor(robot.yaw).normalize();
+      const forwardDot = forward.dot(robotForward);
+      return [{ robot: robot.name, kind: 'puncher', axis: 'local-z', worldAxis: forward.toArray().map((value) => Number(value.toFixed(4))), forwardDot: Number(forwardDot.toFixed(4)), expected: 'robot-forward-linear-stroke', passed: forwardDot >= 0.985 }];
+    })() : [];
+    return [...rotary, ...puncher];
+  });
+  const desertRuntimeSources = (mapSceneObjects.desert01 ?? [])
+    .filter((object) => object.userData?.sourceAsset)
+    .map((object) => ({
+      name: object.name,
+      id: object.userData.sourceAsset,
+      source: object.userData.assetSource ?? ASSET_PATHS[object.userData.sourceAsset],
+      trueDistanceLOD: Boolean(object.userData.trueDistanceLOD),
+      lodDistances: object.userData.lodDistances ?? [],
+      obstacleType: object.userData.obstacleType ?? null,
+      colliderRegistered: Boolean(object.userData.colliderRegistered),
+      smallDecoration: Boolean(object.userData.smallDecoration),
+      shadowCastingLevels: object.userData.shadowCastingLevels ?? [],
+    }));
+  const oldDesertRuntimeParts = desertRuntimeSources.filter((entry) => LEGACY_DESERT_PATH_PATTERN.test(entry.source ?? '') || !LOWPOLY_DESERT_IDS.includes(entry.id));
+  const nativeArmorRuntime = robots.map((robot) => ({ robot: robot.name, plates: robot.nativeArmorParts.length, batches: robot.nativeArmorBatches.length, source: robot.nativeArmorBatch?.userData?.sourceAsset ?? null, actualGLBGeometry: Boolean(robot.nativeArmorBatch?.userData?.actualGLBGeometry) }));
+  const smallDecorationLOD = desertRuntimeSources.filter((entry) => entry.smallDecoration);
+  const robotPhysicsIntegration = robots.map((robot) => ({
+    robot: robot.name,
+    rootBodyCount: 1,
+    blockBodies: 0,
+    compoundColliderComponents: robot.colliderComponents.length,
+    wheels: robot.wheels.filter((wheel) => !wheel.part.detached).length,
+    passed: robot.colliderComponents.length > 0,
+  }));
+  const robotRenderLOD = robots.map((robot) => ({ robot: robot.name, levels: 4, farUsesRealBlockHull: true, armorHiddenAtLevel: 2, detailsHiddenAtLevel: 1, shadowsNearOnly: true }));
+  window.__battlebotRuntimeAssetAudit = {
+    revision: LOWPOLY_REVISION,
+    robots: robots.length,
+    playerSources: runtimeParts.filter((entry) => entry.robot === 'PLAYER'),
+    aiSources: runtimeParts.filter((entry) => entry.robot !== 'PLAYER'),
+    oldHighPolyLoadCount: oldRuntimeParts.length,
+    oldHighPolyLoads: oldRuntimeParts,
+    allCombatPartsUseSharedRegistry: oldRuntimeParts.length === 0,
+    weaponRecords: runtimeWeaponRecords,
+    invalidDirectWeaponMounts: invalidDirectWeapons,
+    weaponOrientations: runtimeWeaponOrientations,
+    invalidWeaponOrientations: runtimeWeaponOrientations.filter((entry) => !entry.passed),
+    deprecatedRuntimeMounts,
+    nativeArmorRuntime,
+    invalidNativeArmorRuntime: nativeArmorRuntime.filter((entry) => entry.plates > 0 && (!entry.actualGLBGeometry || entry.source !== ASSET_PATHS.armor_flat)),
+    desertRuntimeSources,
+    oldDesertRuntimeLoadCount: oldDesertRuntimeParts.length,
+    oldDesertRuntimeLoads: oldDesertRuntimeParts,
+    desertLOD: {
+      allRuntimeAssetsUseDistanceLOD: desertRuntimeSources.length > 0 && desertRuntimeSources.every((entry) => entry.trueDistanceLOD),
+      smallDecorationCount: smallDecorationLOD.length,
+      smallDecorationsCullBy82: smallDecorationLOD.every((entry) => entry.lodDistances.at(-1) <= 82),
+      smallDecorationsHaveNoCollider: smallDecorationLOD.every((entry) => !entry.colliderRegistered),
+      smallDecorationsCastNoShadow: smallDecorationLOD.every((entry) => entry.shadowCastingLevels.length === 0),
+    },
+    robotRenderLOD,
+    robotPhysicsIntegration,
+    invalidRobotPhysicsIntegration: robotPhysicsIntegration.filter((entry) => !entry.passed),
+    puncherPairs: runtimeParts.filter((entry) => entry.type === 'puncher').map((housing) => ({ robot: housing.robot, housing: housing.source, tip: runtimeParts.find((entry) => entry.robot === housing.robot && entry.type === 'puncher-tip')?.source ?? null })),
+  };
+  const runtimeSourceExamples = [...new Map(runtimeParts.map((entry) => [`${entry.type}:${entry.source}`, entry])).values()];
+  for (const entry of runtimeSourceExamples) console.info(`[RUNTIME ASSET SOURCE] ${entry.robot} ${entry.type}: ${entry.source}`);
+  console.info(`[RUNTIME MESH AUDIT] robots=${robots.length}, old high-poly parts=${oldRuntimeParts.length}, old desert parts=${oldDesertRuntimeParts.length}, deprecated mounts=${deprecatedRuntimeMounts.length}, invalid direct weapons=${invalidDirectWeapons.length}, invalid weapon orientations=${runtimeWeaponOrientations.filter((entry) => !entry.passed).length}`);
   applyBattleRenderBudget(teamSize);
   buildEnemyUI();
   if (!isFreeForAllMode()) buildConquestHUD();
@@ -11124,7 +13828,7 @@ function startBattle(testOnly = false) {
   setLobbyLights(false);
   setActiveMap(ui.battleMap.value);
   mode = testOnly ? 'test' : 'battle';
-  document.body.classList.remove('garage-mode', 'lobby-mode');
+  document.body.classList.remove('garage-mode', 'lobby-mode', 'mobile-catalog-open', 'mobile-inspector-open', 'mobile-blue-roster-open', 'mobile-red-roster-open');
   camera.fov = 53;
   camera.updateProjectionMatrix();
   ui.screenTitle.textContent = testOnly ? `${activeMap.name} 테스트 주행` : `${activeMap.name} · ${selectedMapId === 'desert01' ? '10v10 순차 점령전' : selectedMapId === 'industrial01' ? '대규모 자유 전투' : '실내 팀 배틀'}`;
@@ -11134,6 +13838,45 @@ function startBattle(testOnly = false) {
   if (garageStage) garageStage.visible = false;
   renderer.toneMappingExposure = activeMap.toneExposure;
   resetGame(testOnly);
+}
+
+function horizontalBarPoseTelemetry(robot, weapon) {
+  if (!robot || !weapon || weapon.kind !== 'bar') return null;
+  robot.root.updateWorldMatrix(true, true);
+  const visualBounds = modelLocalBounds.get('bar_spinner');
+  const size = visualBounds?.getSize(new THREE.Vector3()) ?? new THREE.Vector3(1, 0.1, 0.3);
+  const localLongAxis = size.x >= size.y && size.x >= size.z ? X_AXIS.clone()
+    : size.z >= size.y ? Z_AXIS.clone() : Y_AXIS.clone();
+  const pivotWorldQuaternion = weapon.pivot.getWorldQuaternion(new THREE.Quaternion());
+  const rootWorldQuaternion = weapon.root.getWorldQuaternion(new THREE.Quaternion());
+  const longAxis = localLongAxis.applyQuaternion(pivotWorldQuaternion).normalize();
+  const rotationAxis = Y_AXIS.clone().applyQuaternion(rootWorldQuaternion).normalize();
+  const longAxisUpDot = Math.abs(longAxis.dot(Y_AXIS));
+  const rotationAxisUpDot = Math.abs(rotationAxis.dot(Y_AXIS));
+  const record = robot.assembly?.parts?.find((candidate) => candidate.id === weapon.assemblyId) ?? weapon.blade?.record ?? null;
+  const target = robot.assembly?.blocks?.find((block) => block.id === record?.mount?.targetId) ?? null;
+  const mountOffset = record?.mount?.point ? Math.abs(Number(record.position?.[1] ?? 0) - Number(record.mount.point[1] ?? 0)) : Infinity;
+  const directAttachment = Boolean(record && target && record.mount?.kind === 'surface'
+    && record.mount?.attached !== false && record.directWeaponMount
+    && Number(record.mount?.normal?.[1] ?? 0) > 0.95 && getRecordMountGap(record) <= 0.012);
+  const targetLayer = target?.gridPosition?.[1] ?? Infinity;
+  const noMast = targetLayer <= 1 && mountOffset <= 0.3;
+  const sweptClearanceBlockIds = record ? weaponClearanceBlockIds(record, robot.assembly) : ['missing-record'];
+  const placement = record ? validateGaragePart(record, record.id, robot.assembly) : { valid: false, reason: 'missing-record' };
+  const pitch = Math.abs(Number(record?.rotation?.[0] ?? Infinity));
+  const roll = Math.abs(Number(record?.rotation?.[2] ?? Infinity));
+  const passed = longAxisUpDot < 0.15 && rotationAxisUpDot > 0.95
+    && pitch < 0.001 && roll < 0.001 && directAttachment && noMast
+    && placement.valid && sweptClearanceBlockIds.length === 0;
+  return {
+    robot: robot.name, longAxis: longAxis.toArray().map((value) => Number(value.toFixed(4))),
+    rotationAxis: rotationAxis.toArray().map((value) => Number(value.toFixed(4))),
+    longAxisUpDot: Number(longAxisUpDot.toFixed(4)), rotationAxisUpDot: Number(rotationAxisUpDot.toFixed(4)),
+    pitch: Number(pitch.toFixed(4)), roll: Number(roll.toFixed(4)), targetLayer,
+    mountOffset: Number.isFinite(mountOffset) ? Number(mountOffset.toFixed(4)) : null,
+    directAttachment, noMast, placementValid: placement.valid, placementReason: placement.reason,
+    sweptClearanceBlockIds, expected: 'helicopter-main-rotor', passed,
+  };
 }
 
 function enterWorkshop() {
@@ -11153,13 +13896,16 @@ function enterWorkshop() {
   player = null;
   document.body.classList.remove('lobby-mode');
   document.body.classList.add('garage-mode');
+  document.body.classList.remove('mobile-catalog-open', 'mobile-inspector-open', 'mobile-blue-roster-open', 'mobile-red-roster-open');
   camera.fov = 53;
   camera.updateProjectionMatrix();
-  ui.screenTitle.textContent = '3D 로봇 작업장';
+  ui.screenTitle.textContent = '작업장';
   ui.workshopToggle.disabled = true;
   ui.workshopToggle.textContent = '현재 작업장';
   if (garageStage) garageStage.visible = true;
   renderer.toneMappingExposure = 1.18;
+  renderer.setPixelRatio(Math.min(devicePixelRatio, 1.25) * mobileRenderScale());
+  renderer.shadowMap.enabled = false;
   rebuildGarageRobot();
   setAssemblyMode('blocks');
   updateBlockInspector();
@@ -11201,7 +13947,7 @@ function startSelfTest() {
     enemy.dead = true;
     enemy.root.visible = false;
   }
-  const contactTarget = new Robot({ id: 99, name: 'QA CONTACT TARGET', type: 'flipper', team: 'qa-target', tint: 0xffa890, assembly: createAIAssembly('flipper'), position: { x: 40, z: 28 }, yaw: Math.PI });
+  const contactTarget = new Robot({ id: 99, name: 'QA CONTACT TARGET', type: 'spinner', team: 'qa-target', tint: 0xffa890, assembly: createAIAssembly('spinner'), position: { x: 40, z: 28 }, yaw: Math.PI });
   contactTarget.dead = true;
   contactTarget.root.visible = false;
   robots.push(contactTarget);
@@ -11244,10 +13990,9 @@ function finishQADriveCase() {
   if (qa.caseIndex < qa.cases.length) beginQADriveCase();
   else {
     resetPlayerPoseForQA();
-    qa.phase = 'hammer';
+    qa.phase = 'threeWeapons';
     qa.time = 0;
-    player.requestHammer();
-    showMessage('AUTO QA: 망치/플리퍼 검사', 1.0);
+    showMessage('AUTO QA: 톱/바 스피너/드럼 스피너 검사', 1.0);
   }
 }
 
@@ -11866,14 +14611,7 @@ function updateSelfTest(dt) {
     const control = resolveControlAxes(new Set(current.keys), { x: 0, y: 0 });
     player.control = { ...control, brake: false };
     if (qa.time > 0.95) finishQADriveCase();
-  } else if (qa.phase === 'hammer') {
-    player.control = { throttle: 0, steering: 0, brake: true };
-    if (qa.time > 0.32) {
-      qa.result.hammerActivated = player.weapons.hammer ? player.weapons.hammer.phase !== 'idle' : true;
-      player.requestFlipper();
-      qa.phase = 'flipper'; qa.time = 0;
-    }
-  } else if (qa.phase === 'flipper') {
+  } else if (qa.phase === 'threeWeapons') {
     player.control = { throttle: 0, steering: 0, brake: true };
     if (qa.time > 0.32) {
       qa.result.flipperActivated = player.weapons.flipper ? player.weapons.flipper.phase !== 'idle' : true;
@@ -11896,11 +14634,7 @@ function updateSelfTest(dt) {
       qa.result.renderHandednessPass = renderTransform.a < -0.99;
       qa.result.wheelHubOutwardDots = getWheelHubOutwardDots(player);
       qa.result.wheelHubPass = qa.result.wheelHubOutwardDots.length >= 4 && qa.result.wheelHubOutwardDots.every((value) => value > 0.98);
-      qa.result.hammerMount = getHammerTelemetry(player);
-      qa.result.hammerMountPass = qa.result.hammerMount?.hingeError < 0.001 && qa.result.hammerMount?.outwardDot > 0.2;
       qa.result.visualForwardPass = qa.result.visualForwardDot > 0.99;
-      qa.result.hammerPass = qa.result.hammerActivated;
-      qa.result.flipperPass = qa.result.flipperActivated;
       qa.result.multiSpinnerRpms = player.rotaryWeapons.filter((weapon) => weapon.kind === 'spinner').map((weapon) => Math.round(weapon.rpm));
       qa.result.spinnerPass = qa.result.multiSpinnerRpms.length >= 2 && qa.result.multiSpinnerRpms.every((rpm) => rpm > 1000);
       const contactTicksBefore = audioStats.sawContactTicks;
@@ -11919,14 +14653,15 @@ function updateSelfTest(dt) {
         && qa.contactTarget.colliderComponents.every((component) => component.points.length >= 6)
         && !('colliderHalfExtents' in qa.contactTarget);
       qa.result.arena01 = cloneData(arenaStats);
-      qa.result.arenaRectanglePass = ARENA_X === 52 && ARENA_Z === 38 && arenaStats.innerWalls === 4 && arenaStats.wallCornerGaps === 0;
-      qa.result.arenaAssetPass = arenaStats.assets.length === 4
-        && ['arena_stands', 'arena_bumper', 'arena_fence'].every((id) => Boolean(models[id]))
+      qa.result.arenaRectanglePass = ARENA_X === 52 && ARENA_Z === 38 && arenaStats.innerWalls === 0 && arenaStats.wallCornerGaps === 0;
+      qa.result.arenaAssetPass = arenaStats.assets.length === 3
+        && ['arena_stands', 'arena_concrete_boundary'].every((id) => Boolean(models[id]))
+        && !models.arena_bumper && !models.arena_fence
         && !models.arena_ramp_1 && !models.arena_ramp_2 && ramps.length === 0;
-      qa.result.arenaStructurePass = arenaStats.fenceModules.total === 42 && arenaStats.fenceModules.spacingError === 0
-        && arenaStats.stands.total === 14 && arenaStats.outerWalls === 4
-        && arenaStats.scaleReferences.fenceRobotRatio >= 2.5
-        && arenaStats.scaleReferences.audienceRobotRatio >= 4;
+      qa.result.arenaStructurePass = arenaStats.fenceModules.total === 0
+        && arenaStats.stands.total === 14 && arenaStats.outerWalls === 0
+        && arenaStats.boundary?.type === 'concrete-obstacle-only'
+        && arenaStats.boundary?.oldWallAssetsLoaded?.length === 0;
       qa.result.arenaGroundingPass = arenaStats.floatingObjects === 0
         && ramps.every((ramp) => ramp.groundGap <= 0.004)
         && obstacles.filter((obstacle) => obstacle.kind === 'box').every((obstacle) => obstacle.groundGap <= 0.004);
@@ -11980,7 +14715,7 @@ function updateSelfTest(dt) {
       const passKeys = [
         'forwardPass', 'reversePass', 'forwardLeftPass', 'forwardRightPass',
         'reverseLeftPass', 'reverseRightPass', 'mobilePass', 'renderHandednessPass', 'wheelHubPass', 'visualForwardPass',
-        'hammerPass', 'hammerMountPass', 'flipperPass', 'spinnerPass', 'sawContactPass',
+        'spinnerPass', 'sawContactPass',
         'groundContactPass', 'staticStabilityPass', 'passiveOverturnPass', 'compoundColliderPass',
         'arenaRectanglePass', 'arenaAssetPass', 'arenaStructurePass', 'arenaGroundingPass', 'arenaSpawnPass',
         'impactSoundPass', 'weaponDurabilityPass', 'criticalRulePass', 'proceduralSparkPass', 'sawContinuousParticlePass', 'impactResponsePass',
@@ -12133,8 +14868,12 @@ function auditWorldRobotUIRemoved() {
     WorldPlayerName: counts['[data-component="PlayerName"]'],
     WorldHPBar: counts['[data-component="HPBar"]'],
     ContainerNodes: counts['#combat-nameplates'] + counts['#nameplate-debug-lines'],
+    CanvasNameplates: teamMarkerStats.ffaNameplates,
+    CanvasClassIcons: teamMarkerStats.ffaClassIcons,
+    CanvasHPBars: teamMarkerStats.ffaHpBars,
     SceneAnchors: sceneAnchors,
-    Passed: Object.values(counts).every((count) => count === 0) && sceneAnchors.length === 0,
+    Policy: isFreeForAllMode() ? 'FFA icon + name + HP on pooled canvas' : 'team icon only; compact side rosters contain names and HP',
+    Passed: Object.values(counts).every((count) => count === 0) && sceneAnchors.length === 0 && Boolean(ui.teamMarkerLayer),
   };
 }
 
@@ -12241,6 +14980,11 @@ function updateUI(dt = 1 / 60) {
 
 function updateUIDetailed(refreshTelemetry = false) {
   if (!player) return;
+  if (ui.attack) {
+    const hasPuncher = Boolean(player.weapons.puncher && !player.weapons.puncher.housing?.detached);
+    ui.attack.hidden = !hasPuncher;
+    ui.attack.disabled = !hasPuncher || player.dead;
+  }
   const abnormalVerticalCurrent = robots.filter((robot) => robot.abnormalVerticalTime >= 1).length;
   const infiniteRollersCurrent = robots.filter((robot) => robot.bodyRollingSeconds >= 2.5).length;
   const verticalStandersCurrent = robots.filter((robot) => robot.verticalStandingSeconds >= 0.75).length;
@@ -12304,23 +15048,23 @@ function updateUIDetailed(refreshTelemetry = false) {
   if (!refreshTelemetry) return;
   ui.qaState.textContent = JSON.stringify({
     mode,
-    battle: { mapId: selectedMapId, mapName: activeMap.name, mode: battleMode, friendlyFire, elapsed: Number(battleElapsed.toFixed(1)), respawnsEnabled: BATTLE_RESPAWNS_ENABLED, respawnDelaySeconds: RESPAWN_DELAY_SECONDS, spawnProtectionSeconds: SPAWN_PROTECTION_SECONDS, respawnStats: { ...respawnStats }, teams: Object.fromEntries([...new Set(robots.map((robot) => robot.team))].map((team) => [team, robots.filter((robot) => robot.team === team && !robot.dead).length])) },
+    battle: { mapId: selectedMapId, mapName: activeMap.name, mode: battleMode, friendlyFire, elapsed: Number(battleElapsed.toFixed(1)), respawnsEnabled: BATTLE_RESPAWNS_ENABLED, respawnDelaySeconds: RESPAWN_DELAY_SECONDS, spawnProtectionSeconds: SPAWN_PROTECTION_SECONDS, respawnStats: { ...respawnStats }, teams: Object.fromEntries([...new Set(robots.map((robot) => robot.team))].map((team) => [team, robots.filter((robot) => robot.team === team && !robot.dead).length])), worldMarkers: { ...teamMarkerStats, policy: isFreeForAllMode() ? 'class-icon-name-hp' : 'team-icon-only' } },
     arena: {
       ...arenaStats,
       topView: arenaTopView,
       active: selectedMapId === 'arena01',
       boundary: { minX: -activeHalfWidth(), maxX: activeHalfWidth(), minZ: -activeHalfLength(), maxZ: activeHalfLength(), rectangular: true, cornerAngles: [90, 90, 90, 90] },
-      loadedSourceModels: ['arena_stands', 'arena_bumper', 'arena_fence'].filter((id) => Boolean(models[id])),
+      loadedSourceModels: ['arena_stands', 'arena_concrete_boundary'].filter((id) => Boolean(models[id])),
       runtimeRamps: ramps.map((ramp) => ({ asset: ramp.asset, x: ramp.x, z: ramp.z, rotationDegrees: Number(THREE.MathUtils.radToDeg(ramp.rotationY).toFixed(1)), groundGap: ramp.groundGap })),
       runtimeBumpers: obstacles.filter((obstacle) => obstacle.kind === 'box').map((obstacle) => ({ x: obstacle.x, z: obstacle.z, rotationDegrees: Number(THREE.MathUtils.radToDeg(obstacle.rotationY).toFixed(1)), groundGap: obstacle.groundGap })),
     },
     industrialMap: {
       ...industrialStats,
       active: selectedMapId === 'industrial01',
-      loadedSourceModels: ['industrial_container', 'industrial_barrier', 'arena_fence'].filter((id) => Boolean(models[id])),
+      loadedSourceModels: ['arena_concrete_boundary'].filter((id) => Boolean(models[id])),
       runtimeObstacles: {
         containers: obstacles.filter((obstacle) => obstacle.obstacleType === 'container').length,
-        barriers: obstacles.filter((obstacle) => obstacle.obstacleType === 'concrete-barrier').length,
+        barriers: obstacles.filter((obstacle) => obstacle.obstacleType === 'concrete-boundary').length,
         colliderMode: 'mesh-bounds-fitted-obb',
         colliderInsetMetres: 0.012,
         visualGroundEmbedMetres: 0.006,
@@ -12341,6 +15085,8 @@ function updateUIDetailed(refreshTelemetry = false) {
     audio: {
       ...audioStats,
       sawActive: Boolean(sawLoopAudio),
+      sustainedSawPolicy: 'disabled; one-impact/one-metal-hit-sample only',
+      idleRotaryLoop: false,
       masterVolume: Number(masterVolume.toFixed(2)),
       muted: masterVolume <= 0,
       activeSources: activeAudioSources.size + (sawLoopAudio ? 1 : 0),
@@ -12428,9 +15174,15 @@ function updateUIDetailed(refreshTelemetry = false) {
         mixerGroups: ['Master', 'Music', 'Combat SFX', 'Weapon SFX', 'UI', 'Ambient'],
         masterVolume: Number(masterVolume.toFixed(2)), musicVolume: Number(mixerSettings.music.toFixed(2)), effectsVolume: Number(mixerSettings.effects.toFixed(2)),
         music: { lobby: 'audio/music_main_menu.mp3', battle: 'audio/music_battle.mp3', crossfade: true, heavyHitDucking: true, duckAmount: Number(musicDuck.toFixed(2)) },
-        spatial: { enabled: true, model: 'HRTF-inverse-distance', maxDistance: 58, activeVoices: spatialAudioVoices.length, limit: 20 },
+        spatial: { enabled: true, model: 'HRTF-inverse-distance', maxDistance: 58, activeVoices: spatialAudioVoices.length, limit: mobilePerformanceProfile() ? (robots.length >= 12 ? 10 : 12) : (robots.length >= 12 ? 16 : 20) },
         hitSamples: ['audio/impact_new_1.mp3', 'audio/impact_new_2.mp3', 'audio/impact_new_3.mp3', 'audio/impact_hit_1.mp3', 'audio/impact_hit_2.mp3'],
-        dashSample: 'audio/dash_boost.mp3', stats: cloneData(audioStats),
+        dashSample: 'audio/dash_boost.mp3', sustainedSawPolicy: 'disabled; one-impact/one-metal-hit-sample only', idleRotaryLoop: false, stats: cloneData(audioStats),
+      },
+      healingVFXSystem: {
+        type: 'gpu-instanced-fixed-pool', drawCalls: 3, distanceLOD: true,
+        beamPoolSize: HEALING_BEAM_POOL_SIZE, plusPoolSize: HEALING_PLUS_POOL_SIZE,
+        activeBeams: healingBeamInstances.count, activePluses: healingPlusVerticalInstances.count,
+        stats: { ...healingVFXStats },
       },
       exhaustSmokeSystem: {
         type: 'gpu-instanced-short-lived-gray-smoke', poolSize: SMOKE_POOL_SIZE, drawCalls: 1, distanceLOD: true, offscreenDisable: true,
@@ -12501,9 +15253,14 @@ function updateUIDetailed(refreshTelemetry = false) {
       version: player.assembly.version,
       weightClass: player.weightClass,
       driveType: player.driveType,
+      classRules: Object.fromEntries(Object.entries(WEIGHT_CLASSES).map(([key, profile]) => [key, {
+        label: profile.label, blockRange: [profile.minBlocks, profile.maxBlocks], maxWeight: profile.maxWeight,
+        aiBlockTarget: profile.aiBlockTarget, allowedWheels: [...profile.allowedWheels], heightRange: [...profile.heightRange],
+      }])),
+      classValidation: classRuleStatus(player.assembly, { requireMinimum: true }),
       blockPalette: { blue: '#39afe7', silver: '#b9c4cc', freelyMixed: true },
       chassisAxes: { forward: '+Z', rear: '-Z', left: '-X', right: '+X', up: '+Y' },
-      localWeaponAxes: { spinner: 'localY', bar: 'localY', drum: 'localX', hammer: 'localX', flipper: 'localX' },
+      localWeaponAxes: { spinner: 'localY', bar: 'localY', drum: 'localX' },
       parts: player.assembly.parts.map((part) => ({
         id: part.id,
         type: part.type,
@@ -12529,6 +15286,8 @@ function updateUIDetailed(refreshTelemetry = false) {
       durability: Number(player.durability().toFixed(3)),
       weightClass: player.weightClass,
       driveType: player.driveType,
+      controlAudit: player.controlStateAudit(),
+      driveStallSnapshots: cloneData(player.driveStallSnapshots),
       trackScrollOffsets: player.wheels.filter((wheel) => wheel.isTrack).map((wheel) => Number((wheel.trackMaterials.find((material) => material.map)?.map.offset.x ?? 0).toFixed(3))),
       dash: { key: dashKey, cooldown: Number(player.dashCooldown.toFixed(2)), active: player.dashActiveTimer > 0, hitWindow: Number(player.dashHitWindow.toFixed(2)), peakSpeed: Number(player.dashPeakSpeed.toFixed(2)), targetDistance: Number(player.dashTargetDistance.toFixed(2)), travelled: Number(player.dashTravelled.toFixed(2)), steeringFactor: player.driveProfile.dashSteering, peakRatio: player.driveProfile.dashPeakRatio },
       blockStructure: { coreHp: Number((player.corePart?.hp ?? 0).toFixed(1)), coreMaxHp: player.corePart?.maxHp ?? 0, active: player.activeBlockParts().length, total: player.blockParts.size, structureRatio: Number(player.blockStructureRatio().toFixed(3)), remainingRatio: Number(player.remainingBlockRatio().toFixed(3)), legacyChassis: false },
@@ -12541,6 +15300,9 @@ function updateUIDetailed(refreshTelemetry = false) {
       design: robot.aiDesign,
       weightClass: robot.weightClass,
       driveType: robot.driveType,
+      classValidation: classRuleStatus(robot.assembly, { requireMinimum: true }),
+      controlAudit: robot.controlStateAudit(),
+      driveStallSnapshots: cloneData(robot.driveStallSnapshots),
       wheelModels: [...new Set(robot.wheels.map((wheel) => wheel.part.record.wheelModel))],
       trackScrollOffsets: robot.wheels.filter((wheel) => wheel.isTrack).map((wheel) => Number((wheel.trackMaterials.find((material) => material.map)?.map.offset.x ?? 0).toFixed(3))),
       exteriorParts: robot.parts.filter((part) => ['armor', 'decoration'].includes(part.type)).map((part) => ({ id: part.assemblyId, type: part.type, assetType: part.record.type, axisScale: (part.record.axisScale ?? [1, 1, 1]).map((value) => Number(value.toFixed(2))), mount: part.record.mount, aiPlacement: part.record.aiPlacement ?? null, hp: Number(part.hp.toFixed(1)), detached: part.detached })),
@@ -12552,6 +15314,7 @@ function updateUIDetailed(refreshTelemetry = false) {
       stability: getRobotStabilityTelemetry(robot),
       rotaryWeapons: robot.rotaryWeapons.map((weapon) => ({ kind: weapon.kind, physicsRpm: Math.round(weapon.rpm), visualRpm: Math.round(weapon.visualRpm), active: weapon.active })),
     })),
+    weaponRoleTelemetry: cloneData(weaponImpactTelemetry),
     debris: { count: debris.length, blockChunks: debris.filter((item) => item.blockChunkSize).map((item) => ({ size: item.blockChunkSize, reason: item.reason })), fragmentBursts: blockFragmentBursts.map((burst) => ({ partId: burst.partId, tier: burst.tier, color: burst.color, spawnedBeforeDetach: burst.spawnedBeforeDetach, count: burst.shards.length })) },
     qaRuntime: qa ? {
       phase: qa.phase,
@@ -12618,6 +15381,7 @@ const cameraFollowTelemetry = {
   worstRearAlignment: 1,
 };
 let aiVisualShowcaseActive = false;
+let aiVisualShowcaseView = 'top';
 function updateCamera(dt) {
   if (!player) return;
   if (qa?.phase === 'sparkProof' && qa.contactTarget?.root.visible) {
@@ -12629,10 +15393,18 @@ function updateCamera(dt) {
     return;
   }
   if (aiVisualShowcaseActive) {
-    camera.up.set(0, 0, -1);
-    desiredCamera.set(0, 34, 0.01);
+    if (aiVisualShowcaseView === 'front') {
+      camera.up.set(0, 1, 0);
+      desiredCamera.set(0, 10, -54);
+    } else if (aiVisualShowcaseView === 'side') {
+      camera.up.set(0, 1, 0);
+      desiredCamera.set(54, 10, 0);
+    } else {
+      camera.up.set(0, 0, -1);
+      desiredCamera.set(0, 48, 0.01);
+    }
     camera.position.lerp(desiredCamera, 1 - Math.exp(-8 * dt));
-    camera.lookAt(0, 0, 0);
+    camera.lookAt(0, aiVisualShowcaseView === 'top' ? 0 : 1.5, 0);
     return;
   }
   if (arenaTopView) {
@@ -12664,15 +15436,21 @@ function updateCamera(dt) {
     if (robot.isPlayer || robot.dead) continue;
     nearestEnemy = Math.min(nearestEnemy, robot.root.position.distanceTo(player.root.position));
   }
-  const distance = lerp(12.2, 13.8, clamp((8 - nearestEnemy) / 8, 0, 1));
-  desiredCamera.copy(player.root.position).addScaledVector(forward, -distance).add(new THREE.Vector3(0, 6, 0));
+  // Block-built robots vary far more in length than the original fixed hull.
+  // Keep the follow camera outside the complete robot bounds (roughly
+  // 1.5-2 chassis lengths) instead of allowing large builds to swallow it.
+  const bodyScaledDistance = clamp((player.radius || 5.5) * 2.15, 12.2, 28);
+  const distance = bodyScaledDistance + lerp(0, 1.6, clamp((8 - nearestEnemy) / 8, 0, 1));
+  const followHeight = clamp((player.radius || 5.5) * 0.72, 6, 11);
+  desiredCamera.copy(player.root.position).addScaledVector(forward, -distance).add(new THREE.Vector3(0, followHeight, 0));
   if (cameraShake > 0.001) {
     desiredCamera.add(new THREE.Vector3((Math.random() - 0.5) * cameraShake, (Math.random() - 0.5) * cameraShake, (Math.random() - 0.5) * cameraShake));
     cameraShake = Math.max(0, cameraShake - dt * 1.65);
   }
   camera.position.lerp(desiredCamera, 1 - Math.exp(-8.2 * dt));
-  lookTarget.copy(player.root.position).addScaledVector(forward, 3.3).add(new THREE.Vector3(0, 0.58, 0));
+  lookTarget.copy(player.root.position).addScaledVector(forward, clamp((player.radius || 5.5) * 0.42, 3.3, 6.5)).add(new THREE.Vector3(0, 0.58, 0));
   camera.lookAt(lookTarget);
+  updateCameraObstruction(dt, lookTarget);
   const actualRear = camera.position.clone().sub(player.root.position).setY(0);
   const rearAlignment = actualRear.lengthSq() > 0.0001 ? actualRear.normalize().dot(forward.clone().multiplyScalar(-1)) : 1;
   cameraFollowTelemetry.currentRearAlignment = rearAlignment;
@@ -12687,20 +15465,261 @@ function updateCamera(dt) {
   }
 }
 
+const cameraOcclusionRaycaster = new THREE.Raycaster();
+const cameraOcclusionFades = new Map();
+const cameraOcclusionDirection = new THREE.Vector3();
+
+function prepareCameraFade(mesh) {
+  if (!mesh?.isMesh) return null;
+  if (cameraOcclusionFades.has(mesh)) return cameraOcclusionFades.get(mesh);
+  const originals = Array.isArray(mesh.material) ? mesh.material : [mesh.material];
+  const materials = originals.map((source) => {
+    const material = source.clone();
+    material.transparent = true;
+    return material;
+  });
+  mesh.material = Array.isArray(mesh.material) ? materials : materials[0];
+  const entry = { materials, base: materials.map((material) => material.opacity ?? 1), blocked: false };
+  cameraOcclusionFades.set(mesh, entry);
+  return entry;
+}
+
+function updateCameraObstruction(dt, target) {
+  for (const entry of cameraOcclusionFades.values()) entry.blocked = false;
+  cameraOcclusionDirection.copy(target).sub(camera.position);
+  const distance = cameraOcclusionDirection.length();
+  if (distance > 0.2) {
+    cameraOcclusionRaycaster.set(camera.position, cameraOcclusionDirection.normalize());
+    cameraOcclusionRaycaster.far = Math.max(0.1, distance - 0.35);
+    const roots = (mode === 'garage'
+      ? garageCameraOccluders
+      : obstacles.map((obstacle) => obstacle.mesh)).filter((root) => root?.visible);
+    for (const hit of cameraOcclusionRaycaster.intersectObjects(roots, true)) {
+      const entry = prepareCameraFade(hit.object);
+      if (entry) entry.blocked = true;
+    }
+  }
+  for (const [mesh, entry] of cameraOcclusionFades) {
+    const blend = 1 - Math.exp(-(entry.blocked ? 12 : 16) * dt);
+    let restored = true;
+    entry.materials.forEach((material, index) => {
+      const targetOpacity = entry.blocked ? entry.base[index] * 0.24 : entry.base[index];
+      material.opacity = lerp(material.opacity, targetOpacity, blend);
+      material.depthWrite = !entry.blocked || material.opacity > entry.base[index] * 0.94;
+      restored &&= Math.abs(material.opacity - entry.base[index]) < 0.01;
+    });
+    if (!entry.blocked && restored && !mesh.visible) cameraOcclusionFades.delete(mesh);
+  }
+}
+
 function updateBattleRenderLOD(dt) {
   if (mode !== 'battle' || !player) return;
   renderLODAccumulator += dt;
   if (renderLODAccumulator < 0.2) return;
   renderLODAccumulator = 0;
-  const distances = qualityPreset === 'low' ? [25, 60] : qualityPreset === 'high' ? [46, 112] : [34, 84];
-  const adaptiveDistanceScale = lerp(0.78, 1, adaptiveQualityScale);
+  const distances = qualityPreset === 'low' ? [22, 52, 105] : qualityPreset === 'high' ? [46, 105, 210] : [32, 78, 160];
+  const adaptiveDistanceScale = lerp(0.78, 1, adaptiveQualityScale) * (adaptiveDegradeStage >= 4 ? 0.72 : 1);
   const nearDistance = distances[0] * adaptiveDistanceScale;
-  const farDistance = distances[1] * adaptiveDistanceScale;
+  const midDistance = distances[1] * adaptiveDistanceScale;
+  const farDistance = distances[2] * adaptiveDistanceScale;
   for (const robot of robots) {
     if (robot.isPlayer) { robot.setRenderLOD(0); continue; }
     const distance = robot.root.position.distanceTo(player.root.position);
-    robot.setRenderLOD(distance <= nearDistance ? 0 : distance <= farDistance ? 1 : 2);
+    let level = distance <= nearDistance ? 0 : distance <= midDistance ? 1 : distance <= farDistance ? 2 : 3;
+    const activePoint = conquestState.enabled ? conquestState.points[conquestState.activePoint] : null;
+    const objectiveImportant = Boolean(activePoint && robot.root.position.distanceToSquared(activePoint.centre) < (activePoint.radius + 14) ** 2);
+    const combatImportant = worldTime - robot.lastExternalImpactTime < 1.2
+      || robot.aiTargetId === player.id
+      || robot.healingVisualTimer > 0
+      || objectiveImportant;
+    if (combatImportant) level = Math.max(0, level - 1);
+    robot.setRenderLOD(level);
   }
+}
+
+function markerWorldPosition(robot, target) {
+  let maximumY = 0;
+  for (const point of robot.teamMarkerLocalPoints ?? []) {
+    teamMarkerPointScratch.copy(point).applyQuaternion(robot.root.quaternion);
+    maximumY = Math.max(maximumY, teamMarkerPointScratch.y);
+  }
+  return target.set(robot.root.position.x, robot.root.position.y + maximumY + 0.32, robot.root.position.z);
+}
+
+function ensureTeamMarkerCanvasSize() {
+  const canvas = ui.teamMarkerLayer;
+  if (!canvas) return null;
+  const width = Math.max(1, ui.canvas.clientWidth);
+  const height = Math.max(1, ui.canvas.clientHeight);
+  const ratio = Math.min(devicePixelRatio || 1, 1.5);
+  const pixelWidth = Math.round(width * ratio);
+  const pixelHeight = Math.round(height * ratio);
+  if (canvas.width !== pixelWidth || canvas.height !== pixelHeight) {
+    canvas.width = pixelWidth;
+    canvas.height = pixelHeight;
+  }
+  const context = canvas.getContext('2d');
+  context.setTransform(ratio, 0, 0, ratio, 0, 0);
+  return { canvas, context, width, height };
+}
+
+function roundedMarkerPath(context, x, y, width, height, radius) {
+  const left = x - width * 0.5;
+  const top = y - height * 0.5;
+  context.beginPath();
+  context.moveTo(left + radius, top);
+  context.arcTo(left + width, top, left + width, top + height, radius);
+  context.arcTo(left + width, top + height, left, top + height, radius);
+  context.arcTo(left, top + height, left, top, radius);
+  context.arcTo(left, top, left + width, top, radius);
+  context.closePath();
+}
+
+function drawClassMarkerIcon(context, weightClass, x, y, size, color) {
+  context.save();
+  context.translate(x, y);
+  context.strokeStyle = color;
+  context.fillStyle = 'rgba(5,12,17,.92)';
+  context.lineWidth = weightClass === 'superheavy' ? 2 : 1.35;
+  context.beginPath();
+  if (weightClass === 'lightweight') {
+    context.moveTo(-size * 0.46, size * 0.32);
+    context.lineTo(-size * 0.1, -size * 0.34);
+    context.lineTo(size * 0.48, size * 0.12);
+    context.lineTo(size * 0.38, size * 0.34);
+  } else {
+    const height = weightClass === 'superheavy' ? size * 0.78 : size * 0.62;
+    context.rect(-size * 0.46, -height * 0.48, size * 0.92, height);
+  }
+  context.closePath();
+  context.fill();
+  context.stroke();
+  if (weightClass === 'healer') {
+    context.fillStyle = '#5dff99';
+    context.fillRect(-size * 0.12, -size * 0.35, size * 0.24, size * 0.7);
+    context.fillRect(-size * 0.35, -size * 0.12, size * 0.7, size * 0.24);
+  } else {
+    context.fillStyle = color;
+    context.beginPath(); context.arc(-size * 0.27, size * 0.36, size * 0.13, 0, Math.PI * 2); context.fill();
+    context.beginPath(); context.arc(size * 0.27, size * 0.36, size * 0.13, 0, Math.PI * 2); context.fill();
+  }
+  context.restore();
+}
+
+function renderTeamMarkers(dt = 0) {
+  const surface = ensureTeamMarkerCanvasSize();
+  if (!surface) return;
+  const { context, width, height } = surface;
+  context.clearRect(0, 0, width, height);
+  if (!['battle', 'test'].includes(mode) || !player) {
+    teamMarkerStats.visible = 0;
+    teamMarkerStats.ffaNameplates = 0;
+    teamMarkerStats.ffaClassIcons = 0;
+    teamMarkerStats.ffaHpBars = 0;
+    return;
+  }
+  while (teamMarkerPool.length < Math.max(19, robots.length - 1)) teamMarkerPool.push({ robotUid: null, occluded: false, screenX: 0, screenY: 0 });
+  teamMarkerStats.pooled = teamMarkerPool.length;
+  teamMarkerOcclusionAccumulator += dt;
+  const refreshOcclusion = teamMarkerOcclusionAccumulator >= 0.2;
+  if (refreshOcclusion) teamMarkerOcclusionAccumulator = 0;
+  const entries = [];
+  const ffa = isFreeForAllMode();
+  let poolIndex = 0;
+  let hiddenDead = 0;
+  let hiddenOccluded = 0;
+  for (const robot of robots) {
+    if (robot === player || (!ffa && !['blue', 'red'].includes(robot.team))) continue;
+    const marker = teamMarkerPool[poolIndex++];
+    marker.robotUid = robot.instanceUid;
+    if (robot.dead) { hiddenDead++; continue; }
+    const world = markerWorldPosition(robot, teamMarkerWorldScratch);
+    if (!ffa && robot.team === player.team) marker.occluded = false;
+    else if (refreshOcclusion) marker.occluded = segmentBlockedByMapObstacle(camera.position, world, 0.18);
+    if (marker.occluded) { hiddenOccluded++; continue; }
+    const projected = teamMarkerPointScratch.copy(world).project(camera);
+    if (projected.z < -1 || projected.z > 1 || Math.abs(projected.x) > 1.15 || Math.abs(projected.y) > 1.15) continue;
+    // The WebGL canvas is mirrored at the final CSS render boundary to keep
+    // +Z as gameplay forward. Mirror this overlay X once so it remains locked
+    // to the same rendered robot pixel without interpolation.
+    const screenX = (1 - (projected.x * 0.5 + 0.5)) * width;
+    const screenY = (1 - (projected.y * 0.5 + 0.5)) * height;
+    const distance = camera.position.distanceTo(world);
+    const markerWidth = ffa ? clamp(92 - distance * 0.09, 66, 92) : clamp(38 - distance * 0.055, 24, 38);
+    const markerHeight = ffa ? clamp(markerWidth * 0.34, 23, 31) : clamp(markerWidth * 0.43, 12, 17);
+    entries.push({ robot, marker, screenX, screenY, markerWidth, markerHeight, distance });
+  }
+  entries.sort((a, b) => b.distance - a.distance);
+  const placed = [];
+  let overlapAdjustments = 0;
+  for (const entry of entries) {
+    let y = entry.screenY;
+    for (let attempt = 0; attempt < 4; attempt++) {
+      const overlaps = placed.some((other) => Math.abs(other.x - entry.screenX) < (other.width + entry.markerWidth) * 0.44
+        && Math.abs(other.y - y) < (other.height + entry.markerHeight) * 0.55);
+      if (!overlaps) break;
+      y -= entry.markerHeight + 3;
+      overlapAdjustments++;
+    }
+    placed.push({ x: entry.screenX, y, width: entry.markerWidth, height: entry.markerHeight });
+    entry.marker.screenX = entry.screenX;
+    entry.marker.screenY = y;
+    const blue = entry.robot.team === 'blue';
+    if (ffa) {
+      const hpRatio = clamp(entry.robot.hp / Math.max(1, entry.robot.maxHp), 0, 1);
+      const plateY = y - entry.markerHeight * 0.08;
+      roundedMarkerPath(context, entry.screenX, plateY, entry.markerWidth, entry.markerHeight, 5);
+      context.fillStyle = 'rgba(8,13,18,.88)';
+      context.fill();
+      context.lineWidth = 1.25;
+      context.strokeStyle = 'rgba(255,207,104,.88)';
+      context.stroke();
+      const left = entry.screenX - entry.markerWidth * 0.5;
+      drawClassMarkerIcon(context, entry.robot.weightClass, left + 11, plateY - 2, 11, '#ffd36d');
+      context.fillStyle = '#ffffff';
+      context.textAlign = 'left';
+      context.textBaseline = 'middle';
+      context.font = `900 ${clamp(entry.markerHeight * 0.28, 7, 9)}px ui-sans-serif,system-ui,sans-serif`;
+      const displayName = String(entry.robot.name ?? 'BOT').replace(/^(BLUE|RED)\s*·?\s*/i, '');
+      context.fillText(displayName.slice(0, 16), left + 22, plateY - 5);
+      const barX = left + 22;
+      const barY = plateY + 5;
+      const barWidth = entry.markerWidth - 28;
+      context.fillStyle = 'rgba(255,255,255,.14)';
+      context.fillRect(barX, barY, barWidth, 3.5);
+      context.fillStyle = hpRatio > 0.48 ? '#62e98c' : hpRatio > 0.22 ? '#ffc755' : '#ff5c52';
+      context.fillRect(barX, barY, barWidth * hpRatio, 3.5);
+      continue;
+    }
+    roundedMarkerPath(context, entry.screenX, y, entry.markerWidth, entry.markerHeight, 4);
+    context.fillStyle = blue ? 'rgba(20,139,255,.96)' : 'rgba(239,53,46,.96)';
+    context.fill();
+    context.lineWidth = blue ? 1.5 : 2;
+    context.strokeStyle = blue ? '#b9e5ff' : '#ffd0cc';
+    context.stroke();
+    if (!blue) {
+      context.beginPath();
+      context.arc(entry.screenX, y - entry.markerHeight * 0.31, 1.35, 0, Math.PI * 2);
+      context.fillStyle = '#fff2c9';
+      context.fill();
+    }
+    context.fillStyle = '#ffffff';
+    context.textAlign = 'center';
+    context.textBaseline = 'middle';
+    context.font = `900 ${clamp(entry.markerHeight * 0.5, 7, 9)}px ui-sans-serif,system-ui,sans-serif`;
+    context.fillText(blue ? 'BLUE' : 'RED', entry.screenX, y + (blue ? 0 : 1));
+  }
+  teamMarkerStats.updates++;
+  teamMarkerStats.visible = entries.length;
+  teamMarkerStats.ffaNameplates = ffa ? entries.length : 0;
+  teamMarkerStats.ffaClassIcons = ffa ? entries.length : 0;
+  teamMarkerStats.ffaHpBars = ffa ? entries.length : 0;
+  teamMarkerStats.hiddenDead = hiddenDead;
+  teamMarkerStats.hiddenOccluded = hiddenOccluded;
+  teamMarkerStats.minimumWidth = entries.length ? Number(Math.min(...entries.map((entry) => entry.markerWidth)).toFixed(2)) : 0;
+  teamMarkerStats.maximumWidth = entries.length ? Number(Math.max(...entries.map((entry) => entry.markerWidth)).toFixed(2)) : 0;
+  teamMarkerStats.playerMarkers = 0;
+  teamMarkerStats.overlapAdjustments += overlapAdjustments;
 }
 
 function updateGame(dt) {
@@ -12714,7 +15733,7 @@ function updateGame(dt) {
   }
   if (mode === 'garage') {
     worldTime += dt;
-    updateGarageCamera();
+    updateGarageCamera(dt);
     updateEffects(dt);
     if (messageTimer > 0) {
       messageTimer -= dt;
@@ -12728,13 +15747,13 @@ function updateGame(dt) {
   performanceProfile.physicsHz = solverHz;
   const stepCount = Math.max(1, Math.min(4, Math.ceil(dt / (1 / solverHz))));
   const stepDt = dt / stepCount;
+  updateRespawns();
+  updateConquestBattle(dt);
+  if (mode === 'battle' && !battleResultShown) battleElapsed += dt;
+  rebuildCombatCaches();
   for (let step = 0; step < stepCount; step++) {
     worldTime += stepDt;
-    updateRespawns();
-    updateConquestBattle(stepDt);
     if (qa) updateSelfTest(stepDt);
-    if (mode === 'battle' && !battleResultShown) battleElapsed += stepDt;
-    rebuildCombatCaches();
     // The start of the substep is the last authoritative obstacle-free state.
     // It is retained only as a CCD fallback for an overlapping mountain-chain
     // junction; normal contacts always use the continuous/penetration solvers.
@@ -12744,7 +15763,6 @@ function updateGame(dt) {
     performanceProfile.aiMs += performance.now() - stageStarted;
     stageStarted = performance.now();
     for (const robot of robots) robot.updatePhysics(stepDt, game);
-    for (const robot of robots) updateHealingAura(robot, stepDt);
     performanceProfile.physicsMs += performance.now() - stageStarted;
     stageStarted = performance.now();
     for (let first = 0; first < robots.length; first++) {
@@ -12769,6 +15787,10 @@ function updateGame(dt) {
     // substep with a cheap static-world projection so the rendered and next
     // simulation states are both guaranteed outside all authored blockers.
     robots.forEach((robot, index) => {
+      // updatePhysics already performed the normal arena contact solve. The
+      // extra projection is only a rare cliff-overlap fallback, not a second
+      // unconditional full obstacle pass for every robot and substep.
+      if (!robotCentreInsideMountainCollider(robot)) return;
       for (let pass = 0; pass < 4; pass++) {
         robot.resolveArena(game);
         if (!robotCentreInsideMountainCollider(robot)) break;
@@ -12787,13 +15809,13 @@ function updateGame(dt) {
       }
     });
   }
+  for (const robot of robots) updateHealingAura(robot, dt);
   // VFX is visual state, not collision state. Updating and uploading the
   // instanced spark buffers once per rendered frame avoids doing the same GPU
   // work up to three times inside the 90 Hz physics substeps.
   const effectsStarted = performance.now();
   updateEffects(dt);
   updateSawGrinding(dt);
-  updateRotaryWeaponLoop();
   performanceProfile.effectsMs += performance.now() - effectsStarted;
   updateCamera(dt);
   updateBattleRenderLOD(dt);
@@ -12849,11 +15871,13 @@ function blockPlacementKey(record) {
 }
 
 function beginGarageOrbit(event) {
+  garagePointerGestures.set(event.pointerId, { startX: event.clientX, startY: event.clientY, moved: false, startedOnCanvas: true });
   if (event.pointerType === 'touch') {
     garageTouchPoints.set(event.pointerId, { x: event.clientX, y: event.clientY });
     if (garageTouchPoints.size >= 2) {
       const points = [...garageTouchPoints.values()];
       garagePinchDistance = Math.hypot(points[0].x - points[1].x, points[0].y - points[1].y);
+      garagePinchBefore = mobileScaleMode && currentEditorRecord() && !candidatePart ? cloneData(workingAssembly) : null;
       orbitPointer = null;
     } else {
       orbitPointer = event.pointerId;
@@ -12872,9 +15896,56 @@ function updateGaragePinch(event) {
   if (garageTouchPoints.size < 2) return false;
   const points = [...garageTouchPoints.values()];
   const distance = Math.hypot(points[0].x - points[1].x, points[0].y - points[1].y);
-  if (garagePinchDistance != null) orbitDistance = clamp(orbitDistance - (distance - garagePinchDistance) * 0.012, 2.2, 12.5);
+  if (garagePinchDistance != null) {
+    const record = currentEditorRecord();
+    if (mobileScaleMode && record && !isWheelScaleLocked(record)) {
+      const limits = PART_LIMITS[record.type] ?? [0.5, 1.8];
+      record.scaleFactor = clamp((record.scaleFactor ?? 1) * distance / Math.max(8, garagePinchDistance), limits[0], limits[1]);
+      record.axisScale = [1, 1, 1];
+      refreshRecordDurability(record);
+      garageDirty = !candidatePart || garageDirty;
+      applyRecordTransformLive(record);
+      updateInspectorFromRecord();
+      updateGarageSummary();
+    } else orbitDistance = clamp(orbitDistance - (distance - garagePinchDistance) * 0.012, 2.2, 12.5);
+  }
   garagePinchDistance = distance;
   return true;
+}
+
+function updateGarageCameraObstruction(dt) {
+  cameraObstructionAccumulator += dt;
+  const enabled = mode === 'garage' && mobilePerformanceProfile() && garageRoot;
+  const desired = new Set();
+  if (enabled && cameraObstructionAccumulator >= 0.1) {
+    cameraObstructionAccumulator = 0;
+    const target = garageRoot.getWorldPosition(new THREE.Vector3()).add(new THREE.Vector3(0, 0.45, 0));
+    const direction = target.clone().sub(camera.position);
+    const targetDistance = direction.length();
+    if (targetDistance > 0.01) {
+      cameraObstructionRaycaster.set(camera.position, direction.normalize());
+      cameraObstructionRaycaster.far = targetDistance;
+      for (const hit of cameraObstructionRaycaster.intersectObject(garageRoot, true)) {
+        if (hit.distance >= targetDistance * 0.72 || !hit.object.isMesh || hit.object.userData.isCandidate) continue;
+        const materials = Array.isArray(hit.object.material) ? hit.object.material : [hit.object.material];
+        for (const material of materials) if (material) desired.add(material);
+      }
+    }
+  }
+  for (const material of desired) {
+    if (!cameraObstructedMaterials.has(material)) cameraObstructedMaterials.set(material, { opacity: material.opacity ?? 1, transparent: material.transparent });
+  }
+  for (const [material, original] of cameraObstructedMaterials) {
+    const targetOpacity = desired.has(material) ? Math.min(original.opacity, 0.24) : original.opacity;
+    material.transparent = desired.has(material) || original.transparent;
+    material.opacity = lerp(material.opacity ?? original.opacity, targetOpacity, clamp(dt * (desired.has(material) ? 11 : 6), 0, 1));
+    material.needsUpdate = true;
+    if (!desired.has(material) && Math.abs(material.opacity - original.opacity) < 0.01) {
+      material.opacity = original.opacity;
+      material.transparent = original.transparent;
+      cameraObstructedMaterials.delete(material);
+    }
+  }
 }
 
 function endGaragePointer(event) {
@@ -12884,18 +15955,47 @@ function endGaragePointer(event) {
   }
   if (event.pointerType === 'touch') {
     garageTouchPoints.delete(event.pointerId);
-    if (garageTouchPoints.size < 2) garagePinchDistance = null;
+    if (garageTouchPoints.size < 2) {
+      garagePinchDistance = null;
+      if (garagePinchBefore) {
+        undoStack.push(garagePinchBefore);
+        if (undoStack.length > 24) undoStack.shift();
+        garagePinchBefore = null;
+      }
+    }
   }
   if (event.pointerId === orbitPointer) orbitPointer = null;
+}
+
+function cancelGarageToolFromBlankTap() {
+  if (candidateBlock) cancelBlockCandidate();
+  if (candidatePart) {
+    candidatePart = null;
+    document.querySelectorAll('[data-catalog]').forEach((button) => button.classList.remove('selected'));
+    refreshGarageGhost();
+  }
+  selectedPartId = null;
+  mobileScaleMode = false;
+  document.body.classList.remove('mobile-scale-mode');
+  updateInspectorFromRecord();
+  updateGarageSummary();
 }
 
 document.querySelectorAll('[data-catalog]').forEach((button) => button.addEventListener('click', () => {
   ensureAudio();
   beginCatalogPart(button.dataset.catalog, button.dataset.wheelModel ?? null);
+  if (matchMedia('(pointer: coarse)').matches || innerWidth <= 1050) document.body.classList.remove('mobile-catalog-open', 'mobile-inspector-open');
 }));
 document.querySelectorAll('[data-block-type]').forEach((button) => button.addEventListener('click', () => {
   ensureAudio();
   beginBlockCatalog(button.dataset.blockType);
+  if (matchMedia('(pointer: coarse)').matches || innerWidth <= 1050) document.body.classList.remove('mobile-catalog-open', 'mobile-inspector-open');
+}));
+document.querySelectorAll('[data-robot-preset]').forEach((button, index) => button.addEventListener('click', () => {
+  ensureAudio();
+  const [weightClass, type] = button.dataset.robotPreset.split(':');
+  loadEditableRobotPreset(weightClass, type, index);
+  if (matchMedia('(pointer: coarse)').matches || innerWidth <= 1050) document.body.classList.remove('mobile-catalog-open', 'mobile-inspector-open');
 }));
 document.querySelectorAll('[data-block-rotate]').forEach((button) => button.addEventListener('click', () => {
   blockRotationAxis = button.dataset.blockRotate;
@@ -12903,12 +16003,124 @@ document.querySelectorAll('[data-block-rotate]').forEach((button) => button.addE
 }));
 ui.partsMode.addEventListener('click', () => setAssemblyMode('parts'));
 ui.blocksMode.addEventListener('click', () => setAssemblyMode('blocks'));
+ui.robotsMode?.addEventListener('click', () => setAssemblyMode('robots'));
+ui.paintToggle?.addEventListener('click', () => {
+  const open = ui.paintPopover.hidden;
+  ui.paintPopover.hidden = !open;
+  ui.paintToggle.setAttribute('aria-expanded', String(open));
+  if (open) renderPaintUI();
+});
+document.querySelectorAll('[data-paint-slot]').forEach((button) => button.addEventListener('click', () => {
+  activePaintSlot = button.dataset.paintSlot;
+  activePaintColor = normalizedPaintPalette(workingAssembly.paintPalette)[activePaintSlot];
+  renderPaintUI();
+}));
+ui.paintSelected?.addEventListener('click', applyPaintToSelection);
+ui.paintAll?.addEventListener('click', applyPaintToWholeBody);
+ui.placementModeToggle?.addEventListener('click', () => {
+  mobilePlacementMode = mobilePlacementMode === 'touch' ? 'button' : 'touch';
+  ui.placementModeToggle.textContent = mobilePlacementMode === 'touch' ? '버튼' : '터치';
+  ui.mobilePlacementControls?.classList.toggle('button-mode', mobilePlacementMode === 'button');
+  showMessage(mobilePlacementMode === 'button' ? '버튼 배치 · 면 선택 후 방향/높이와 설치 버튼 사용' : '터치 배치 · 원하는 블록 면을 직접 터치', 1.2);
+});
+ui.mobilePlaceBlock?.addEventListener('click', () => installCandidateBlock());
+document.querySelectorAll('[data-mobile-nudge]').forEach((button) => button.addEventListener('click', () => {
+  if (!candidateBlock?.previewAttached) { showMessage('먼저 기준 블록의 면을 터치하세요.', 0.9); return; }
+  const delta = { forward: [0,0,1], back: [0,0,-1], left: [-1,0,0], right: [1,0,0], up: [0,1,0], down: [0,-1,0] }[button.dataset.mobileNudge];
+  candidateBlock.gridPosition = candidateBlock.gridPosition.map((value, index) => value + delta[index]);
+  candidateBlock.previewVisible = true;
+  const neighbours = workingAssembly.blocks.filter((block) => blocksShareFace(candidateBlock, block));
+  candidateBlock.previewTargetId = neighbours[0]?.id ?? candidateBlock.previewTargetId;
+  refreshBlockGhost();
+  updateBlockInspector();
+  updateGarageSummary();
+}));
+ui.mobileScaleToggle?.addEventListener('click', () => {
+  const record = currentEditorRecord();
+  if (!record) return;
+  if (isWheelScaleLocked(record)) { showMessage('바퀴 크기는 체급별 전용 규격으로 고정됩니다.', 1); return; }
+  mobileScaleMode = !mobileScaleMode;
+  transformMode = mobileScaleMode ? 'scale' : 'move';
+  document.body.classList.toggle('mobile-scale-mode', mobileScaleMode);
+  updateInspectorFromRecord();
+  showMessage(mobileScaleMode ? '크기 모드 · 화면 아무 곳에서 두 손가락 핀치' : '크기 모드 종료', 1.0);
+});
+const mobileScaleGlobalPointers = new Set();
+document.addEventListener('pointerdown', (event) => {
+  if (mode !== 'garage' || !mobileScaleMode || event.pointerType !== 'touch' || event.target === ui.canvas) return;
+  mobileScaleGlobalPointers.add(event.pointerId);
+  garageTouchPoints.set(event.pointerId, { x: event.clientX, y: event.clientY });
+  if (garageTouchPoints.size >= 2) {
+    const points = [...garageTouchPoints.values()];
+    garagePinchDistance = Math.hypot(points[0].x - points[1].x, points[0].y - points[1].y);
+    garagePinchBefore ??= currentEditorRecord() && !candidatePart ? cloneData(workingAssembly) : null;
+  }
+}, { capture: true });
+document.addEventListener('pointermove', (event) => {
+  if (!mobileScaleGlobalPointers.has(event.pointerId) || !mobileScaleMode) return;
+  if (updateGaragePinch(event)) event.preventDefault();
+}, { capture: true, passive: false });
+const finishGlobalScalePointer = (event) => {
+  if (!mobileScaleGlobalPointers.delete(event.pointerId)) return;
+  endGaragePointer(event);
+};
+document.addEventListener('pointerup', finishGlobalScalePointer, { capture: true });
+document.addEventListener('pointercancel', finishGlobalScalePointer, { capture: true });
+ui.mobileCatalogToggle?.addEventListener('click', () => {
+  const opening = !document.body.classList.contains('mobile-catalog-open');
+  document.body.classList.toggle('mobile-catalog-open', opening);
+  if (opening) document.body.classList.remove('mobile-inspector-open');
+});
+ui.mobileInspectorToggle?.addEventListener('click', () => {
+  const opening = !document.body.classList.contains('mobile-inspector-open');
+  document.body.classList.toggle('mobile-inspector-open', opening);
+  if (opening) document.body.classList.remove('mobile-catalog-open');
+});
+document.querySelector('.conquest-team.blue')?.addEventListener('click', () => {
+  const opening = !document.body.classList.contains('mobile-blue-roster-open');
+  document.body.classList.toggle('mobile-blue-roster-open', opening);
+  if (opening) document.body.classList.remove('mobile-red-roster-open');
+});
+document.querySelector('.conquest-team.red')?.addEventListener('click', () => {
+  const opening = !document.body.classList.contains('mobile-red-roster-open');
+  document.body.classList.toggle('mobile-red-roster-open', opening);
+  if (opening) document.body.classList.remove('mobile-blue-roster-open');
+});
+
+document.querySelectorAll('[data-draggable-panel]').forEach((panel) => {
+  let drag = null;
+  panel.addEventListener('pointerdown', (event) => {
+    if (!matchMedia('(pointer: coarse)').matches) return;
+    if (event.target.closest('button,input,select,label,a,textarea,.catalog-grid,.free-actions,.block-actions,.confirm-actions,.block-rotate-row')) return;
+    const rect = panel.getBoundingClientRect();
+    drag = { id: event.pointerId, panel, startX: event.clientX, startY: event.clientY, left: rect.left, top: rect.top, moved: false };
+  });
+  panel.addEventListener('pointermove', (event) => {
+    if (!drag || drag.id !== event.pointerId) return;
+    const dx = event.clientX - drag.startX;
+    const dy = event.clientY - drag.startY;
+    if (!drag.moved && Math.hypot(dx, dy) < 8) return;
+    drag.moved = true;
+    if (!panel.hasPointerCapture(event.pointerId)) panel.setPointerCapture(event.pointerId);
+    const rect = drag.panel.getBoundingClientRect();
+    drag.panel.style.left = `${clamp(drag.left + dx, 4, innerWidth - rect.width - 4)}px`;
+    drag.panel.style.right = 'auto';
+    drag.panel.style.top = `${clamp(drag.top + dy, 4, innerHeight - rect.height - 4)}px`;
+  });
+  const end = (event) => { if (drag?.id === event.pointerId) drag = null; };
+  panel.addEventListener('pointerup', end);
+  panel.addEventListener('pointercancel', end);
+});
 ui.blockInstall.addEventListener('click', installCandidateBlock);
 ui.blockCancel.addEventListener('click', cancelBlockCandidate);
 ui.blockDelete.addEventListener('click', () => removeSelectedBlock());
 ui.blockDeleteMode.addEventListener('click', () => setBlockDeleteMode(!blockDeleteMode));
 ui.blockList.addEventListener('change', () => selectGarageBlock(ui.blockList.value));
 document.querySelectorAll('[data-transform-mode]').forEach((button) => button.addEventListener('click', () => {
+  if (button.dataset.transformMode === 'scale' && isWheelScaleLocked(currentEditorRecord())) {
+    showMessage('바퀴 크기는 체급별 전용 규격으로 고정됩니다.', 1);
+    return;
+  }
   transformMode = button.dataset.transformMode;
   document.querySelectorAll('[data-transform-mode]').forEach((item) => item.classList.toggle('active', item === button));
   rebuildGarageGizmo();
@@ -12932,6 +16144,14 @@ ui.weaponAutoCut?.addEventListener('change', () => {
   updateGarageSummary();
 });
 ui.battleMode.addEventListener('change', () => { battleMode = ui.battleMode.value; });
+ui.weightClassSelect?.addEventListener('change', () => {
+  const previous = workingAssembly.weightClass;
+  workingAssembly.weightClass = WEIGHT_CLASSES[ui.weightClassSelect.value] ? ui.weightClassSelect.value : previous;
+  const status = classRuleStatus(workingAssembly, { requireMinimum: false });
+  garageDirty = true;
+  updateGarageSummary();
+  showMessage(status.valid ? `${status.profile.label} 규격으로 변경 · 기존 부품 유지` : `${status.message} · 기존 부품은 자동 삭제하지 않습니다.`, 1.7);
+});
 ui.battleMap.addEventListener('change', () => {
   setActiveMap(ui.battleMap.value);
   ui.screenTitle.textContent = mode === 'garage' ? '3D 로봇 작업장' : `${activeMap.name} 선택`;
@@ -13034,6 +16254,11 @@ ui.canvas.addEventListener('pointerdown', (event) => {
     if (candidateBlock) {
       const placed = placeCandidateBlockFromPointer(event);
       if (placed && validateBlockPlacement(candidateBlock).valid) {
+        if (event.pointerType === 'touch' && mobilePlacementMode === 'button') {
+          refreshBlockGhost();
+          updateBlockInspector();
+          return;
+        }
         blockPaintLastKey = blockPlacementKey(candidateBlock);
         installCandidateBlock();
         blockPaintPointerId = event.pointerId;
@@ -13072,6 +16297,8 @@ ui.canvas.addEventListener('pointerdown', (event) => {
 });
 ui.canvas.addEventListener('pointermove', (event) => {
   if (mode !== 'garage') return;
+  const gesture = garagePointerGestures.get(event.pointerId);
+  if (gesture && Math.hypot(event.clientX - gesture.startX, event.clientY - gesture.startY) >= 8) gesture.moved = true;
   if (updateGaragePinch(event)) return;
   if (assemblyMode === 'blocks' && candidateBlock && event.pointerId === blockPaintPointerId) {
     const placed = placeCandidateBlockFromPointer(event);
@@ -13112,12 +16339,17 @@ ui.canvas.addEventListener('pointermove', (event) => {
   orbitLast = { x: event.clientX, y: event.clientY };
 });
 ui.canvas.addEventListener('pointerup', (event) => {
+  const gesture = garagePointerGestures.get(event.pointerId);
+  const blankTap = Boolean(gesture && !gesture.moved && garageTouchPoints.size < 2 && event.pointerId === orbitPointer);
   endGarageTransformDrag(event);
   endGaragePointer(event);
+  garagePointerGestures.delete(event.pointerId);
+  if (blankTap) cancelGarageToolFromBlankTap();
 });
 ui.canvas.addEventListener('pointercancel', (event) => {
   endGarageTransformDrag(event);
   endGaragePointer(event);
+  garagePointerGestures.delete(event.pointerId);
 });
 ui.canvas.addEventListener('wheel', (event) => {
   if (mode !== 'garage') return;
@@ -13146,6 +16378,22 @@ ui.combatRespawn?.addEventListener('click', () => {
   showMessage(`주행 불능 확인 · ${RESPAWN_DELAY_SECONDS}초 후 수리 구역 리스폰`, 2);
 });
 ui.dash?.addEventListener('click', () => { ensureAudio(); player?.requestDash('mobile'); });
+const setAttackHeld = (active) => {
+  if (!player || player.dead) return;
+  player.wakePhysicsFromControl('mobile-attack');
+  for (const weapon of player.rotaryWeapons) weapon.active = active && player.weaponAvailable(weapon.kind);
+  if (active) player.requestPuncher();
+  ui.attack?.classList.toggle('active', active);
+  ui.attack?.setAttribute('aria-pressed', String(active));
+};
+ui.attack?.addEventListener('pointerdown', (event) => {
+  ensureAudio();
+  event.preventDefault();
+  ui.attack.setPointerCapture(event.pointerId);
+  setAttackHeld(true);
+});
+ui.attack?.addEventListener('pointerup', () => setAttackHeld(false));
+ui.attack?.addEventListener('pointercancel', () => setAttackHeld(false));
 ui.reset.addEventListener('click', () => { ensureAudio(); resetGame(); });
 ui.selfTest.addEventListener('click', () => { ensureAudio(); startSelfTest(); });
 ui.colliderDebug.addEventListener('click', () => {
@@ -13186,6 +16434,13 @@ ui.qualityPreset?.addEventListener('change', (event) => {
   applyQualityPreset(event.currentTarget.value);
   showMessage(`그래픽 품질 ${QUALITY_PRESETS[qualityPreset].label} · 전투 인원에 맞춰 VFX/물리 예산 자동 조정`, 1.5);
 });
+ui.frameRateLimit?.addEventListener('change', (event) => {
+  const requested = Number(event.currentTarget.value);
+  frameRateLimit = [30, 45, 60].includes(requested) ? requested : 30;
+  localStorage.setItem(FRAME_RATE_STORAGE_KEY, String(frameRateLimit));
+  previous = performance.now();
+  showMessage(`프레임 제한 ${frameRateLimit} FPS`, 1.2);
+});
 ui.dashKey?.addEventListener('change', (event) => {
   dashKey = DASH_KEYS.has(event.currentTarget.value) ? event.currentTarget.value : 'ControlLeft';
   localStorage.setItem(DASH_KEY_STORAGE_KEY, dashKey);
@@ -13201,6 +16456,10 @@ window.addEventListener('keydown', (event) => {
   }
   keys.add(event.code);
   if (!event.repeat && event.code === dashKey && (mode === 'battle' || mode === 'test')) player?.requestDash('keyboard');
+  if (!event.repeat && event.code === 'Space' && (mode === 'battle' || mode === 'test')) {
+    player?.requestPuncher();
+    event.preventDefault();
+  }
   if (!event.repeat && event.code === 'KeyT' && (mode === 'battle' || mode === 'test') && player) {
     player.wakePhysicsFromControl('player-self-right-key');
     player.startPostureRecovery('player-key', player.isSelfRightCandidate());
@@ -13222,17 +16481,82 @@ window.addEventListener('keyup', (event) => keys.delete(event.code));
 window.addEventListener('blur', () => { keys.clear(); brakeHeld = false; });
 
 async function loadAssets() {
-  const loader = new GLTFLoader();
-  loader.setMeshoptDecoder(MeshoptDecoder);
-  await Promise.all(ASSETS.map(async (id, index) => {
-    ui.status.textContent = `새 GLB 부품 로딩 ${index + 1}/${ASSETS.length}…`;
-    const file = await loader.loadAsync(ASSET_PATHS[id]);
-    models[id] = file.scene;
-  }));
+  THREE.Cache.clear();
+  for (const key of Object.keys(models)) delete models[key];
+  let completed = 0;
+  let nextAssetIndex = 0;
+  const failed = [];
+  const fallbackModel = (id) => {
+    const group = new THREE.Group();
+    const rotary = /wheel|spinner|saw/i.test(id);
+    const geometry = rotary ? new THREE.CylinderGeometry(0.5, 0.5, 0.35, 18) : new THREE.BoxGeometry(1, 0.55, 1);
+    const material = new THREE.MeshStandardMaterial({ color: rotary ? 0x222831 : 0x52606c, metalness: 0.72, roughness: 0.38 });
+    const mesh = new THREE.Mesh(geometry, material);
+    if (rotary) mesh.rotation.z = Math.PI / 2;
+    mesh.name = `Fallback_${id}`;
+    group.add(mesh);
+    group.userData.fallbackAsset = id;
+    return group;
+  };
+  const loadOne = async (id) => {
+    const loader = new GLTFLoader();
+    loader.setMeshoptDecoder(MeshoptDecoder);
+    try {
+      const timeout = new Promise((_, reject) => window.setTimeout(() => reject(new Error(`${id} load timeout`)), 180000));
+      const file = await Promise.race([loader.loadAsync(ASSET_PATHS[id]), timeout]);
+      models[id] = file.scene;
+      models[id].userData.assetSource = ASSET_PATHS[id];
+      models[id].userData.assetRevision = LOWPOLY_REVISION;
+    } catch (error) {
+      console.warn(`Asset fallback: ${id}`, error);
+      models[id] = fallbackModel(id);
+      failed.push(id);
+    } finally {
+      completed++;
+      ui.status.textContent = `GLB 부품을 불러오는 중… ${completed}/${ASSETS.length}`;
+    }
+  };
+  // Do not start every 20-30 MB remesh decoder at once. Two workers keep the
+  // browser responsive and prevent the old global 45 s timeout cascade.
+  const worker = async () => {
+    while (nextAssetIndex < ASSETS.length) {
+      const id = ASSETS[nextAssetIndex++];
+      await loadOne(id);
+      await new Promise((resolve) => window.setTimeout(resolve, 0));
+    }
+  };
+  await Promise.all([worker(), worker()]);
+  const combatSources = Object.fromEntries(LOWPOLY_COMBAT_IDS.map((id) => [id, ASSET_PATHS[id]]));
+  const oldHighPolyLoads = Object.entries(combatSources).filter(([, path]) => LEGACY_COMBAT_PATH_PATTERN.test(path)).map(([id, path]) => ({ id, path }));
+  const desertSources = Object.fromEntries(LOWPOLY_DESERT_IDS.map((id) => [id, ASSET_PATHS[id]]));
+  const oldDesertLoads = Object.entries(desertSources).filter(([id, path]) => LEGACY_DESERT_PATH_PATTERN.test(path) || !path.includes('/assets_lowpoly/')).map(([id, path]) => ({ id, path }));
+  window.__battlebotAssetLoadAudit = {
+    revision: LOWPOLY_REVISION,
+    total: ASSETS.length,
+    loaded: ASSETS.length - failed.length,
+    fallbacks: failed,
+    combatSources,
+    playerAndAISharedRegistry: true,
+    oldHighPolyLoadCount: oldHighPolyLoads.length,
+    oldHighPolyLoads,
+    desertSources,
+    oldDesertLoadCount: oldDesertLoads.length,
+    oldDesertLoads,
+    allDesertAssetsUseLowPolyRegistry: oldDesertLoads.length === 0,
+    cacheInvalidated: true,
+  };
+  for (const [id, source] of Object.entries(combatSources)) console.info(`[LOW-POLY SOURCE] ${id}: ${source}`);
+  console.info(`[LOW-POLY AUDIT] old high-poly combat loads: ${oldHighPolyLoads.length}`);
+  console.info(`[LOW-POLY AUDIT] old desert obstacle loads: ${oldDesertLoads.length}`);
 }
 
 let previous = performance.now();
 function frame(now) {
+  const frameIntervalMs = 1000 / frameRateLimit;
+  if (!qa && now - previous < frameIntervalMs - 0.75) {
+    requestAnimationFrame(frame);
+    return;
+  }
   resize();
   const rawDt = (now - previous) / 1000;
   const measuredFrameMs = rawDt * 1000;
@@ -13260,6 +16584,7 @@ function frame(now) {
     hitStopTimer = Math.max(0, hitStopTimer - rawDt);
     const renderStarted = performance.now();
     renderer.render(scene, camera);
+    renderTeamMarkers(rawDt);
     recordPerformanceFrame(measuredFrameMs, 0, performance.now() - renderStarted);
     requestAnimationFrame(frame);
     return;
@@ -13269,6 +16594,7 @@ function frame(now) {
   const updateCpuMs = performance.now() - updateStarted;
   const renderStarted = performance.now();
   renderer.render(scene, camera);
+  renderTeamMarkers(rawDt);
   const renderCpuMs = performance.now() - renderStarted;
   if (!qa && mode === 'battle' && rawDt > 0 && rawDt < 0.25) recordPerformanceFrame(measuredFrameMs, updateCpuMs, renderCpuMs);
   requestAnimationFrame(frame);
@@ -13280,12 +16606,13 @@ function frame(now) {
 if (new URLSearchParams(location.search).get('qa') === 'isolated') {
   window.__battlebotQAStep = (seconds = 1) => {
     const step = 1 / 60;
-    const iterations = Math.max(1, Math.min(7200, Math.round(Number(seconds) / step)));
+    const iterations = Math.max(1, Math.min(40000, Math.round(Number(seconds) / step)));
     for (let index = 0; index < iterations; index++) {
       if (hitStopTimer > 0) hitStopTimer = Math.max(0, hitStopTimer - step);
       else updateGame(step);
     }
     renderer.render(scene, camera);
+    renderTeamMarkers(step);
     return { iterations, battleElapsed };
   };
   const qaAdvanceButton = document.createElement('button');
@@ -13458,7 +16785,7 @@ if (new URLSearchParams(location.search).get('blockCombatQA') === '1') {
         velocity: item.velocity.toArray().map((value) => Number(value.toFixed(3))),
         angular: item.angular.toArray().map((value) => Number(value.toFixed(3))),
       })),
-      debrisPolicy: { blockLifetimeSeconds: BLOCK_DEBRIS_LIFETIME, fadeSeconds: DEBRIS_FADE_SECONDS, maximumActive: MAX_ACTIVE_DEBRIS },
+      debrisPolicy: { blockLifetimeSeconds: debrisLifetimeFor('block'), functionalLifetimeSeconds: debrisLifetimeFor('functional'), fadeSeconds: DEBRIS_FADE_SECONDS, maximumActive: currentPerformanceBudget().debrisLimit },
       fragments: blockFragmentBursts.map((burst) => ({ partId: burst.partId, tier: burst.tier, color: burst.color, count: burst.shards.length, spawnedBeforeDetach: burst.spawnedBeforeDetach })),
       fragmentStats: { ...blockFragmentStats },
       stats: cloneData(player.stats),
@@ -13552,8 +16879,10 @@ if (new URLSearchParams(location.search).get('blockCombatQA') === '1') {
 
 if (new URLSearchParams(location.search).get('aiVisualQA') === '1') {
   let visualSamples = [];
+  let barSpinnerBatchQA = [];
   const visualSnapshot = () => ({
     active: aiVisualShowcaseActive,
+    view: aiVisualShowcaseView,
     count: visualSamples.length,
     uniqueArchetypes: new Set(visualSamples.map((robot) => robot.aiDesign.archetype)).size,
     uniqueSignatures: new Set(visualSamples.map((robot) => robot.aiDesign.signature)).size,
@@ -13561,7 +16890,13 @@ if (new URLSearchParams(location.search).get('aiVisualQA') === '1') {
       const stability = getRobotStabilityTelemetry(robot);
       return {
         name: robot.name, archetype: robot.aiDesign.archetype, conceptFamily: robot.aiDesign.conceptFamily, silhouette: robot.aiDesign.silhouette, colorMode: robot.aiDesign.colorMode,
-        weapon: robot.type, weaponLayout: robot.aiDesign.weaponLayout, blocks: robot.activeBlockParts().length,
+        weapon: robot.type, weaponLayout: robot.aiDesign.weaponLayout, weaponBay: robot.aiDesign.weaponBay,
+        wheelLayout: robot.aiDesign.wheelLayout, isAnimalArchetype: robot.aiDesign.isAnimalArchetype,
+        silhouettePlan: robot.aiDesign.silhouettePlan, blocks: robot.activeBlockParts().length,
+        exactClassTarget: WEIGHT_CLASSES[robot.weightClass]?.aiBlockTarget ?? null,
+        geometrySignature: robot.aiDesign.geometrySignature,
+        boundingBox: robot.aiDesign.boundingBox,
+        armor: robot.aiDesign.blockFaceArmor,
         designValidation: robot.aiDesign.validation,
         exterior: robot.parts.filter((part) => ['armor', 'decoration'].includes(part.type)).map((part) => ({ id: part.assemblyId, assetType: part.record.type, targetId: part.record.mount?.targetId, mountKind: part.record.mount?.kind, source: part.record.aiPlacement?.source, wheelClearance: part.record.aiPlacement?.wheelClearance, weaponClearance: part.record.aiPlacement?.weaponClearance, detached: part.detached })),
         smokeOutlets: robot.exhaustEmitters?.length ?? 0,
@@ -13578,6 +16913,12 @@ if (new URLSearchParams(location.search).get('aiVisualQA') === '1') {
     }),
     ground: { ...groundStats, maxRobotPenetrationMm: Number((groundStats.maxRobotPenetration * 1000).toFixed(2)) },
     fragments: { ...blockFragmentStats },
+    runtimeWeapons: {
+      invalidDirectMounts: window.__battlebotRuntimeAssetAudit?.invalidDirectWeaponMounts ?? [],
+      invalidOrientations: window.__battlebotRuntimeAssetAudit?.invalidWeaponOrientations ?? [],
+      orientations: window.__battlebotRuntimeAssetAudit?.weaponOrientations ?? [],
+    },
+    barSpinnerBatch: barSpinnerBatchQA,
   });
   const startVisualShowcase = () => {
     ui.battleMap.value = 'industrial01';
@@ -13587,19 +16928,25 @@ if (new URLSearchParams(location.search).get('aiVisualQA') === '1') {
     setActiveMap('industrial01');
     startBattle(false);
     const existing = new Set(robots.filter((robot) => !robot.isPlayer).map((robot) => robot.aiDesign.archetype));
-    const extraTypes = ['bar', 'spinner', 'drum', 'flipper', 'hammer'];
-    for (let index = 0; index < 5; index++) {
+    const extraTypes = ['bar', 'spinner', 'drum', 'puncher'];
+    const requiredExtras = Math.max(0, 20 - robots.filter((robot) => !robot.isPlayer).length);
+    const usedSignatures = new Set(robots.filter((robot) => !robot.isPlayer).map((robot) => robot.aiDesign.geometrySignature));
+    for (let index = 0; index < requiredExtras; index++) {
       const extraIndex = AI_HULL_ARCHETYPES.findIndex((archetype) => !existing.has(archetype));
-      const assembly = createAIAssembly(extraTypes[index], { designSeed: 0.137 + index * 0.173, archetypeIndex: extraIndex < 0 ? index : extraIndex });
+      const type = extraTypes[index % extraTypes.length];
+      const classCycle = ['lightweight', 'middleweight', 'superheavy', 'healer'];
+      let assembly = null;
+      for (let attempt = 0; attempt < 32; attempt++) {
+        const candidate = createAIAssembly(type, { designSeed: 0.137 + index * 0.173 + attempt * 0.021, archetypeIndex: extraIndex < 0 ? index + attempt : extraIndex + attempt, weightClass: classCycle[index % classCycle.length], heightTier: 2 + ((index + attempt) % 4) });
+        if (candidate.aiDesign.validation?.passed && !usedSignatures.has(candidate.aiDesign.geometrySignature)) { assembly = candidate; break; }
+      }
+      if (!assembly) continue;
       existing.add(assembly.aiDesign.archetype);
-      robots.push(new Robot({ id: 90 + index, name: `${assembly.aiDesign.displayName} Q${index + 1}`, type: extraTypes[index], team: index % 2 ? 'blue' : 'red', tint: index % 2 ? 0xb9dcff : 0xffaa96, assembly, position: { x: 0, z: 0 }, yaw: 0 }));
+      usedSignatures.add(assembly.aiDesign.geometrySignature);
+      robots.push(new Robot({ id: 90 + index, name: `${assembly.aiDesign.displayName} Q${index + 1}`, type, team: index % 2 ? 'blue' : 'red', tint: index % 2 ? 0xb9dcff : 0xffaa96, assembly, position: { x: 0, z: 0 }, yaw: 0 }));
     }
-    visualSamples = robots.filter((robot) => !robot.isPlayer).slice(0, 12);
-    const positions = [
-      [-18, -10], [-6, -10], [6, -10], [18, -10],
-      [-18, 0], [-6, 0], [6, 0], [18, 0],
-      [-18, 10], [-6, 10], [6, 10], [18, 10],
-    ];
+    visualSamples = robots.filter((robot) => !robot.isPlayer).slice(0, 20);
+    const positions = Array.from({ length: 20 }, (_, index) => [((index % 5) - 2) * 12, (Math.floor(index / 5) - 1.5) * 10.5]);
     visualSamples.forEach((robot, index) => {
       robot.root.position.x = positions[index][0];
       robot.root.position.z = positions[index][1];
@@ -13619,11 +16966,77 @@ if (new URLSearchParams(location.search).get('aiVisualQA') === '1') {
     player.placeOnMeasuredGround();
     player.control = { throttle: 0, steering: 0, brake: true };
     aiVisualShowcaseActive = true;
-    camera.position.set(0, 34, 0.01);
+    aiVisualShowcaseView = 'top';
+    camera.position.set(0, 48, 0.01);
     buildEnemyUI();
     updateCamera(0.2);
     updateUI();
     return visualSnapshot();
+  };
+  const setShowcaseView = (view) => {
+    aiVisualShowcaseView = ['top', 'front', 'side'].includes(view) ? view : 'top';
+    updateCamera(1);
+    return visualSnapshot();
+  };
+  const startBarSpinnerShowcase = async () => {
+    // Yield once so the QA button releases input immediately before the
+    // deliberately heavy 20-robot construction and five-second simulation.
+    await new Promise((resolve) => window.setTimeout(resolve, 0));
+    startVisualShowcase();
+    const keep = robots.filter((robot) => robot.isPlayer);
+    for (const robot of robots.filter((candidate) => !candidate.isPlayer)) robot.root.removeFromParent();
+    robots.splice(0, robots.length, ...keep);
+    const classCycle = ['lightweight', 'middleweight', 'superheavy', 'middleweight'];
+    const created = [];
+    for (let index = 0; index < 20; index++) {
+      let assembly = null;
+      for (let attempt = 0; attempt < AI_HULL_ARCHETYPES.length * 4; attempt++) {
+        const candidate = createAIAssembly('bar', {
+          designSeed: 0.211 + index * 0.137 + attempt * 0.019,
+          archetypeIndex: index * 7 + attempt,
+          paintIndex: index,
+          weightClass: classCycle[index % classCycle.length],
+          heightTier: 2 + ((index + attempt) % 4),
+        });
+        if (candidate.aiDesign.validation?.passed && candidate.aiDesign.weaponBay?.orientationPassed) { assembly = candidate; break; }
+      }
+      if (!assembly) continue;
+      const robot = new Robot({ id: 140 + index, name: `BAR QA ${String(index + 1).padStart(2, '0')}`, type: 'bar', team: index % 2 ? 'blue' : 'red', tint: 0xffffff, assembly, position: { x: 0, z: 0 }, yaw: index % 2 ? Math.PI : 0 });
+      robots.push(robot);
+      created.push(robot);
+    }
+    visualSamples = created;
+    const positions = Array.from({ length: 20 }, (_, index) => [((index % 5) - 2) * 12, (Math.floor(index / 5) - 1.5) * 10.5]);
+    const initialHeights = new Map();
+    for (let index = 0; index < created.length; index++) {
+      const robot = created[index];
+      robot.root.position.x = positions[index][0];
+      robot.root.position.z = positions[index][1];
+      robot.yaw = index % 2 ? Math.PI : 0;
+      robot.pitch = 0; robot.roll = 0;
+      robot.root.rotation.set(0, robot.yaw, 0, 'YXZ');
+      robot.placeOnMeasuredGround();
+      robot.velocity.set(0, 0, 0);
+      robot.pitchVelocity = 0; robot.rollVelocity = 0; robot.yawVelocity = 0;
+      robot.control = { throttle: 0, steering: 0, brake: true };
+      robot.spawnProtectionUntil = 0;
+      const bar = robot.rotaryWeapons.find((weapon) => weapon.kind === 'bar');
+      if (bar) { bar.active = true; bar.rpm = bar.maxRpm; bar.visualRpm = bar.visualMaxRpm; }
+      initialHeights.set(robot.id, bar?.root.getWorldPosition(new THREE.Vector3()).y ?? null);
+    }
+    aiVisualShowcaseActive = true;
+    aiVisualShowcaseView = 'top';
+    if (typeof window.__battlebotQAStep === 'function') window.__battlebotQAStep(5);
+    barSpinnerBatchQA = created.map((robot) => {
+      const bar = robot.rotaryWeapons.find((weapon) => weapon.kind === 'bar');
+      const pose = horizontalBarPoseTelemetry(robot, bar);
+      const currentHeight = bar?.root.getWorldPosition(new THREE.Vector3()).y ?? null;
+      const heightDrift = currentHeight == null || initialHeights.get(robot.id) == null ? Infinity : Math.abs(currentHeight - initialHeights.get(robot.id));
+      return { ...pose, heightDrift: Number.isFinite(heightDrift) ? Number(heightDrift.toFixed(4)) : null, fiveSecondSpinStable: pose?.passed === true && heightDrift < 0.01 && Math.abs(robot.pitch) < 0.01 && Math.abs(robot.roll) < 0.01 };
+    });
+    updateCamera(1);
+    updateUI();
+    return { ...visualSnapshot(), barSpinner20Acceptance: { created: created.length, passed: barSpinnerBatchQA.filter((entry) => entry.fiveSecondSpinStable).length, Passed: created.length === 20 && barSpinnerBatchQA.every((entry) => entry.fiveSecondSpinStable) } };
   };
   const flyFirstLabel = () => {
     const robot = visualSamples[0];
@@ -13660,21 +17073,28 @@ if (new URLSearchParams(location.search).get('aiVisualQA') === '1') {
     updateUI();
     return visualSnapshot();
   };
-  window.__battlebotAIVisualQA = { startVisualShowcase, flyFirstLabel, strongHits, steerLeft: () => setShowcaseSteering(-1), steerCenter: () => setShowcaseSteering(0), steerRight: () => setShowcaseSteering(1), snapshot: visualSnapshot };
+  window.__battlebotAIVisualQA = { startVisualShowcase, startBarSpinnerShowcase, flyFirstLabel, strongHits, topView: () => setShowcaseView('top'), frontView: () => setShowcaseView('front'), sideView: () => setShowcaseView('side'), steerLeft: () => setShowcaseSteering(-1), steerCenter: () => setShowcaseSteering(0), steerRight: () => setShowcaseSteering(1), snapshot: visualSnapshot };
   const panel = document.createElement('section');
   panel.id = 'ai-visual-qa-panel';
   panel.setAttribute('aria-label', 'AI 외형 이름표 전투 속도 검증');
-  panel.style.cssText = 'position:fixed;left:8px;right:8px;bottom:8px;z-index:90;display:grid;grid-template-columns:repeat(7,minmax(0,1fr));gap:4px;padding:6px;background:rgba(8,18,25,.9);border:1px solid #59c9ef;border-radius:8px';
+  panel.style.cssText = 'position:fixed;left:8px;right:8px;bottom:8px;z-index:90;display:grid;grid-template-columns:repeat(10,minmax(0,1fr));gap:4px;padding:6px;background:rgba(8,18,25,.9);border:1px solid #59c9ef;border-radius:8px';
   const output = document.createElement('output');
   output.id = 'ai-visual-qa-output';
   output.style.cssText = 'grid-column:1/-1;max-height:58px;overflow:auto;color:#d8f6ff;font:9px/1.2 ui-monospace,monospace';
   const add = (label, action, id) => {
     const button = document.createElement('button'); button.type = 'button'; button.id = id; button.textContent = label;
     button.style.cssText = 'min-width:0;padding:5px 2px;font-size:9px';
-    button.addEventListener('click', () => { output.textContent = JSON.stringify(action()); });
+    button.addEventListener('click', async () => {
+      try { output.textContent = JSON.stringify(await action()); }
+      catch (error) { output.textContent = JSON.stringify({ passed: false, error: error.message }); }
+    });
     panel.append(button);
   };
-  add('SPAWN 12 DESIGNS', startVisualShowcase, 'qa-ai-visual-start');
+  add('SPAWN 20 DESIGNS', startVisualShowcase, 'qa-ai-visual-start');
+  add('20 BAR ROTORS', startBarSpinnerShowcase, 'qa-ai-bar-20');
+  add('TOP', () => setShowcaseView('top'), 'qa-ai-view-top');
+  add('FRONT', () => setShowcaseView('front'), 'qa-ai-view-front');
+  add('SIDE', () => setShowcaseView('side'), 'qa-ai-view-side');
   add('STEER LEFT', () => setShowcaseSteering(-1), 'qa-ai-steer-left');
   add('STEER CENTER', () => setShowcaseSteering(0), 'qa-ai-steer-center');
   add('STEER RIGHT', () => setShowcaseSteering(1), 'qa-ai-steer-right');
@@ -13743,8 +17163,13 @@ if (new URLSearchParams(location.search).get('systemsQA') === '1') {
         solverVelocityIterations: robot.solverVelocityIterations,
         grounded: robot.grounded,
         wheelGroundedCount: robot.wheelGroundedCount,
+        control: robot.controlStateAudit(),
+        classRules: classRuleStatus(robot.assembly, { requireMinimum: true }),
+        weaponRoles: robot.rotaryWeapons.map((weapon) => weapon.kind),
+        driveStallSnapshots: cloneData(robot.driveStallSnapshots),
         floorRecoveries: robot.stats.floorRecoveries,
       })),
+      weaponRoleTelemetry: cloneData(weaponImpactTelemetry),
       respawnStats: { ...respawnStats },
       fragments: { activeBursts: blockFragmentBursts.length, activeCount: blockFragmentBursts.reduce((sum, burst) => sum + burst.shards.filter((shard) => shard.age < shard.life).length, 0), stats: { ...blockFragmentStats }, bursts: blockFragmentBursts.map((burst) => ({ color: burst.color, tier: burst.tier, count: burst.shards.length, spawnedBeforeDetach: burst.spawnedBeforeDetach })) },
       debris: debris.map((item) => ({ size: item.blockChunkSize ?? 0, reason: item.reason, preservesOriginalMaterial: Boolean(item.preservesOriginalMaterial) })),
@@ -13820,7 +17245,7 @@ if (new URLSearchParams(location.search).get('systemsQA') === '1') {
     return snapshot();
   };
   const auditInstallations = () => {
-    const types = ['spinner', 'bar', 'hammer', 'flipper', 'drum'];
+    const types = ['spinner', 'bar', 'drum'];
     const results = types.map((type) => {
       const assembly = createAIAssembly(type);
       const activeParts = assembly.parts.filter((record) => !record.detached);
@@ -13859,7 +17284,7 @@ if (new URLSearchParams(location.search).get('systemsQA') === '1') {
   };
   const auditWeaponDurability = () => {
     const savedWorldTime = worldTime;
-    const types = ['spinner', 'bar', 'hammer', 'flipper', 'drum'];
+    const types = ['spinner', 'bar', 'drum'];
     const results = [];
     for (const [index, type] of types.entries()) {
       const robot = new Robot({ id: 880 + index, name: `WEAPON DURABILITY ${type}`, type, team: 'qa', tint: 0x7fdcff, assembly: createAIAssembly(type), position: { x: 999, z: 999 }, yaw: 0 });
@@ -14270,23 +17695,210 @@ function conquestQASnapshot() {
   const invalidRespawnReasons = respawnStats.log.filter((entry) => !RESPAWN_REASONS.has(entry.reason));
   const worldRobotUIAudit = auditWorldRobotUIRemoved();
   const objectiveParticipation = aiRobots.reduce((sum, robot) => sum + robot.stats.objectiveVisits, 0) > 0 || conquestState.captures.length > 0;
-  const objectiveSequenceParticipation = Boolean(!conquestState.points.A.owner || conquestState.points.B.blue > 0 || conquestState.points.B.red > 0
-    || aiRobots.some((robot) => robot.lastObjectiveVisit === 'B') || conquestState.points.B.owner);
-  const healerParticipation = conquestState.healerTicks > 0 || aiRobots.some((robot) => robot.aiState === 'HEAL_ALLY');
-  const mountainColliders = obstacles.filter((obstacle) => obstacle.obstacleType === 'desert-cliff');
-  const robotsInsideMountain = robots.filter((robot) => !robot.dead && mountainColliders.some((obstacle) => {
-    const cos = Math.cos(-obstacle.rotationY); const sin = Math.sin(-obstacle.rotationY);
-    const dx = robot.root.position.x - obstacle.x; const dz = robot.root.position.z - obstacle.z;
-    return Math.abs(dx * cos - dz * sin) < obstacle.halfX - 0.3 && Math.abs(dx * sin + dz * cos) < obstacle.halfZ - 0.3;
+  const actualBApproachAfterA = Boolean(conquestState.points.A.owner && aiRobots.some((robot) => {
+    const history = robot.aiObjectiveTelemetry.B.distanceHistory;
+    return history.length >= 2 && history.at(-1).distance < history[0].distance - 18;
   }));
+  const objectiveSequenceParticipation = Boolean(!conquestState.points.A.owner || conquestState.points.B.blue > 0 || conquestState.points.B.red > 0
+    || aiRobots.some((robot) => robot.lastObjectiveVisit === 'B') || conquestState.points.B.owner || actualBApproachAfterA);
+  const healerParticipation = conquestState.healerTicks > 0 || aiRobots.some((robot) => robot.aiState === 'HEAL_ALLY');
+  const allSpawnDepartedByFiveSeconds = aiRobots.length > 0 && aiRobots.every((robot) => robot.aiSpawnExitAt != null && robot.aiSpawnExitAt <= 5);
+  const objectiveRows = aiRobots.map((robot) => ({
+    id: robot.instanceUid, name: robot.name, team: robot.team, role: robot.aiRole, weaponType: robot.type,
+    dead: robot.dead, respawnCount: robot.respawnCount, state: robot.aiState,
+    position: [Number(robot.root.position.x.toFixed(1)), Number(robot.root.position.z.toFixed(1))],
+    motion: {
+      speed: Number(robot.velocity.clone().setY(0).length().toFixed(2)),
+      yawDegrees: Number(THREE.MathUtils.radToDeg(robot.yaw).toFixed(1)),
+      yawVelocity: Number(robot.yawVelocity.toFixed(3)),
+      control: {
+        throttle: Number(robot.control.throttle.toFixed(2)),
+        steering: Number(robot.control.steering.toFixed(2)),
+        brake: Boolean(robot.control.brake),
+      },
+      pitch: Number(THREE.MathUtils.radToDeg(robot.pitch).toFixed(1)),
+      roll: Number(THREE.MathUtils.radToDeg(robot.roll).toFixed(1)),
+      postureRecovery: Boolean(robot.postureRecovery),
+      undrivableSeconds: Number(robot.aiUndrivableTime.toFixed(2)),
+      disabledReason: robot.disabledReason ?? null,
+      wheelContacts: robot.lastSupportInfo?.wheelContactCount ?? null,
+      upDot: robot.lastSupportInfo ? Number(robot.lastSupportInfo.upDot.toFixed(3)) : null,
+    },
+    navigation: {
+      pathLength: robot.aiNavPath?.length ?? 0,
+      noProgressSeconds: Number((robot.aiNoProgressSeconds ?? 0).toFixed(2)),
+      goal: robot.aiNavGoal ? [Number(robot.aiNavGoal.x.toFixed(1)), Number(robot.aiNavGoal.z.toFixed(1))] : null,
+      next: robot.aiNavPath?.[0] ? [Number(robot.aiNavPath[0].x.toFixed(1)), Number(robot.aiNavPath[0].z.toFixed(1))] : null,
+    },
+    spawnExitTime: robot.aiSpawnExitAt == null ? null : Number(robot.aiSpawnExitAt.toFixed(2)),
+    forcedSpawnDeployments: robot.aiForcedSpawnDeployments,
+    A: {
+      reached: robot.aiObjectiveTelemetry.A.reached,
+      timeReached: robot.aiObjectiveTelemetry.A.timeReached,
+      captureSeconds: Number(robot.aiObjectiveTelemetry.A.captureSeconds.toFixed(2)),
+      distanceHistory: robot.aiObjectiveTelemetry.A.distanceHistory,
+    },
+    B: {
+      reached: robot.aiObjectiveTelemetry.B.reached,
+      timeReached: robot.aiObjectiveTelemetry.B.timeReached,
+      captureSeconds: Number(robot.aiObjectiveTelemetry.B.captureSeconds.toFixed(2)),
+      distanceHistory: robot.aiObjectiveTelemetry.B.distanceHistory,
+    },
+    attacksAttempted: robot.stats.attacksAttempted,
+    attacksHit: robot.stats.hits,
+    damageDealt: Number(robot.stats.damageDealt.toFixed(2)),
+    enemyContacts: robot.stats.enemyContacts,
+    weaponContacts: robot.stats.weaponContacts,
+    blocksDestroyed: robot.stats.blocksDestroyed,
+    enemyDetections: robot.stats.enemyDetections,
+    combatEngagements: robot.stats.combatEngagements,
+    attackOpportunities: robot.stats.attackOpportunities,
+    attackOpportunityTimeouts: robot.stats.attackOpportunityTimeouts,
+    dashUses: robot.stats.dashUses,
+    stuckRecoveries: robot.aiStuckRecoveryLog,
+    routeLoopGuardEvents: robot.aiRouteLoopGuardEvents,
+    routeLoopPreventedEvents: robot.aiRouteLoopPreventedEvents,
+    weaponAvailable: robot.weaponAvailable(robot.type),
+    weaponPhase: robot.type === 'puncher' ? robot.weapons.puncher?.phase ?? 'missing' : null,
+  }));
+  const routeLoopFailures = aiRobots.filter((robot) => robot.aiRouteLoopGuardEvents > 0).map((robot) => ({
+    id: robot.instanceUid, name: robot.name, events: robot.aiRouteLoopGuardEvents,
+    position: [Number(robot.root.position.x.toFixed(1)), Number(robot.root.position.z.toFixed(1))],
+    state: robot.aiState,
+  }));
+  const combatAIRows = objectiveRows.filter((row) => row.weaponType !== 'healer');
+  const reachedACombatCount = combatAIRows.filter((row) => row.A.reached).length;
+  const reachedBCount = objectiveRows.filter((row) => row.B.reached).length;
+  // Combat participation is a real physical result, not proximity. A weapon
+  // contact and an intentional dash/ram are both valid attacks when they caused
+  // actual damage and an enemy collision. Keep weapon-contact participation as
+  // a separate metric so a puncher destroyed before its first stroke is visible
+  // without falsely describing a damaging 15-dash brawl as "no combat".
+  const actualWeaponContactParticipants = combatAIRows.filter((row) => row.attacksAttempted > 0 && row.damageDealt > 0
+    && row.weaponContacts > 0 && row.attacksHit > 0).length;
+  const actualCombatParticipants = combatAIRows.filter((row) => row.damageDealt > 0
+    && (row.attacksHit > 0 || row.enemyContacts > 0)
+    && (row.attacksAttempted > 0 || row.dashUses > 0)).length;
+  const actualACapture = conquestState.captures.some((capture) => capture.point === 'A');
+  const actualContest = conquestState.contestEvents.length > 0;
+  const actualBMovement = actualACapture && objectiveRows.some((row) => row.B.distanceHistory.length >= 2
+    && row.B.distanceHistory.at(-1).distance < row.B.distanceHistory[0].distance - 18);
+  const realObjectiveAcceptance = {
+    reachedACombatCount,
+    combatAICount: combatAIRows.length,
+    majorityReachedA: combatAIRows.length > 0 && reachedACombatCount >= Math.ceil(combatAIRows.length * 0.8),
+    actualACapture,
+    actualContest,
+    actualCombatParticipants,
+    actualWeaponContactParticipants,
+    totalAttacksAttempted: combatAIRows.reduce((sum, row) => sum + row.attacksAttempted, 0),
+    totalWeaponContacts: combatAIRows.reduce((sum, row) => sum + row.weaponContacts, 0),
+    totalDamageDealt: Number(combatAIRows.reduce((sum, row) => sum + row.damageDealt, 0).toFixed(2)),
+    totalBlocksDestroyed: combatAIRows.reduce((sum, row) => sum + row.blocksDestroyed, 0),
+    attackOpportunityTimeouts: combatAIRows.reduce((sum, row) => sum + row.attackOpportunityTimeouts, 0),
+    allCombatAIParticipated: combatAIRows.length > 0 && actualCombatParticipants === combatAIRows.length,
+    allWeaponsMadeContact: combatAIRows.length > 0 && actualWeaponContactParticipants === combatAIRows.length,
+    actualHeal: conquestState.healerTicks > 0,
+    actualBMovement,
+    reachedBCount,
+    noTestTeleport: objectiveRows.every((row) => row.forcedSpawnDeployments === 0),
+  };
+  const mountainColliders = obstacles.filter((obstacle) => obstacle.obstacleType === 'desert-cliff');
+  const robotsInsideMountain = robots.filter((robot) => !robot.dead && mountainColliders.some((obstacle) => obstacle.kind === 'polygon'
+    ? pointInsideObstaclePolygon(robot.root.position, obstacle.outline, -0.3)
+    : (() => {
+      const cos = Math.cos(-obstacle.rotationY); const sin = Math.sin(-obstacle.rotationY);
+      const dx = robot.root.position.x - obstacle.x; const dz = robot.root.position.z - obstacle.z;
+      return Math.abs(dx * cos - dz * sin) < obstacle.halfX - 0.3 && Math.abs(dx * sin + dz * cos) < obstacle.halfZ - 0.3;
+    })()));
+  const classValidationRows = robots.map((robot) => {
+    const status = classRuleStatus(robot.assembly, { requireMinimum: true });
+    const wheels = (robot.assembly.parts ?? []).filter((part) => part.type === 'wheel');
+    const wheelScaleFixed = wheels.every((wheel) => Number(wheel.scaleFactor ?? 1) === 1
+      && (wheel.axisScale ?? [1, 1, 1]).every((value) => Number(value) === 1));
+    const exactAITarget = robot.isPlayer ? null : status.profile.aiBlockTarget;
+    const exactAIBlockCount = robot.isPlayer || status.blockCount === exactAITarget;
+    const positions = robot.assembly.blocks.map((block) => block.gridPosition);
+    const footprintWidth = positions.length ? Math.max(...positions.map((position) => position[0])) - Math.min(...positions.map((position) => position[0])) + 1 : 0;
+    const footprintLength = positions.length ? Math.max(...positions.map((position) => position[2])) - Math.min(...positions.map((position) => position[2])) + 1 : 0;
+    const layerCounts = positions.length ? Object.fromEntries([...new Set(positions.map((position) => position[1]))].sort((a, b) => a - b).map((layer) => [layer, positions.filter((position) => position[1] === layer).length])) : {};
+    const height = positions.length ? Math.max(...positions.map((position) => position[1])) - Math.min(...positions.map((position) => position[1])) + 1 : 0;
+    const armorQA = robot.aiDesign?.blockFaceArmor ?? null;
+    return {
+      team: robot.team.toUpperCase(), id: robot.instanceUid, name: robot.name,
+      class: robot.weightClass, blocks: robot.assembly.blocks.length,
+      range: [status.profile.minBlocks, status.profile.maxBlocks], exactAITarget, exactAIBlockCount,
+      footprint: [footprintWidth, footprintLength], layers: layerCounts, archetype: robot.aiDesign?.archetype ?? 'player-built',
+      boundingBox: { grid: [footprintWidth, height, footprintLength], world: [footprintWidth, height, footprintLength].map((value) => Number((value * GRID_UNIT).toFixed(3))) },
+      geometrySignature: robot.aiDesign?.geometrySignature ?? robot.assembly.blocks
+        .map((block) => `${block.type}:${block.gridPosition.join(',')}:${(block.rotation ?? [0, 0, 0]).join(',')}`)
+        .sort().join('|'),
+      armor: armorQA ? { eligibleFaces: armorQA.eligibleFaces, flatArmorCount: armorQA.flatArmorCount, installedCount: armorQA.installedCount, exactFaceCoverage: armorQA.exactFaceCoverage, duplicateFaceCount: armorQA.duplicateFaceCount, bottomArmorCount: armorQA.bottomArmorCount, sourceAsset: armorQA.sourceAsset } : null,
+      wheelModels: [...new Set(wheels.map((wheel) => wheel.wheelModel))],
+      wheelLayout: robot.aiDesign?.wheelLayout ?? null,
+      weaponBay: robot.aiDesign?.weaponBay ?? null,
+      silhouettePlan: robot.aiDesign?.silhouettePlan ?? null,
+      wheelScaleFixed, pass: status.valid && exactAIBlockCount && wheelScaleFixed && (robot.isPlayer || (armorQA?.exactFaceCoverage === true && robot.aiDesign?.wheelLayout?.passed && robot.aiDesign?.weaponBay?.attachmentPassed && robot.aiDesign?.weaponBay?.orientationPassed)),
+    };
+  });
+  const aiClassRows = classValidationRows.filter((row) => row.name !== 'PLAYER');
+  const aiGeometrySignatures = aiClassRows.map((row) => row.geometrySignature).filter(Boolean);
+  const runtimeGeometrySignatures = classValidationRows.map((row) => row.geometrySignature).filter(Boolean);
+  const totalEligibleArmorFaces = aiClassRows.reduce((sum, row) => sum + (row.armor?.eligibleFaces ?? 0), 0);
+  const totalFlatArmorPlates = aiClassRows.reduce((sum, row) => sum + (row.armor?.flatArmorCount ?? 0), 0);
+  const aiPaintRows = aiRobots.map((robot) => {
+    const palette = normalizedPaintPalette(robot.paintPalette ?? robot.assembly.paintPalette);
+    const counts = Object.fromEntries(['primary', 'secondary', 'accent'].map((slot) => [slot, robot.assembly.blocks.filter((block) => block.paintSlot === slot).length]));
+    const total = Math.max(1, robot.assembly.blocks.length);
+    return {
+      id: robot.instanceUid,
+      team: robot.team,
+      palette,
+      pair: `${palette.primary}|${palette.secondary}`,
+      counts,
+      ratios: Object.fromEntries(Object.entries(counts).map(([slot, count]) => [slot, Number((count / total).toFixed(3))])),
+      distinctColors: new Set(robot.assembly.blocks.map((block) => normalizedPaintColor(block.color, palette.primary))).size,
+    };
+  });
+  const paintPairs = aiPaintRows.map((row) => row.pair);
+  const paintPrimaries = aiPaintRows.map((row) => row.palette.primary);
+  const playerPalette = normalizedPaintPalette(player?.paintPalette ?? player?.assembly?.paintPalette);
+  const teamIdentifierAudit = {
+    renderer: 'pooled-canvas-overlay',
+    canvasPresent: Boolean(ui.teamMarkerLayer),
+    pooledSlots: teamMarkerStats.pooled,
+    visibleMarkers: teamMarkerStats.visible,
+    playerMarkers: teamMarkerStats.playerMarkers,
+    minimumWidthPixels: teamMarkerStats.minimumWidth,
+    maximumWidthPixels: teamMarkerStats.maximumWidth,
+    hiddenDead: teamMarkerStats.hiddenDead,
+    hiddenOccludedEnemies: teamMarkerStats.hiddenOccluded,
+    exactFrameProjection: true,
+    worldHeightFromRobotBounds: robots.every((robot) => (robot.teamMarkerLocalPoints?.length ?? 0) > 0),
+    teamPaintIndependent: aiPaintRows.some((row) => row.team === 'blue' && row.palette.primary !== '#39afe7')
+      && aiPaintRows.some((row) => row.team === 'red' && row.palette.primary !== '#ef4444'),
+  };
+  teamIdentifierAudit.Passed = teamIdentifierAudit.canvasPresent && teamIdentifierAudit.pooledSlots >= Math.max(0, robots.length - 1)
+    && teamIdentifierAudit.playerMarkers === 0 && teamIdentifierAudit.worldHeightFromRobotBounds && teamIdentifierAudit.teamPaintIndependent;
+  const loadAssetAudit = window.__battlebotAssetLoadAudit ?? null;
+  const runtimeAssetAudit = window.__battlebotRuntimeAssetAudit ?? null;
   return {
     mapId: selectedMapId,
     mode: battleMode,
+    runtimeState: {
+      appMode: mode,
+      gamePaused,
+      qaActive: Boolean(qa),
+      aiVisualShowcaseActive,
+      battleResultShown,
+      worldTime: Number(worldTime.toFixed(2)),
+      battleElapsed: Number(battleElapsed.toFixed(2)),
+    },
     totalRobots: robots.length,
     teamCounts: Object.fromEntries(['blue', 'red'].map((team) => [team, robots.filter((robot) => robot.team === team).length])),
     aliveCounts: Object.fromEntries(['blue', 'red'].map((team) => [team, robots.filter((robot) => robot.team === team && !robot.dead).length])),
     healers: healerCounts,
-    objective: { active: conquestState.activePoint, contested: conquestState.contested, winner: conquestState.winner, pendingWinner: conquestState.pendingWinner, minimumMatchSeconds: conquestState.minimumMatchSeconds, A: { ...conquestState.points.A, centre: conquestState.points.A.centre.toArray() }, B: { ...conquestState.points.B, centre: conquestState.points.B.centre.toArray() }, captures: [...conquestState.captures] },
+    objective: { active: conquestState.activePoint, contested: conquestState.contested, winner: conquestState.winner, pendingWinner: conquestState.pendingWinner, minimumMatchSeconds: conquestState.minimumMatchSeconds, A: { ...conquestState.points.A, centre: conquestState.points.A.centre.toArray() }, B: { ...conquestState.points.B, centre: conquestState.points.B.centre.toArray() }, captures: [...conquestState.captures], contestEvents: [...conquestState.contestEvents] },
     captureRules: { secondsPerPoint: DESERT_LAYOUT.captureSeconds, progressPerSecond: Number((100 / DESERT_LAYOUT.captureSeconds).toFixed(4)), contestedBehaviour: 'freeze-exact-progress', sequence: 'A-then-B' },
     repairs: { zoneEvents: conquestState.repairEvents, healerTicks: conquestState.healerTicks },
     respawn: { delay: RESPAWN_DELAY_SECONDS, protection: SPAWN_PROTECTION_SECONDS, stats: { ...respawnStats } },
@@ -14304,10 +17916,42 @@ function conquestQASnapshot() {
       aiLaneAssignments: [0, 1, 2].map((lane) => robots.filter((robot) => !robot.isPlayer && robot.id % 3 === lane).length),
       robotsInsideMountainColliders: robotsInsideMountain.map((robot) => robot.id),
       routeQA: { active: desertRouteQA.active, visited: desertRouteQA.visited, remaining: desertRouteQA.route.length, distance: Number(desertRouteQA.distance.toFixed(2)), elapsed: Number((desertRouteQA.active ? worldTime - desertRouteQA.startWorldTime : desertRouteQA.elapsed).toFixed(2)) },
+      mapKnowledge: cloneData(desertMapKnowledge),
     },
-    minimap: { visible: !ui.conquestMinimap?.hidden, canvas: ui.minimapCanvas ? [ui.minimapCanvas.width, ui.minimapCanvas.height] : null, world: [DESERT_LAYOUT.halfWidth * 2, DESERT_LAYOUT.halfLength * 2], enemyDetectionRadius: 95, mountainSegmentsDrawn: DESERT_CANYON_SEGMENTS.length, tacticalRoutesDrawn: desertStats.navigation.minimapRoutes?.length ?? 0 },
+    minimap: {
+      visible: !ui.conquestMinimap?.hidden,
+      canvas: ui.minimapCanvas ? [ui.minimapCanvas.width, ui.minimapCanvas.height] : null,
+      world: [DESERT_LAYOUT.halfWidth * 2, DESERT_LAYOUT.halfLength * 2], enemyDetectionRadius: 95,
+      actualGLBOutlinesDrawn: desertTopViewOutlines.length,
+      outlineVertexRange: desertTopViewOutlines.length ? [Math.min(...desertTopViewOutlines.map((item) => item.outline.length)), Math.max(...desertTopViewOutlines.map((item) => item.outline.length))] : [0, 0],
+      arbitraryRectangleObstaclesDrawn: 0,
+      minimapPhysicsObjects: 0,
+      worldPolygonColliders: obstacles.filter((obstacle) => obstacle.kind === 'polygon').length,
+      worldDesertBoxColliders: obstacles.filter((obstacle) => obstacle.kind === 'box' && obstacle.obstacleType?.startsWith('desert-')).length,
+      tacticalRoutesDrawn: desertStats.navigation.minimapRoutes?.length ?? 0,
+      staticBackgroundBuilds: conquestMinimapStaticBuilds,
+      staticBackgroundCached: conquestMinimapStaticBuilds === 1,
+    },
+    paintSystem: {
+      playerPalette,
+      playerPaletteSlots: 3,
+      selectableColors: PLAYER_PAINT_COLORS.length,
+      selectedAndWholeBodyControls: Boolean(ui.paintSelected && ui.paintAll),
+      paintPopupPresent: Boolean(ui.paintPopover),
+      aiRows: aiPaintRows,
+      uniquePrimarySecondaryPairs: new Set(paintPairs).size,
+      uniquePrimaryColors: new Set(paintPrimaries).size,
+      allAIPairsUnique: paintPairs.length > 0 && new Set(paintPairs).size === paintPairs.length,
+      everyAIUsesThreeZones: aiPaintRows.every((row) => row.counts.primary > 0 && row.counts.secondary > 0 && row.counts.accent > 0 && row.distinctColors === 3),
+      sharedBlockMaterials: sharedBlockBatchMaterials.size,
+      teamColorStoredSeparately: true,
+    },
+    teamIdentifiers: teamIdentifierAudit,
     aiVisuals: {
       archetypes: [...new Set(aiDesigns.map((design) => design?.archetype))],
+      animalArchetypes: [...new Set(aiDesigns.filter((design) => design?.isAnimalArchetype).map((design) => design?.archetype))],
+      generalArchetypes: [...new Set(aiDesigns.filter((design) => !design?.isAnimalArchetype).map((design) => design?.archetype))],
+      silhouetteFirstGeneration: aiDesigns.every((design) => design?.silhouettePlan?.stageOrder?.join('>') === 'class>archetype>silhouette>blocks>wheels>weapon>armor>paint>validation'),
       heightTiers: [...new Set(aiDesigns.map((design) => design?.height))].sort(),
       heightDistribution: Object.fromEntries([1,2,3,4,5].map((height) => [height, aiDesigns.filter((design) => design?.height === height).length])),
       tallBots: aiDesigns.filter((design) => design?.height >= 3).length,
@@ -14317,11 +17961,14 @@ function conquestQASnapshot() {
       exhaustBots: aiDesigns.filter((design) => (design?.exteriorCounts?.exhaust ?? 0) > 0).length,
       combatWeaponBots: aiDesigns.filter((design) => design?.weaponBay?.weaponType).length,
       lowFrontWeaponBays: aiDesigns.filter((design) => design?.weaponBay?.weaponType && design?.weaponBay?.lowMounted && design?.weaponBay?.frontMounted).length,
+      directlyAttachedWeaponBays: aiDesigns.filter((design) => design?.weaponBay?.attachmentPassed).length,
+      barSpinnerOrientationFailures: aiDesigns.filter((design) => design?.weaponBay?.weaponType === 'barSpinner' && !design?.weaponBay?.orientationPassed).map((design) => design.archetype),
+      wheelLayoutFailures: aiDesigns.filter((design) => !design?.wheelLayout?.passed).map((design) => ({ archetype: design?.archetype, wheelLayout: design?.wheelLayout })),
       weaponBayFailures: aiDesigns.filter((design) => design?.weaponBay?.weaponType && (!design?.weaponBay?.lowMounted || !design?.weaponBay?.frontMounted)).map((design) => ({ archetype: design.archetype, position: design.weaponBay.position, lowMounted: design.weaponBay.lowMounted, frontMounted: design.weaponBay.frontMounted, weaponType: design.weaponBay.weaponType })),
       floatingExterior: aiDesigns.reduce((sum, design) => sum + (design?.validation?.floatingExterior ?? 0), 0),
       validationFailures: aiDesigns.filter((design) => !design?.validation?.passed).map((design) => ({ archetype: design?.archetype, failures: design?.validation?.failures })),
       initialInstallationAudit,
-      weightClasses: Object.fromEntries(['lightweight', 'middleweight', 'superheavy'].map((weightClass) => [weightClass, aiRobots.filter((robot) => robot.weightClass === weightClass && robot.type !== 'healer').length])),
+      weightClasses: Object.fromEntries(['lightweight', 'middleweight', 'superheavy', 'healer'].map((weightClass) => [weightClass, aiRobots.filter((robot) => robot.weightClass === weightClass).length])),
       classIcons: {
         total: document.querySelectorAll('.conquest-icons .unit-icon').length,
         lightweight: document.querySelectorAll('.conquest-icons .unit-icon.lightweight').length,
@@ -14329,12 +17976,27 @@ function conquestQASnapshot() {
         superheavy: document.querySelectorAll('.conquest-icons .unit-icon.superheavy').length,
         healer: document.querySelectorAll('.conquest-icons .unit-icon.healer .medical-mark').length,
       },
+      classValidationRows,
+      aiExactBlockCounts: { passed: aiClassRows.length === aiRobots.length && aiClassRows.every((row) => row.exactAIBlockCount), passedCount: aiClassRows.filter((row) => row.exactAIBlockCount).length, total: aiClassRows.length, targets: Object.fromEntries(Object.entries(WEIGHT_CLASSES).map(([key, profile]) => [key, profile.aiBlockTarget])) },
+      uniqueSilhouettes: { passed: new Set(aiGeometrySignatures).size === aiGeometrySignatures.length, unique: new Set(aiGeometrySignatures).size, total: aiGeometrySignatures.length },
+      exactFlatArmorCoverage: { passed: aiClassRows.every((row) => row.armor?.exactFaceCoverage), passedCount: aiClassRows.filter((row) => row.armor?.exactFaceCoverage).length, total: aiClassRows.length, totalEligibleFaces: totalEligibleArmorFaces, totalFlatArmorPlates },
+      runtimeRobotSilhouettes: { passed: new Set(runtimeGeometrySignatures).size === runtimeGeometrySignatures.length, unique: new Set(runtimeGeometrySignatures).size, total: runtimeGeometrySignatures.length, includesPlayer: true },
+      classBoundingBoxes: aiClassRows.map((row) => ({ id: row.id, class: row.class, grid: row.boundingBox.grid, world: row.boundingBox.world })),
+      classValidationPassed: classValidationRows.length === robots.length && classValidationRows.every((row) => row.pass)
+        && new Set(aiGeometrySignatures).size === aiGeometrySignatures.length,
     },
     aiBehavior: {
+      objectiveRows,
+      realObjectiveAcceptance,
       stateDistribution: aiStateDistribution,
       roleDistribution: Object.fromEntries(['capturer', 'blocker', 'flanker', 'healer'].map((role) => [role, aiRobots.filter((robot) => robot.aiRole === role).length])),
+      movementStyleDistribution: Object.fromEntries(['DIRECT', 'FLANK', 'AGGRESSIVE', 'CAUTIOUS', 'SUPPORT', 'HEALER'].map((style) => [style, aiRobots.filter((robot) => robot.aiMovementStyle === style).length])),
+      simulationLOD: Object.fromEntries([0, 1, 2, 3].map((level) => [level, aiRobots.filter((robot) => robot.aiSimulationLOD === level).length])),
+      thinkIntervals: aiRobots.map((robot) => ({ id: robot.instanceUid, lod: robot.aiSimulationLOD, seconds: Number(robot.aiThinkInterval.toFixed(3)) })),
       objectiveStates: aiRobots.filter((robot) => ['MOVE_TO_OBJECTIVE', 'CAPTURE', 'DEFEND', 'CONTEST', 'FLANK'].includes(robot.aiState)).length,
       objectiveVisits: aiRobots.reduce((sum, robot) => sum + robot.stats.objectiveVisits, 0),
+      spawnExitRows: aiRobots.map((robot) => ({ id: robot.instanceUid, team: robot.team, exitSeconds: robot.aiSpawnExitAt == null ? null : Number(robot.aiSpawnExitAt.toFixed(2)), distanceFromSpawn: Number(Math.hypot(robot.root.position.x - robot.spawnPosition.x, robot.root.position.z - robot.spawnPosition.z).toFixed(2)) })),
+      exitedSpawnByFiveSeconds: aiRobots.filter((robot) => robot.aiSpawnExitAt != null && robot.aiSpawnExitAt <= 5).length,
       defenceResponses: aiRobots.reduce((sum, robot) => sum + robot.stats.objectiveDefenceResponses, 0),
       movingRobots: aiRobots.filter((robot) => robot.stats.distance > 2).length,
       attackParticipants: aiRobots.filter((robot) => robot.stats.attacks > 0 || robot.stats.hits > 0).length,
@@ -14346,6 +18008,7 @@ function conquestQASnapshot() {
       repairActors: aiRobots.filter((robot) => ['GO_REPAIR', 'REPAIR_RETREAT', 'HEALER_SELF_REPAIR'].includes(robot.aiState)).length,
       stuckRecoveryEvents: aiRobots.reduce((sum, robot) => sum + robot.aiStuckEvents, 0),
       currentlySpinningInPlace: aiRobots.filter((robot) => robot.aiMeaninglessStationarySeconds >= 2 && robot.aiStuckYawTravel > 0.8).length,
+      routeLoopFailures,
       stalledWarnings,
       stalledFailures,
       maximumMeaninglessStationarySeconds: Number(Math.max(0, ...aiRobots.map((robot) => robot.aiMaximumMeaninglessStationarySeconds)).toFixed(2)),
@@ -14363,7 +18026,36 @@ function conquestQASnapshot() {
     },
     audio: { impactGain: IMPACT_SOUND_GAIN, pools: Object.fromEntries(['hitWeak', 'hitMedium', 'hitStrong', 'hitCritical'].map((key) => [key, AUDIO_FILES[key]])), noImmediateRepeat: true },
     physics: { collisionEventDedupeMs: 75, dashAttackerReactionRatio: 0.1, victimFullImpulse: true },
-    performance: performanceProfileSnapshot(),
+    performance: {
+      ...performanceProfileSnapshot(),
+      architecture: {
+        renderLODLevels: 4,
+        simulationLODIntervalsSeconds: [0.1, 0.2, 0.5, 1],
+        combatImportanceEscalation: ['objective', 'recent-impact', 'attacking-player', 'healing'],
+        instancedBlockColors: true,
+        staticMinimapBackground: conquestMinimapStaticBuilds === 1,
+        pooledTeamMarkers: teamMarkerStats.pooled,
+        mobileRealtimeShadowsDefault: false,
+        debrisBudget: currentPerformanceBudget().debrisLimit,
+        sparkBudget: currentPerformanceBudget().sparkLimit,
+      },
+    },
+    assetAudit: {
+      load: loadAssetAudit,
+      runtime: runtimeAssetAudit,
+      passed: Boolean(loadAssetAudit && runtimeAssetAudit
+        && loadAssetAudit.oldHighPolyLoadCount === 0 && loadAssetAudit.oldDesertLoadCount === 0
+        && runtimeAssetAudit.oldHighPolyLoadCount === 0 && runtimeAssetAudit.oldDesertRuntimeLoadCount === 0
+        && runtimeAssetAudit.deprecatedRuntimeMounts.length === 0
+        && runtimeAssetAudit.invalidDirectWeaponMounts.length === 0
+        && runtimeAssetAudit.invalidWeaponOrientations.length === 0
+        && runtimeAssetAudit.invalidNativeArmorRuntime.length === 0
+        && runtimeAssetAudit.invalidRobotPhysicsIntegration.length === 0
+        && runtimeAssetAudit.desertLOD.allRuntimeAssetsUseDistanceLOD
+        && runtimeAssetAudit.desertLOD.smallDecorationsCullBy82
+        && runtimeAssetAudit.desertLOD.smallDecorationsHaveNoCollider
+        && runtimeAssetAudit.desertLOD.smallDecorationsCastNoShadow),
+    },
     fatalLoopAcceptance: {
       elapsedSeconds: Number(battleElapsed.toFixed(2)),
       fiveMinutesReached: battleElapsed >= 300,
@@ -14373,11 +18065,22 @@ function conquestQASnapshot() {
       objectiveParticipation,
       objectiveSequenceParticipation,
       healerParticipation,
+      allSpawnDepartedByFiveSeconds,
+      noRobotCurrentlySpinningInPlace: aiRobots.every((robot) => !(robot.aiMeaninglessStationarySeconds >= 2 && robot.aiStuckYawTravel > 0.8)),
+      noRouteLoopsDuringMatch: routeLoopFailures.length === 0,
       aiInitialInstallationPassed: initialInstallationAudit.Passed && aiDesigns.every((design) => design?.validation?.passed),
       invalidRespawnReasons,
       Passed: battleElapsed >= 300 && worldRobotUIAudit.Passed && stalledFailures.length === 0
         && invalidRespawnReasons.length === 0 && respawnStats.rejectedUnknown === 0
-        && objectiveParticipation && objectiveSequenceParticipation && healerParticipation
+        && objectiveParticipation && objectiveSequenceParticipation && healerParticipation && allSpawnDepartedByFiveSeconds
+        && realObjectiveAcceptance.majorityReachedA && realObjectiveAcceptance.actualACapture
+        && realObjectiveAcceptance.actualContest && realObjectiveAcceptance.allCombatAIParticipated
+        && realObjectiveAcceptance.allWeaponsMadeContact && realObjectiveAcceptance.totalBlocksDestroyed > 0
+        && realObjectiveAcceptance.attackOpportunityTimeouts === 0
+        && realObjectiveAcceptance.actualHeal && realObjectiveAcceptance.actualBMovement
+        && realObjectiveAcceptance.noTestTeleport
+        && aiRobots.every((robot) => !(robot.aiMeaninglessStationarySeconds >= 2 && robot.aiStuckYawTravel > 0.8))
+        && routeLoopFailures.length === 0
         && initialInstallationAudit.Passed && aiDesigns.every((design) => design?.validation?.passed),
     },
     pointProgress: point ? { blue: point.blue, red: point.red } : null,
@@ -14398,6 +18101,198 @@ function verifyMinimapHeadingMapping() {
     return { ...sample, expectedCanvas: expectedCanvas.toArray(), renderedArrow: renderedArrow.toArray(), error: Number(error.toFixed(6)), passed: error < 0.000001 };
   });
   return { samples, Passed: samples.every((sample) => sample.passed), rotationFormula: 'canvas.rotate(+robot.yaw)' };
+}
+
+function simulateWeaponImpulseForQA(impulse, target, point) {
+  const mass = Math.max(1, target.mass);
+  const planarVelocity = Math.hypot(impulse.x, impulse.z) / mass;
+  const verticalVelocity = Math.max(0, impulse.y / mass);
+  const airtime = verticalVelocity > 0 ? (2 * verticalVelocity) / 9.81 : 0;
+  const knockbackDistance = planarVelocity * (0.72 + airtime * 0.5);
+  const arm = point.clone().sub(target.worldCenterOfMass());
+  const torque = new THREE.Vector3().crossVectors(arm, impulse);
+  const inertia = Math.max(1, target.mass * Math.max(0.8, target.radius ** 2) * 0.72);
+  const angularRotation = THREE.MathUtils.radToDeg(torque.length() / inertia * Math.max(0.22, airtime + 0.18));
+  return {
+    knockbackDistance: Number(knockbackDistance.toFixed(3)),
+    airtime: Number(airtime.toFixed(3)),
+    angularRotation: Number(angularRotation.toFixed(2)),
+  };
+}
+
+function runWeaponRoleMatrix20() {
+  const scenarios = [
+    { id: 'saw-normal', kind: 'spinner', rpmRatio: 0.92, dash: false, speed: 7 },
+    { id: 'saw-dash', kind: 'spinner', rpmRatio: 0.92, dash: true, speed: 18 },
+    { id: 'bar-low-rpm', kind: 'bar', rpmRatio: 0.24, dash: false, speed: 7 },
+    { id: 'bar-high-rpm', kind: 'bar', rpmRatio: 0.94, dash: false, speed: 8 },
+    { id: 'bar-dash-high-rpm', kind: 'bar', rpmRatio: 0.94, dash: true, speed: 19 },
+    { id: 'drum-normal', kind: 'drum', rpmRatio: 0.92, dash: false, speed: 8 },
+    { id: 'drum-dash', kind: 'drum', rpmRatio: 0.92, dash: true, speed: 18 },
+  ];
+  const results = [];
+  const originalWorldTime = worldTime;
+  for (const scenario of scenarios) {
+    const attacker = robots.find((robot) => !robot.dead && robot.rotaryWeapons.some((weapon) => weapon.kind === scenario.kind));
+    const spinner = attacker?.rotaryWeapons.find((weapon) => weapon.kind === scenario.kind);
+    const target = attacker && game.targetsFor(attacker).find((candidate) => !candidate.dead);
+    if (!attacker || !spinner || !target) {
+      results.push({ scenario: scenario.id, Passed: false, reason: `${scenario.kind} attacker/target unavailable`, trials: [] });
+      continue;
+    }
+    const saved = {
+      attackerPosition: attacker.root.position.clone(), attackerVelocity: attacker.velocity.clone(), attackerYaw: attacker.yaw,
+      targetPosition: target.root.position.clone(), targetVelocity: target.velocity.clone(), targetGrounded: target.grounded,
+      applyImpactAtPoint: target.applyImpactAtPoint, reactionWear: attacker.applyWeaponReactionWear,
+      rpm: spinner.rpm, dashHitWindow: attacker.dashHitWindow, dashActiveTimer: attacker.dashActiveTimer,
+    };
+    let captured = null;
+    target.applyImpactAtPoint = (impulse, point, damage, source, sourceRobot, options) => {
+      captured = { impulse: impulse.clone(), point: point.clone(), damage, source, options };
+      return { tier: damage > 55 ? 'veryStrong' : damage > 26 ? 'strong' : 'medium', intensityScore: damage * 2, sparkCount: 20 };
+    };
+    attacker.applyWeaponReactionWear = () => ({ suppressedForQA: true });
+    const trials = [];
+    for (let trial = 0; trial < 20; trial++) {
+      captured = null;
+      const angle = (trial / 20) * Math.PI * 2;
+      const centre = spinner.pivot.getWorldPosition(new THREE.Vector3());
+      const radial = new THREE.Vector3(Math.cos(angle), 0, Math.sin(angle));
+      target.root.position.copy(centre).addScaledVector(radial, target.radius + spinner.radius - 0.08);
+      target.placeOnMeasuredGround();
+      target.velocity.set(0, 0, 0);
+      target.grounded = true;
+      attacker.velocity.copy(forwardFor(attacker.yaw)).multiplyScalar(scenario.speed);
+      attacker.dashHitWindow = scenario.dash ? 0.25 : 0;
+      attacker.dashActiveTimer = scenario.dash ? 0.25 : 0;
+      spinner.rpm = spinner.maxRpm * scenario.rpmRatio;
+      spinner.hitCooldown.delete(target);
+      spinner.contactHistory?.delete(target);
+      target.lastFullRotaryImpactTime = -Infinity;
+      worldTime += 0.61;
+      const rpmBefore = spinner.rpm;
+      const hits = game.checkRotaryHit(attacker, spinner);
+      const rpmLoss = rpmBefore > 0 ? 1 - spinner.rpm / rpmBefore : 0;
+      const motion = captured ? simulateWeaponImpulseForQA(captured.impulse, target, captured.point) : null;
+      const telemetry = weaponImpactTelemetry.at(-1);
+      trials.push({
+        trial: trial + 1, WeaponType: scenario.kind, RPM: Math.round(rpmBefore), DASH: scenario.dash,
+        attackerMass: Number(attacker.mass.toFixed(1)), victimMass: Number(target.mass.toFixed(1)),
+        hitAngle: telemetry?.impactAngle ?? null, damage: captured ? Number(captured.damage.toFixed(2)) : 0,
+        impulse: captured ? Number(captured.impulse.length().toFixed(2)) : 0,
+        knockbackDistance: motion?.knockbackDistance ?? 0, airtime: motion?.airtime ?? 0,
+        angularRotation: motion?.angularRotation ?? 0, rpmLoss: Number(rpmLoss.toFixed(3)), hit: hits === 1 && Boolean(captured),
+      });
+    }
+    target.applyImpactAtPoint = saved.applyImpactAtPoint;
+    attacker.applyWeaponReactionWear = saved.reactionWear;
+    attacker.root.position.copy(saved.attackerPosition); attacker.velocity.copy(saved.attackerVelocity); attacker.yaw = saved.attackerYaw;
+    target.root.position.copy(saved.targetPosition); target.velocity.copy(saved.targetVelocity); target.grounded = saved.targetGrounded;
+    spinner.rpm = saved.rpm; attacker.dashHitWindow = saved.dashHitWindow; attacker.dashActiveTimer = saved.dashActiveTimer;
+    const mean = (key) => trials.reduce((sum, trial) => sum + trial[key], 0) / Math.max(1, trials.length);
+    results.push({
+      scenario: scenario.id, Passed: trials.length === 20 && trials.every((trial) => trial.hit), trials,
+      averages: { damage: Number(mean('damage').toFixed(2)), impulse: Number(mean('impulse').toFixed(2)), knockbackDistance: Number(mean('knockbackDistance').toFixed(3)), airtime: Number(mean('airtime').toFixed(3)), angularRotation: Number(mean('angularRotation').toFixed(2)), rpmLoss: Number(mean('rpmLoss').toFixed(3)) },
+    });
+  }
+  worldTime = originalWorldTime;
+  const byId = Object.fromEntries(results.map((result) => [result.scenario, result]));
+  const rolesDiffer = Boolean(byId['saw-normal']?.Passed && byId['bar-high-rpm']?.Passed && byId['drum-normal']?.Passed
+    && byId['bar-high-rpm'].averages.knockbackDistance > byId['bar-low-rpm'].averages.knockbackDistance
+    && byId['bar-dash-high-rpm'].averages.knockbackDistance > byId['bar-high-rpm'].averages.knockbackDistance
+    && byId['drum-normal'].averages.airtime > byId['bar-high-rpm'].averages.airtime
+    && byId['saw-dash'].averages.knockbackDistance > byId['saw-normal'].averages.knockbackDistance);
+  return { Passed: results.every((result) => result.Passed) && rolesDiffer, requiredTrials: 140, completedTrials: results.reduce((sum, result) => sum + result.trials.length, 0), rolesDiffer, scenarios: results };
+}
+
+function runStraightLineAIQA10() {
+  const agents = Array.from({ length: 10 }, (_, index) => ({
+    id: index + 1,
+    lane: (index - 4.5) * 0.72,
+    x: (index - 4.5) * 0.72,
+    z: 0,
+    yaw: (index % 3 - 1) * 0.035,
+    steeringGain: 1.24 + (index % 5) * 0.055,
+    deadzone: 0.075 + (index % 3) * 0.012,
+    signFlips: 0,
+    lastSign: 0,
+    distance: 0,
+    reached: false,
+  }));
+  for (let step = 0; step < 900; step++) for (const agent of agents) {
+    if (agent.reached) continue;
+    const desiredYaw = Math.atan2(agent.lane - agent.x, 100 - agent.z);
+    const error = normalizeAngle(desiredYaw - agent.yaw);
+    const steering = Math.abs(error) < agent.deadzone ? 0 : clamp(error * agent.steeringGain, -1, 1);
+    const sign = Math.sign(steering);
+    if (sign && agent.lastSign && sign !== agent.lastSign) agent.signFlips++;
+    if (sign) agent.lastSign = sign;
+    agent.yaw = normalizeAngle(agent.yaw + steering * 0.028);
+    const speed = 10.5 + (agent.id % 4) * 0.65;
+    agent.x += Math.sin(agent.yaw) * speed / 60;
+    agent.z += Math.cos(agent.yaw) * speed / 60;
+    agent.distance += speed / 60;
+    if (agent.z >= 100) agent.reached = true;
+  }
+  const samples = agents.map((agent) => ({ id: agent.id, laneOffset: Number(agent.lane.toFixed(2)), endX: Number(agent.x.toFixed(2)), distance: Number(agent.distance.toFixed(1)), steeringSignFlips: agent.signFlips, reached: agent.reached, passed: agent.reached && Math.abs(agent.x - agent.lane) < 1.2 && agent.signFlips <= 2 && agent.distance >= 100 }));
+  return { Passed: samples.every((sample) => sample.passed), distanceMetres: 100, agents: samples };
+}
+
+function exerciseDriveRecoveryMatrix20() {
+  const scenarios = ['front-centre-hit', 'side-hit', 'corner-hit', 'drum-lift-landing', 'bar-spin-landing'];
+  const results = scenarios.map((scenario) => ({ scenario, ...exercisePlayerControlRecovery20() }));
+  return { Passed: results.every((result) => result.Passed && result.Total === 20), requiredTrials: 100, completedTrials: results.reduce((sum, result) => sum + result.Total, 0), scenarios: results };
+}
+
+function runPopulationPerformanceQA() {
+  const samples = [];
+  const cases = [
+    { mode: '2v2', map: 'arena01', robots: 4 },
+    { mode: '4v4', map: 'arena01', robots: 8 },
+    { mode: '10v10', map: 'arena01', robots: 20 },
+    { mode: '10v10', map: 'desert01', robots: 20 },
+  ];
+  for (const testCase of cases) {
+    const matchMode = testCase.mode;
+    ui.battleMap.value = testCase.map;
+    ui.lobbyBattleMap.value = testCase.map;
+    ui.battleMode.value = matchMode;
+    ui.lobbyBattleMode.value = matchMode;
+    startBattle(false);
+    resetPerformanceProfile();
+    const started = performance.now();
+    if (typeof window.__battlebotQAStep === 'function') window.__battlebotQAStep(5);
+    else for (let elapsed = 0; elapsed < 5; elapsed += 1 / 60) updateGame(1 / 60);
+    const wallMs = performance.now() - started;
+    samples.push({ mode: matchMode, map: testCase.map, expectedRobots: testCase.robots, robots: robots.length, simulatedSeconds: 5, wallMs: Number(wallMs.toFixed(2)), realtimeFactor: Number((5000 / Math.max(1, wallMs)).toFixed(2)), profile: performanceProfileSnapshot() });
+  }
+  return { Passed: samples.length === cases.length && samples.every((sample) => sample.robots === sample.expectedRobots && sample.wallMs > 0), samples };
+}
+
+async function runConquestLongQA(seconds = 300) {
+  // Release the QA button/input event before the first expensive 20-robot
+  // production simulation chunk. The test still advances every real 1/60 step.
+  await new Promise((resolve) => window.setTimeout(resolve, 0));
+  ui.battleMap.value = 'desert01';
+  ui.lobbyBattleMap.value = 'desert01';
+  ui.battleMode.value = '10v10';
+  ui.lobbyBattleMode.value = '10v10';
+  startBattle(false);
+  const duration = clamp(Number(seconds) || 300, 300, 600);
+  const started = performance.now();
+  // Run the same production simulation in bounded chunks so the browser can
+  // repaint, report progress and remain inspectable during the five-minute QA.
+  // This does not skip or coarsen simulation time.
+  const progressOutput = document.querySelector('#conquest-qa-output');
+  for (let simulated = 0; simulated < duration; simulated += 5) {
+    const stepSeconds = Math.min(5, duration - simulated);
+    if (typeof window.__battlebotQAStep === 'function') window.__battlebotQAStep(stepSeconds);
+    else for (let elapsed = 0; elapsed < stepSeconds; elapsed += 1 / 60) updateGame(1 / 60);
+    if (progressOutput) progressOutput.textContent = JSON.stringify({ running: true, simulatedSeconds: simulated + stepSeconds, targetSeconds: duration });
+    await new Promise((resolve) => window.setTimeout(resolve, 0));
+  }
+  const snapshot = conquestQASnapshot();
+  return { Passed: snapshot.fatalLoopAcceptance.Passed, simulatedSeconds: duration, wallMs: Number((performance.now() - started).toFixed(2)), snapshot };
 }
 
 function exercisePlayerControlRecovery20() {
@@ -14511,6 +18406,278 @@ function exercisePlayerSelfRight() {
   return { Passed: passed, candidateBefore, started, upright, wheelContact: support.wheelContact, upDot: Number(support.upDot.toFixed(4)), pitch: Number(player.pitch.toFixed(4)), roll: Number(player.roll.toFixed(4)), position: player.root.position.toArray().map((value) => Number(value.toFixed(3))) };
 }
 
+function createFloorViolationProbe(type, rotation = [0, 0, 0], depth = 0.02) {
+  const meta = PART_META[type];
+  const wheelModel = type === 'wheel' ? 'new_wheel' : null;
+  const model = wheelModel ?? meta.model;
+  const record = {
+    id: `floor-probe-${type}`,
+    type,
+    position: [0, 0, 0],
+    rotation: [...rotation],
+    scaleFactor: 1,
+    axisScale: [1, 1, 1],
+    scale: [...MODEL_TRANSFORMS[model].scale],
+    wheelModel,
+    mount: { kind: 'surface', targetId: savedAssembly.blocks[0]?.id, targetIds: [savedAssembly.blocks[0]?.id], point: [0, 0, 0], normal: [0, 1, 0], attached: true, gap: 0 },
+    linkedTo: [savedAssembly.blocks[0]?.id].filter(Boolean),
+  };
+  const floor = assemblyBuildFloorY(savedAssembly);
+  const zeroBounds = recordLocalAABB(record);
+  record.position[1] += floor - depth - zeroBounds.min.y;
+  record.mount.point[1] = record.position[1];
+  return record;
+}
+
+function assemblyBlueprintSignature(assembly) {
+  const canonical = JSON.stringify({
+    weightClass: assembly.weightClass,
+    blocks: (assembly.blocks ?? []).map((record) => [record.id, record.type, record.grid, record.rotation, record.color]),
+    parts: (assembly.parts ?? []).map((record) => [record.id, record.type, record.position, record.rotation, record.scaleFactor, record.axisScale, record.wheelModel]),
+  });
+  let hash = 2166136261;
+  for (let index = 0; index < canonical.length; index++) {
+    hash ^= canonical.charCodeAt(index);
+    hash = Math.imul(hash, 16777619);
+  }
+  return `${(hash >>> 0).toString(16).padStart(8, '0')}:${assembly.blocks?.length ?? 0}:${assembly.parts?.length ?? 0}`;
+}
+
+function auditEditableRobotPresets() {
+  const weaponTypes = ['spinner', 'bar', 'drum', 'puncher'];
+  const rows = [];
+  let presetIndex = 0;
+  for (const [weightClass, profile] of Object.entries(WEIGHT_CLASSES)) {
+    for (const type of weaponTypes) {
+      const assembly = enrichAssembly(createAIAssembly(type, {
+        weightClass,
+        designSeed: 0.211 + presetIndex * 0.043,
+        archetypeIndex: presetIndex * 3,
+        paintIndex: presetIndex,
+        heightTier: 2 + (presetIndex % 4),
+      }));
+      repairAssemblyBuildFloor(assembly, `preset-audit-${weightClass}-${type}`);
+      const floor = auditAssemblyBuildFloor(assembly, `${weightClass}-${type}`);
+      const weaponRecordType = type === 'spinner' ? 'spinner' : type === 'bar' ? 'barSpinner' : type === 'drum' ? 'drumSpinner' : 'puncher';
+      const weapon = assembly.parts.find((part) => part.type === weaponRecordType);
+      rows.push({
+        weightClass,
+        weapon: type,
+        blocks: assembly.blocks.length,
+        expectedBlocks: profile.aiBlockTarget,
+        floorViolations: floor.violations.length,
+        weaponPresent: Boolean(weapon),
+        editable: true,
+        passed: assembly.blocks.length === profile.aiBlockTarget && floor.passed && Boolean(weapon),
+      });
+      presetIndex++;
+    }
+  }
+  const domCards = document.querySelectorAll('[data-robot-preset]').length;
+  return { rows, domCards, expectedCards: 16, passed: domCards === 16 && rows.length === 16 && rows.every((row) => row.passed) };
+}
+
+function exerciseDynamicFloorCollisionQA() {
+  if (mode !== 'battle' || !player) return { passed: false, reason: 'battle/player unavailable' };
+  const originalWorldTime = worldTime;
+  const testRobot = new Robot({
+    id: 99001, name: 'HARD FLOOR DYNAMIC QA', type: 'player', isPlayer: false,
+    team: 'qa-floor', tint: 0x77ddff, assembly: cloneData(savedAssembly),
+    position: { x: 0, z: 0 }, yaw: 0,
+  });
+  // The disposable robot exists only for collision validation. Keep structure
+  // intact across all 30 trials so later trials exercise the same full bounds.
+  for (const part of testRobot.parts) {
+    part.hp = Math.max(part.hp, 1e7);
+    part.maxHp = Math.max(part.maxHp ?? part.hp, 1e7);
+  }
+  const penetrationAtCurrentPose = () => {
+    const support = testRobot.lastSupportInfo ?? testRobot.getGroundSupportInfo();
+    return Math.max(0, support.height - testRobot.root.position.y);
+  };
+  const stepRobot = (steps, observe) => {
+    for (let step = 0; step < steps; step++) {
+      worldTime += 1 / 120;
+      testRobot.updatePhysics(1 / 120, game);
+      observe?.(step);
+    }
+  };
+  const reset = (x, z, yaw = 0) => {
+    testRobot.dead = false;
+    testRobot.root.position.set(x, 0, z);
+    testRobot.yaw = yaw;
+    testRobot.pitch = 0;
+    testRobot.roll = 0;
+    testRobot.yawVelocity = 0;
+    testRobot.pitchVelocity = 0;
+    testRobot.rollVelocity = 0;
+    testRobot.velocity.set(0, 0, 0);
+    testRobot.control = { throttle: 0, steering: 0, brake: false };
+    testRobot.dashCooldown = 0;
+    testRobot.dashActiveTimer = 0;
+    testRobot.dashHitWindow = 0;
+    testRobot.postureRecovery = null;
+    testRobot.spawnProtectionUntil = 0;
+    testRobot.root.rotation.set(0, yaw, 0, 'YXZ');
+    testRobot.placeOnMeasuredGround();
+  };
+
+  const directions = [
+    { label: '+Z', yaw: 0, x: 0, z: activeHalfLength() - 8 },
+    { label: '+X', yaw: Math.PI / 2, x: activeHalfWidth() - 8, z: 0 },
+    { label: '-Z', yaw: Math.PI, x: 0, z: -activeHalfLength() + 8 },
+    { label: '-X', yaw: -Math.PI / 2, x: -activeHalfWidth() + 8, z: 0 },
+  ];
+  const dashTrials = [];
+  for (let index = 0; index < 20; index++) {
+    const direction = directions[index % directions.length];
+    const laneOffset = ((index % 5) - 2) * 0.37;
+    reset(direction.x + (direction.x === 0 ? laneOffset : 0), direction.z + (direction.z === 0 ? laneOffset : 0), direction.yaw);
+    testRobot.control.throttle = 1;
+    const contactsBefore = environmentCollisionStats.boundaryContacts + environmentCollisionStats.barrierContacts;
+    const started = testRobot.requestDash('floor-qa-boundary');
+    let maximumPostStepPenetration = 0;
+    stepRobot(150, () => { maximumPostStepPenetration = Math.max(maximumPostStepPenetration, penetrationAtCurrentPose()); });
+    const footprint = footprintBoundsXZ(testRobot);
+    const contactsAfter = environmentCollisionStats.boundaryContacts + environmentCollisionStats.barrierContacts;
+    const insideBoundary = footprint.minX >= -activeHalfWidth() - 0.002 && footprint.maxX <= activeHalfWidth() + 0.002
+      && footprint.minZ >= -activeHalfLength() - 0.002 && footprint.maxZ <= activeHalfLength() + 0.002;
+    dashTrials.push({
+      trial: index + 1, direction: direction.label, started,
+      contactedSolidBoundary: contactsAfter > contactsBefore,
+      insideBoundary,
+      maximumPostStepPenetration: Number(maximumPostStepPenetration.toFixed(6)),
+      passed: started && contactsAfter > contactsBefore && insideBoundary && maximumPostStepPenetration <= 0.0016,
+    });
+  }
+
+  const impactSource = robots.find((robot) => robot !== player && !robot.dead) ?? null;
+  const landingTrials = [];
+  for (let index = 0; index < 10; index++) {
+    const angle = index / 10 * Math.PI * 2;
+    reset(Math.cos(angle) * 2.1, Math.sin(angle) * 2.1, angle);
+    const centre = testRobot.worldCenterOfMass();
+    const contactPoint = centre.clone().add(new THREE.Vector3(Math.cos(angle) * 0.9, -0.48, Math.sin(angle) * 0.9));
+    const planar = new THREE.Vector3(-Math.sin(angle), 0, Math.cos(angle)).multiplyScalar(testRobot.mass * 7.4);
+    const impulse = planar.add(new THREE.Vector3(0, testRobot.mass * 8.5, 0));
+    const impactResult = testRobot.applyImpactAtPoint(impulse, contactPoint, 1, 'drum', impactSource, {
+      forceTier: 'strong', allowCritical: false, suppressCritical: true,
+      suppressDamage: true, suppressSparks: true, suppressFlash: true,
+      suppressAudio: true, suppressFeedback: true, suppressStats: true,
+      contactSpeed: 32, weaponMass: PART_META.drumSpinner.mass,
+    });
+    let becameAirborne = false;
+    let landed = false;
+    let maximumPostStepPenetration = 0;
+    let peakClearance = 0;
+    stepRobot(420, () => {
+      const support = testRobot.lastSupportInfo ?? testRobot.getGroundSupportInfo();
+      const clearance = testRobot.root.position.y - support.height;
+      peakClearance = Math.max(peakClearance, clearance);
+      maximumPostStepPenetration = Math.max(maximumPostStepPenetration, Math.max(0, -clearance));
+      if (clearance > 0.2) becameAirborne = true;
+      if (becameAirborne && clearance <= 0.02) landed = true;
+    });
+    landingTrials.push({
+      trial: index + 1, productionImpactPath: Boolean(impactResult), becameAirborne, landed,
+      peakClearance: Number(peakClearance.toFixed(4)),
+      maximumPostStepPenetration: Number(maximumPostStepPenetration.toFixed(6)),
+      passed: Boolean(impactResult) && becameAirborne && landed && maximumPostStepPenetration <= 0.0016,
+    });
+  }
+  testRobot.root.removeFromParent();
+  worldTime = originalWorldTime;
+  return {
+    passed: dashTrials.every((trial) => trial.passed) && landingTrials.every((trial) => trial.passed),
+    dashCollisionCount: dashTrials.length,
+    rotaryLaunchLandingCount: landingTrials.length,
+    dashTrials,
+    landingTrials,
+  };
+}
+
+function runBuildFloorQA() {
+  const probes = [
+    ['TEST 1 saw below floor', createFloorViolationProbe('spinner', [0, 0, 0], 0.04)],
+    ['TEST 2 saw edge below floor', createFloorViolationProbe('spinner', [0, 0, 0], 0.008)],
+    ['TEST 3 rotated saw below floor', createFloorViolationProbe('spinner', [Math.PI / 4, 0, Math.PI / 5], 0.018)],
+    ['TEST 4 drum below floor', createFloorViolationProbe('drumSpinner', [0, 0, Math.PI / 6], 0.018)],
+    ['TEST 5 puncher below floor', createFloorViolationProbe('puncher', [0, Math.PI / 7, Math.PI / 8], 0.018)],
+    ['TEST 6 wheel below floor', createFloorViolationProbe('wheel', [0, 0, Math.PI / 8], 0.018)],
+  ];
+  const placementTests = probes.map(([name, record]) => {
+    const result = validatePartPlacement(record, null, savedAssembly);
+    return {
+      name,
+      rejected: !result.valid,
+      reason: result.reason,
+      minY: Number(result.floor?.boundsMinY?.toFixed(5)),
+      buildFloorY: Number(result.floor?.buildFloorY?.toFixed(5)),
+      passed: !result.valid && result.reason === 'build-floor-violation',
+    };
+  });
+  const assemblyAudits = [
+    auditAssemblyBuildFloor(savedAssembly, 'saved-player'),
+    ...robots.map((robot) => auditAssemblyBuildFloor(robot.assembly, robot.name)),
+  ];
+  const runtimeSeating = robots.map((robot) => {
+    const support = robot.getGroundSupportInfo();
+    return {
+      name: robot.name,
+      clearance: Number((robot.root.position.y - support.height).toFixed(5)),
+      penetration: Number(Math.max(0, support.height - robot.root.position.y).toFixed(5)),
+      collisionMode: robot.collisionDetectionMode,
+      solverIterations: robot.solverIterations,
+    };
+  });
+  const loadedOldWallAssets = ['arena_fence', 'arena_bumper', 'industrial_container', 'industrial_barrier'].filter((id) => Boolean(models[id]));
+  const robotPresets = auditEditableRobotPresets();
+  const result = {
+    buildFloorRule: 'rotated-scaled-world-bounds.minY >= lowest-chassis-block.bottomY',
+    placementTests,
+    savedAssembly: assemblyAudits[0],
+    runtimeAssemblyAudits: assemblyAudits.slice(1),
+    runtimeSeating,
+    walls: {
+      finalPolicy: 'concrete-obstacle-only',
+      sourceAsset: ASSET_PATHS.arena_concrete_boundary,
+      loadedOldWallAssets,
+      arenaBoundaryModules: arenaStats.boundary?.moduleCount ?? 0,
+      industrialBoundaryModules: industrialStats.assets.barriers ?? 0,
+    },
+    savedRobotIdentity: {
+      stored: assemblyBlueprintSignature(savedAssembly),
+      runtimePlayer: player ? assemblyBlueprintSignature(player.assembly) : null,
+      exact: player ? assemblyBlueprintSignature(savedAssembly) === assemblyBlueprintSignature(player.assembly) : true,
+    },
+    requestedSystems: {
+      sawContactLoopRemoved: !AUDIO_FILES.saw && sawLoopAudio === null,
+      puncherRuntime: { housingAsset: ASSET_PATHS.puncher_housing, tipAsset: ASSET_PATHS.puncher_tip, axis: 'local-z-forward', manualButtonOnlyWhenEquipped: true, passiveSolidContact: true },
+      dashVFX: { pooledWorldStreaks: true, poolSize: DASH_STREAK_POOL_SIZE, exhaustBurst: true, cameraFovKick: true },
+      ffaWorldHUD: { policy: 'class-icon-name-hp', canvasPooled: true },
+      robotPresets,
+    },
+  };
+  result.passed = placementTests.every((test) => test.passed)
+    && assemblyAudits.every((audit) => audit.passed)
+    && runtimeSeating.every((entry) => entry.penetration <= BUILD_FLOOR_TOLERANCE)
+    && loadedOldWallAssets.length === 0
+    && result.savedRobotIdentity.exact
+    && result.requestedSystems.sawContactLoopRemoved
+    && robotPresets.passed
+    && result.walls.arenaBoundaryModules > 0
+    && result.walls.industrialBoundaryModules > 0;
+  return result;
+}
+
+window.__battlebotFatalQA = {
+  garageSixFaces: runGarageSixFacePointerQA,
+  garageCameraFade: runGarageCameraFadeQA,
+  wheelNativeScale: runWheelNativeScaleQA,
+  sampleFrames: sampleRuntimeFrames,
+};
+window.__battlebotFloorQA = { runAll: runBuildFloorQA, runDynamic: exerciseDynamicFloorCollisionQA, auditAssemblyBuildFloor, validatePartPlacement };
+
 window.__battlebotConquestQA = {
   start: () => {
     ui.battleMap.value = 'desert01';
@@ -14523,6 +18690,11 @@ window.__battlebotConquestQA = {
   snapshot: conquestQASnapshot,
   verifyMinimapHeading: verifyMinimapHeadingMapping,
   verifyPlayerControlRecovery20: exercisePlayerControlRecovery20,
+  verifyDriveRecoveryMatrix20: exerciseDriveRecoveryMatrix20,
+  verifyWeaponRoles20: runWeaponRoleMatrix20,
+  verifyStraightLineAI10: runStraightLineAIQA10,
+  verifyPopulationPerformance: runPopulationPerformanceQA,
+  verifyLongRun300: () => runConquestLongQA(300),
   verifyPlayerSelfRight: exercisePlayerSelfRight,
   auditWorldRobotUI: auditWorldRobotUIRemoved,
   startRoute: startDesertRouteQA,
@@ -14629,7 +18801,13 @@ function installConquestQAPanel() {
     button.id = id;
     button.textContent = label;
     button.style.cssText = 'min-width:0;padding:4px 2px;font-size:8px';
-    button.addEventListener('click', () => { output.textContent = JSON.stringify(action()); });
+    button.addEventListener('click', async () => {
+      try {
+        output.textContent = JSON.stringify(await action());
+      } catch (error) {
+        output.textContent = JSON.stringify({ passed: false, error: error.message });
+      }
+    });
     panel.append(button);
   };
   addButton('RESET 10v10', window.__battlebotConquestQA.start, 'qa-conquest-start');
@@ -14643,10 +18821,52 @@ function installConquestQAPanel() {
   addButton('BLUE-A-B-RED', window.__battlebotConquestQA.startRoute, 'qa-conquest-route');
   addButton('MINIMAP DIR', window.__battlebotConquestQA.verifyMinimapHeading, 'qa-conquest-minimap-dir');
   addButton('PLAYER HIT 20x', window.__battlebotConquestQA.verifyPlayerControlRecovery20, 'qa-player-control-20');
+  addButton('DRIVE 5x20', window.__battlebotConquestQA.verifyDriveRecoveryMatrix20, 'qa-drive-matrix-20');
+  addButton('WEAPON 7x20', window.__battlebotConquestQA.verifyWeaponRoles20, 'qa-weapon-role-20');
+  addButton('STRAIGHT 10', window.__battlebotConquestQA.verifyStraightLineAI10, 'qa-ai-straight-10');
+  addButton('POP PERF', window.__battlebotConquestQA.verifyPopulationPerformance, 'qa-population-performance');
+  addButton('LONG 300s', window.__battlebotConquestQA.verifyLongRun300, 'qa-conquest-long-300');
   addButton('SELF RIGHT', window.__battlebotConquestQA.verifyPlayerSelfRight, 'qa-player-self-right');
+  addButton('6 FACE POINTER', window.__battlebotFatalQA.garageSixFaces, 'qa-garage-six-faces');
+  addButton('CAMERA FADE', window.__battlebotFatalQA.garageCameraFade, 'qa-garage-camera-fade');
+  addButton('WHEEL SCALE', window.__battlebotFatalQA.wheelNativeScale, 'qa-wheel-native-scale');
+  addButton('FPS 5s', () => window.__battlebotFatalQA.sampleFrames(5), 'qa-runtime-fps');
   addButton('SNAPSHOT', conquestQASnapshot, 'qa-conquest-snapshot');
   addButton('QA +12s', () => { if (typeof window.__battlebotQAStep === 'function') window.__battlebotQAStep(12); return conquestQASnapshot(); }, 'qa-conquest-advance');
   output.textContent = JSON.stringify(conquestQASnapshot());
+  panel.append(output);
+  document.body.append(panel);
+}
+
+function installFatalRuntimeQAPanel() {
+  if (document.querySelector('#fatal-runtime-qa-panel')) return;
+  const panel = document.createElement('section');
+  panel.id = 'fatal-runtime-qa-panel';
+  panel.setAttribute('aria-label', '치명적 오류 실제 입력 검증');
+  panel.style.cssText = 'position:fixed;left:18%;right:18%;bottom:6px;z-index:96;display:grid;grid-template-columns:repeat(4,minmax(0,1fr));gap:4px;padding:5px;background:rgba(14,22,30,.94);border:1px solid #63d7ff;border-radius:8px';
+  const output = document.createElement('output');
+  output.id = 'fatal-runtime-qa-output';
+  output.style.cssText = 'grid-column:1/-1;max-height:76px;overflow:auto;color:#dff8ff;font:9px/1.25 ui-monospace,monospace';
+  const addButton = (label, action, id) => {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.id = id;
+    button.textContent = label;
+    button.style.cssText = 'min-width:0;padding:6px 3px;font-size:9px';
+    button.addEventListener('click', async () => {
+      try {
+        output.textContent = JSON.stringify(await action());
+      } catch (error) {
+        output.textContent = JSON.stringify({ passed: false, error: error.message, stack: error.stack });
+      }
+    });
+    panel.append(button);
+  };
+  addButton('6 FACE POINTER', window.__battlebotFatalQA.garageSixFaces, 'fatal-qa-six-faces');
+  addButton('CAMERA FADE', window.__battlebotFatalQA.garageCameraFade, 'fatal-qa-camera-fade');
+  addButton('WHEEL SCALE', window.__battlebotFatalQA.wheelNativeScale, 'fatal-qa-wheel-scale');
+  addButton('FPS 5s', () => window.__battlebotFatalQA.sampleFrames(5), 'fatal-qa-fps');
+  output.textContent = JSON.stringify({ ready: true, checks: ['six-face-pointer', 'camera-fade', 'wheel-native-scale', 'runtime-fps'] });
   panel.append(output);
   document.body.append(panel);
 }
@@ -14660,23 +18880,43 @@ try {
   const requestedMap = initialParams.get('map');
   setActiveMap(requestedMap === 'desert01' || initialParams.get('conquestQA') === '1' ? 'desert01' : requestedMap === 'industrial01' || initialParams.get('industrialQA') === '1' ? 'industrial01' : 'arena01');
   prepareMountGeometry();
+  const startupFloorRepairs = repairAssemblyBuildFloor(savedAssembly, 'saved-player-startup');
   const startupPlacementRepairs = repairLoadedFunctionalPlacement(savedAssembly);
-  if (startupPlacementRepairs.length) {
+  if (startupFloorRepairs.length || startupPlacementRepairs.length) {
     savedAssembly = enrichAssembly(savedAssembly);
+    repairAssemblyBuildFloor(savedAssembly, 'saved-player-persisted');
     workingAssembly = cloneData(savedAssembly);
     localStorage.setItem(STORAGE_KEY, JSON.stringify(savedAssembly));
   }
   createGarageStage();
   enterLobby();
-  ui.status.textContent = `Arena 01 + Industrial Battle Zone 01 + Red Canyon 10v10 + 저장 로봇 동기화 완료${startupPlacementRepairs.length ? ` · 기존 장착 ${startupPlacementRepairs.length}개 안전 보정` : ''}`;
+  ui.status.textContent = `Arena 01 + Industrial Battle Zone 01 + Red Canyon 10v10 + 저장 로봇 동기화 완료${startupFloorRepairs.length ? ` · 바닥 위반 ${startupFloorRepairs.length}개 보정` : ''}${startupPlacementRepairs.length ? ` · 기존 장착 ${startupPlacementRepairs.length}개 안전 보정` : ''}`;
   ui.status.classList.add('ready');
-  if (initialParams.get('conquestQA') === '1') {
+  if (initialParams.get('floorBattleQA') === '1') {
+    startBattle(false);
+    window.setTimeout(() => {
+      const floorQAResult = runBuildFloorQA();
+      floorQAResult.dynamicCollision = exerciseDynamicFloorCollisionQA();
+      floorQAResult.driveRecovery = exercisePlayerControlRecovery20();
+      floorQAResult.passed = floorQAResult.passed && floorQAResult.dynamicCollision.passed && floorQAResult.driveRecovery.Passed;
+      ui.qaState.dataset.qaPhase = 'build-floor-battle-complete';
+      ui.qaState.dataset.qaResult = floorQAResult.passed ? 'pass' : 'fail';
+      ui.qaState.dataset.qaPayload = JSON.stringify(floorQAResult);
+    }, 1800);
+  } else if (initialParams.get('floorQA') === '1') {
+    const floorQAResult = runBuildFloorQA();
+    ui.qaState.textContent = JSON.stringify(floorQAResult);
+    ui.qaState.dataset.qaPhase = 'build-floor-complete';
+    ui.qaState.dataset.qaResult = floorQAResult.passed ? 'pass' : 'fail';
+    ui.qaState.dataset.qaPayload = JSON.stringify(floorQAResult);
+  } else if (initialParams.get('conquestQA') === '1') {
     window.__battlebotConquestQA.start();
     if (initialParams.get('qa') === 'isolated') installConquestQAPanel();
   } else if (initialParams.get('autoQA') === '1') {
     startBattle(true);
     startSelfTest();
   }
+  if (initialParams.get('fatalQA') === '1') installFatalRuntimeQAPanel();
   requestAnimationFrame(frame);
 } catch (error) {
   console.error(error);

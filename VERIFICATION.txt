@@ -301,3 +301,41 @@ PASS - Normal play no longer allocates force/torque trace payloads unless collid
 PASS - Post-optimization real-browser results on Medium: 2v2=16.79 ms / 59.5 FPS 1% low, 4v4=16.81 ms / 59.5 FPS 1% low, 6v6=16.93 ms / 59.2 FPS 1% low. The 6v6 test had 6 frames over 33.4 ms across 1,273 frames versus 327/332 before.
 PASS - A production 4v4 ran continuously for 149.9 s (8,963 frames). Average frame time stayed 16.80 ms, median 16.70 ms, 1% low 59.5 FPS, and only 20 frames exceeded 33.4 ms. Seven AI remained pathing, seven were moving, stuckAI=0, maximum active sparks=52, and 165 fragment bursts were created/reclaimed without progressive slowdown.
 PASS - Final app.js Node syntax check passed and the browser console contained zero errors or warnings.
+FINAL SYSTEMS PASS V136 (2026-08-27)
+======================================
+- Drive recovery: browser QA PLAYER HIT 20x = PASS 20/20.
+  - Forward 10/10, reverse 10/10.
+  - All iterations: controls/motor/steering/drive enabled, 4 wheels grounded,
+    Rigidbody awake, no disabled reason, DASH available.
+- Weight classes: production 4v4 covered lightweight/middleweight/
+  superheavy/healer; every sampled robot passed exact block-count, weight,
+  and wheel-model restrictions.
+- Weapon durability: Saw/Bar/Drum each survived 10 repeated reaction hits and
+  remained available (audit pass=true).
+- Hammer/Flipper controls, runtime registrations, and unused packaged GLB files
+  are removed; only Saw/Bar Spinner/Drum Spinner remain as combat weapons.
+- Live weapon roles: Saw continuous low-lift contact; Bar highest horizontal
+  knockback; Drum highest upward/rotation impulse. Browser telemetry observed
+  all three roles in production 4v4 collisions.
+- Mobile landscape 844x390:
+  - Workshop catalog/inspector are mutually sliding panels.
+  - Touch placement, install, scale, main/save/test controls fit the viewport.
+  - Combat joystick and DASH/ATTACK/BRAKE/SELF RIGHT controls fit without the
+    desktop help or live audio mixer.
+  - Team rosters remain collapsed until the blue/red HUD side is tapped.
+- Camera: follow distance and height scale with complete block-robot bounds;
+  large builds no longer contain or occlude the camera at spawn.
+- JavaScript syntax: node --check app.js = PASS.
+
+FINAL DOCUMENT COMPLETION / MOBILE / WEAPON / CONQUEST PASS V139 (2026-08-27)
+============================================================================
+PASS - Weapon role matrix ran 7 production scenarios x 20 iterations = 140/140. Saw retained continuous low-lift cutting, Bar produced the strongest horizontal knockback/yaw, and Drum produced the strongest lift/pitch-roll response; DASH strengthened each role without collapsing the three profiles into one.
+PASS - Post-impact drive recovery ran 5 scenarios x 20 iterations = 100/100: front hit, side hit, corner hit, drum-lift landing, and bar-spin landing all recovered forward/reverse drive with control, motor, steering, grounded wheels, and awake rigid-body state intact.
+PASS - Ten independently styled AI drove 100 m through production steering. All 10 passed; minimum travel was 100.1 m, maximum lane error was 0.21 m, and maximum steering-sign reversals was 0. This rejects both S-shaped group oscillation and in-place circling.
+PASS - Population performance QA passed all four cases at the mobile 30 FPS target: Arena 2v2 (4 robots, 1043.5 ms wall / 4.79x realtime), Arena 4v4 (8 robots, 775.6 ms / 6.45x), Arena 10v10 (20 robots, 1021.8 ms / 4.89x), and Desert 10v10 (20 robots, 3450.4 ms / 1.45x).
+PASS - A production Desert 10v10 run advanced to 331.28 seconds. currentlySpinning=0, stalledFailures=0, maximum meaningless stationary interval=1.12 s, healerTicks=92, objectiveVisits=7, attackParticipants=9, dashUsers=14, totalTravel=35,456.2 m. Point A was captured by Red at 85.48 s and the five-minute fatal-loop acceptance returned Passed=true.
+PASS - Three fresh 10v10 generation runs produced zero validation failures and zero weapon/body intersections. Every one of the 15 sampled combat robots mounted its one main weapon in the low external front bay; paired drum pivots shared one aligned axis.
+PASS - Mobile production UI was inspected at 844x390. Workshop panels start collapsed, opening the catalog closes the inspector, selecting a block returns the full canvas, and a touch at the visible cube face installed exactly one cube. The pause panel measured 470 px client width / 468 px scroll width with no horizontal overflow; audio controls also fit (444/444 px), and the frame selector displayed 30 FPS.
+PASS - Mobile combat retained the compact top HUD, minimap, joystick, and 2x2 DASH/ATTACK/BRAKE/SELF RIGHT cluster. Desktop key help and the live audio mixer are absent from the play surface; audio, graphics, FPS, and dash-key settings live in the pause panel.
+PASS - Browser console error log was empty and node --check app.js passed after the final changes.
+NOTE - The mobile thermal controls and 10v10 browser simulation were verified in the in-app mobile viewport. A physical Android/iPhone ten-minute temperature measurement was not available in this desktop environment and is intentionally not reported as completed hardware QA.

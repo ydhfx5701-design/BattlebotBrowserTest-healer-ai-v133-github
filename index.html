@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
     <title>Battlebot Workshop & Arena</title>
     <link rel="icon" href="data:," />
-    <link rel="stylesheet" href="./styles.css?v=20260826-red-canyon-conquest-120" />
+    <link rel="stylesheet" href="./styles.css?v=20260827-complete-systems-139" />
     <script type="importmap">
       {
         "imports": {
@@ -76,7 +76,7 @@
     <header class="hud glass">
       <div class="brand">
         <p class="eyebrow">BATTLEBOT // MULTI-MAP COMBAT</p>
-        <h1 id="screen-title">3D 로봇 작업장</h1>
+        <h1 id="screen-title">작업장</h1>
       </div>
         <div class="player-readout">
         <div class="meter-label"><span>BLOCK STRUCTURE</span><strong id="player-health-text">100%</strong></div>
@@ -97,6 +97,7 @@
       <canvas id="conquest-minimap-canvas" width="220" height="286" aria-label="아군, 탐지된 적군, A/B 거점과 시작 지점"></canvas>
       <footer><span class="blue">BLUE SPAWN</span><span class="red">RED SPAWN</span></footer>
     </aside>
+    <canvas id="team-marker-layer" class="team-marker-layer" aria-label="전투 로봇 BLUE RED 피아식별 표시" aria-hidden="true"></canvas>
 
     <button id="pause-toggle" class="pause-toggle" type="button" aria-label="일시정지 및 설정" aria-pressed="false">Ⅱ</button>
     <section id="pause-panel" class="pause-panel glass" hidden aria-label="일시정지 설정">
@@ -112,6 +113,13 @@
             <option value="low">낮음</option>
             <option value="medium" selected>중간</option>
             <option value="high">높음</option>
+          </select>
+        </label>
+        <label class="quality-control">프레임
+          <select id="frame-rate-limit" aria-label="모바일 프레임 제한">
+            <option value="30" selected>30 FPS</option>
+            <option value="45">45 FPS</option>
+            <option value="60">60 FPS</option>
           </select>
         </label>
         <label class="quality-control">대시
@@ -138,26 +146,36 @@
     <div id="status" class="status glass">게임을 준비하는 중…</div>
 
     <main id="workshop-ui" class="workshop-ui" aria-label="3D 로봇 작업장">
-      <section class="garage-panel catalog-panel glass">
+      <button id="mobile-catalog-toggle" class="mobile-workshop-tab catalog-tab" type="button">부품</button>
+      <button id="mobile-inspector-toggle" class="mobile-workshop-tab inspector-tab" type="button">편집</button>
+      <section class="garage-panel catalog-panel glass" data-draggable-panel="catalog">
         <div class="garage-heading"><span>01</span><div><b>조립 카탈로그</b><small>기능 부품 · Lv.1 차체 블록</small></div></div>
         <div class="assembly-mode-tabs" aria-label="조립 모드">
           <button id="parts-mode" class="active" type="button">기능 부품</button>
           <button id="blocks-mode" type="button">Lv.1 블록</button>
+          <button id="robots-mode" type="button">로봇</button>
         </div>
+        <button id="paint-toggle" class="paint-toggle" type="button" aria-expanded="false">페인트</button>
+        <section id="paint-popover" class="paint-popover" hidden aria-label="로봇 자유 페인트">
+          <div class="paint-slots" aria-label="색상 역할">
+            <button type="button" data-paint-slot="primary" class="active"><i></i>기본색</button>
+            <button type="button" data-paint-slot="secondary"><i></i>보조색</button>
+            <button type="button" data-paint-slot="accent"><i></i>포인트색</button>
+          </div>
+          <div id="paint-swatches" class="paint-swatches" aria-label="색상 팔레트"></div>
+          <div class="paint-actions"><button id="paint-selected" type="button">선택 적용</button><button id="paint-all" type="button">전체 적용</button></div>
+          <small id="paint-status">색상 슬롯과 색상을 고른 뒤 블록/장갑 또는 전체에 적용하세요.</small>
+        </section>
         <div id="functional-catalog">
           <div class="block-tier-chip functional-chip"><i></i><span><b>기능 부품</b><small>블록 표면에 직접 연결</small></span></div>
           <div class="catalog-grid">
             <button type="button" data-catalog="wheel" data-wheel-model="wheel_light"><b>경량급 바퀴</b><small>고속 · 빠른 가속</small></button>
             <button type="button" data-catalog="wheel" data-wheel-model="new_wheel"><b>중량급 바퀴</b><small>균형형</small></button>
             <button type="button" data-catalog="wheel" data-wheel-model="wheel_wide"><b>초중량 광폭</b><small>고중량 · 접지</small></button>
-            <button type="button" data-catalog="wheel" data-wheel-model="track_heavy"><b>초중량 궤도</b><small>스키드 조향</small></button>
-            <button type="button" data-catalog="pivotMount"><b>범용 지지대</b><small>자유 배치</small></button>
-            <button type="button" data-catalog="sawSupport"><b>톱날 축 지지대</b><small>중심 구멍</small></button>
-            <button type="button" data-catalog="sawMount"><b>수평 톱 지지대</b><small>축 중심</small></button>
-            <button type="button" data-catalog="spinner"><b>톱날</b><small>자유 회전</small></button>
-            <button type="button" data-catalog="barAxis"><b>바 스피너 축</b><small>신규 고정축</small></button>
-            <button type="button" data-catalog="barSpinner"><b>바 스피너</b><small>고속 회전</small></button>
-            <button type="button" data-catalog="drumSpinner"><b>드럼 스피너</b><small>상향 타격</small></button>
+            <button type="button" data-catalog="spinner"><b>톱날</b><small>블록 면 직접 장착</small></button>
+            <button type="button" data-catalog="barSpinner"><b>바 스피너</b><small>블록 면 직접 장착</small></button>
+            <button type="button" data-catalog="drumSpinner"><b>드럼 스피너</b><small>블록 면 직접 장착</small></button>
+            <button type="button" data-catalog="puncher"><b>펀처</b><small>Space · 순간 돌출 공격</small></button>
             <button type="button" data-catalog="armorFlat"><b>평평한 장갑판</b><small>고내구 외장</small></button>
             <button type="button" data-catalog="armorCurved"><b>곡면 장갑판</b><small>곡면 보호</small></button>
             <button type="button" data-catalog="hornStraight"><b>직선형 뿔</b><small>스파이크</small></button>
@@ -182,9 +200,31 @@
           </div>
           <p class="catalog-note">면 위를 가리키면 가장 가까운 유효 Grid에 스냅됩니다. 하늘색은 설치 가능, 빨간색은 겹침 또는 연결 불가입니다.</p>
         </div>
+        <div id="robot-preset-catalog" hidden>
+          <div class="block-tier-chip robot-preset-chip"><i></i><span><b>편집 가능한 로봇</b><small>체급 × 무기 16종 · 선택 후 전부 수정 가능</small></span></div>
+          <div class="catalog-grid robot-preset-grid">
+            <button type="button" data-robot-preset="lightweight:spinner"><b>경량 · 톱날</b><small>24블록 · 저상 쐐기</small></button>
+            <button type="button" data-robot-preset="lightweight:bar"><b>경량 · 바 스피너</b><small>24블록 · 넓은 타격</small></button>
+            <button type="button" data-robot-preset="lightweight:drum"><b>경량 · 드럼</b><small>24블록 · 하부 공격</small></button>
+            <button type="button" data-robot-preset="lightweight:puncher"><b>경량 · 펀처</b><small>24블록 · 직선 돌출</small></button>
+            <button type="button" data-robot-preset="middleweight:spinner"><b>중량 · 톱날</b><small>45블록 · 균형형</small></button>
+            <button type="button" data-robot-preset="middleweight:bar"><b>중량 · 바 스피너</b><small>45블록 · 전면 타격</small></button>
+            <button type="button" data-robot-preset="middleweight:drum"><b>중량 · 드럼</b><small>45블록 · 압박형</small></button>
+            <button type="button" data-robot-preset="middleweight:puncher"><b>중량 · 펀처</b><small>45블록 · 돌격형</small></button>
+            <button type="button" data-robot-preset="superheavy:spinner"><b>초중량 · 톱날</b><small>70블록 · 요새형</small></button>
+            <button type="button" data-robot-preset="superheavy:bar"><b>초중량 · 바 스피너</b><small>70블록 · 대형 타격</small></button>
+            <button type="button" data-robot-preset="superheavy:drum"><b>초중량 · 드럼</b><small>70블록 · 중장갑</small></button>
+            <button type="button" data-robot-preset="superheavy:puncher"><b>초중량 · 펀처</b><small>70블록 · 공성형</small></button>
+            <button type="button" data-robot-preset="healer:spinner"><b>힐러 · 톱날</b><small>40블록 · 지원 경량</small></button>
+            <button type="button" data-robot-preset="healer:bar"><b>힐러 · 바 스피너</b><small>40블록 · 지원 방어</small></button>
+            <button type="button" data-robot-preset="healer:drum"><b>힐러 · 드럼</b><small>40블록 · 지원 돌파</small></button>
+            <button type="button" data-robot-preset="healer:puncher"><b>힐러 · 펀처</b><small>40블록 · 지원 견제</small></button>
+          </div>
+          <p class="catalog-note">프리셋은 완성품 슬롯이 아니라 편집 시작점입니다. 불러온 뒤 블록·바퀴·무기·장갑·색상을 그대로 수정하고 저장할 수 있습니다.</p>
+        </div>
       </section>
 
-      <section class="garage-panel inspector-panel glass">
+      <section class="garage-panel inspector-panel glass" data-draggable-panel="inspector">
         <div class="garage-heading"><span>02</span><div><b id="inspector-title">자유 변형 도구</b><small id="selection-name">부품을 선택하세요</small></div></div>
         <div id="functional-inspector">
           <label class="field-label" for="part-list">설치 부품</label>
@@ -198,7 +238,7 @@
         <div id="functional-transform-controls">
         <div class="transform-mode-row" aria-label="변형 도구">
           <button type="button" data-transform-mode="move" class="active">이동</button>
-          <button type="button" data-transform-mode="scale">크기 드래그</button>
+          <button type="button" data-transform-mode="scale" data-wheel-scale-control>크기 드래그</button>
         </div>
         <output id="transform-readout" class="transform-readout">위치 0.00 / 0.00 / 0.00</output>
         <label class="field-label">방향 프리셋</label>
@@ -207,11 +247,11 @@
           <button type="button" data-orientation="vertical">세로</button>
           <button type="button" data-orientation="flip">반전</button>
         </div>
-        <p class="size-edit-help">크기 모드: 부품 중심에서 바깥쪽으로 드래그하면 확대, 중심 쪽으로 드래그하면 축소됩니다.</p>
+        <p class="size-edit-help" data-wheel-scale-control>크기 모드: 부품 중심에서 바깥쪽으로 드래그하면 확대, 중심 쪽으로 드래그하면 축소됩니다.</p>
         <label class="clearance-toggle"><input id="weapon-auto-cut" type="checkbox" /> 무기 회전 공간만 최소 자동 절삭</label>
         <div id="mount-status" class="mount-status neutral"><i></i><span>카탈로그에서 부품을 선택하세요.</span></div>
         <div class="free-actions">
-          <button id="duplicate-part" type="button">복제</button>
+          <button id="duplicate-part" type="button">반대편 복제</button>
           <button id="align-axis" type="button">축 맞추기</button>
           <button id="flip-wheel" type="button">바깥면 뒤집기</button>
           <button id="remove-part" type="button">삭제/취소</button>
@@ -239,7 +279,7 @@
       </section>
 
       <section class="garage-toolbar glass">
-        <div class="garage-summary"><b id="garage-count">부품 0개</b><span id="garage-mass">총 질량 0kg</span><span id="save-state">저장 전</span></div>
+        <div class="garage-summary"><b id="garage-count">부품 0개</b><label>체급 <select id="weight-class-select"><option value="lightweight">경량급</option><option value="middleweight" selected>중량급</option><option value="superheavy">초중량급</option><option value="healer">힐러</option></select></label><span id="garage-mass">총 질량 0kg</span><span id="garage-limits">BLOCKS 1/45 · WEIGHT 10/680kg</span><span id="save-state">저장 전</span></div>
         <div class="battle-setup" aria-label="전투 설정">
           <label>맵<select id="battle-map"><option value="arena01">Arena 01</option><option value="industrial01">Industrial Battle Zone 01</option><option value="desert01">Red Canyon Conquest 01</option></select></label>
           <label>모드<select id="battle-mode"><option value="ffa4">개인전 4대</option><option value="ffa8">개인전 8대</option><option value="2v2">2 vs 2</option><option value="3v3">3 vs 3</option><option value="4v4">4 vs 4</option><option value="6v6">6 vs 6</option><option value="8v8">8 vs 8</option><option value="10v10">10 vs 10 점령전</option></select></label>
@@ -253,6 +293,16 @@
           <button id="enter-battle" class="primary" type="button">전투 출전</button>
         </div>
       </section>
+      <section id="mobile-placement-controls" class="mobile-placement-controls glass" hidden aria-label="모바일 버튼 배치">
+        <button id="placement-mode-toggle" type="button">버튼</button>
+        <div class="placement-pad">
+          <button data-mobile-nudge="forward" type="button">▲</button><button data-mobile-nudge="up" type="button">＋높이</button>
+          <button data-mobile-nudge="left" type="button">◀</button><button data-mobile-nudge="back" type="button">▼</button><button data-mobile-nudge="right" type="button">▶</button><button data-mobile-nudge="down" type="button">－높이</button>
+        </div>
+        <button id="mobile-place-block" class="primary" type="button">설치</button>
+      </section>
+      <button id="mobile-scale-toggle" class="mobile-scale-toggle" type="button">크기</button>
+      <output id="mobile-scale-readout" class="mobile-scale-readout" hidden>1.00×</output>
       <div id="workshop-hint" class="orbit-hint">부품 드래그: 실제 표면 밀착 · 가로/세로/반전: 방향 프리셋 · 크기: 중심 기준 드래그 · 빈 공간: 카메라 · 축 무기는 구멍 스냅 우선</div>
     </main>
 
@@ -262,6 +312,7 @@
 
     <div class="mobile-actions">
       <button id="dash" class="dash" type="button"><b>DASH</b><small>READY</small></button>
+      <button id="attack" class="attack" type="button"><b>ATTACK</b><small>무기 가동</small></button>
       <button id="brake" type="button"><b>BRAKE</b><small>HOLD</small></button>
       <button id="self-right" type="button" disabled><b>SELF RIGHT</b><small>T · 현재 위치</small></button>
       <button id="combat-respawn" type="button" hidden><b>RESPAWN</b><small>10초 후 복귀</small></button>
@@ -283,6 +334,6 @@
         type: 'rejection', message: String(event.reason?.stack || event.reason || 'unknown rejection'),
       }));
     </script>
-  <script type="module" src="./app.js?v=20260827-mobile-loading-134"></script>
+  <script type="module" src="./app.js?v=20260828-audio-performance-151a"></script>
   </body>
 </html>

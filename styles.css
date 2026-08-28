@@ -27,6 +27,17 @@ html, body {
   background: radial-gradient(circle at 50% 32%, #e0e6eb, #9ca8b4 76%);
 }
 
+.team-marker-layer {
+  position: fixed;
+  inset: 0;
+  z-index: 14;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+body.lobby-mode .team-marker-layer,
+body.garage-mode .team-marker-layer { display: none; }
+
 .glass {
   position: fixed;
   z-index: 5;
@@ -193,7 +204,7 @@ h1 { margin: 0; font-size: clamp(20px, 2.3vw, 30px); letter-spacing: -.03em; }
   gap:10px 8px;
   pointer-events: auto;
 }
-.audio-control .audio-mute { grid-row:1/4; height:100%; min-height:92px; }
+.audio-control .audio-mute { grid-row:1/6; height:100%; min-height:118px; }
 .audio-control .mixer-control { display:grid; grid-template-columns:36px 1fr; }
 .audio-control .quality-control { justify-self:end; }
 
@@ -265,6 +276,7 @@ body.game-paused::after { content:"";position:fixed;z-index:40;inset:0;backgroun
 }
 
 #quality-preset,
+#frame-rate-limit,
 #dash-key {
   height: 25px;
   min-width: 58px;
@@ -274,6 +286,22 @@ body.game-paused::after { content:"";position:fixed;z-index:40;inset:0;backgroun
   color: #eef6ff;
   background: #1d2a37;
   font: inherit;
+}
+
+@media (max-width:1050px) and (orientation:landscape) {
+  .pause-panel { overflow-x:hidden; overflow-y:auto; }
+  .pause-panel .audio-control {
+    grid-template-columns:52px repeat(3,minmax(0,1fr));
+    grid-template-rows:auto auto;
+    gap:7px;
+  }
+  .pause-panel .audio-control .audio-mute { grid-column:1; grid-row:1/3; width:52px; min-height:70px; }
+  .pause-panel .audio-control #volume-value { display:none; }
+  .pause-panel .audio-control .mixer-control,
+  .pause-panel .audio-control .quality-control { min-width:0; width:100%; justify-self:stretch; margin:0; }
+  .pause-panel .audio-control .mixer-control { grid-template-columns:25px minmax(0,1fr); }
+  .pause-panel .audio-control .mixer-control input,
+  .pause-panel .audio-control .quality-control select { width:100%; min-width:0; }
 }
 
 .team-roster { z-index:16; top:76px; width:154px; padding:6px; border-radius:8px; pointer-events:none; }
@@ -512,7 +540,7 @@ body.garage-mode .speed { display: none; }
 
 .assembly-mode-tabs {
   display: grid;
-  grid-template-columns: 1fr 1fr;
+  grid-template-columns: repeat(3, 1fr);
   gap: 5px;
   margin: -4px 0 12px;
   padding: 3px;
@@ -537,12 +565,55 @@ body.garage-mode .speed { display: none; }
   box-shadow: inset 0 1px rgba(255,255,255,.1), 0 0 14px rgba(69, 190, 238, .16);
 }
 
+.paint-toggle {
+  width: 100%;
+  min-height: 34px;
+  margin: -5px 0 9px;
+  border: 1px solid rgba(110,222,255,.48);
+  border-radius: 8px;
+  color: #dcf7ff;
+  background: linear-gradient(145deg,rgba(32,91,119,.82),rgba(12,39,56,.92));
+  font: 900 9px/1 ui-sans-serif,sans-serif;
+}
+.paint-toggle[aria-expanded="true"] { border-color:#79ffd0; box-shadow:0 0 14px rgba(79,239,184,.2); }
+.paint-popover {
+  margin: -3px 0 10px;
+  padding: 8px;
+  border: 1px solid rgba(255,255,255,.12);
+  border-radius: 9px;
+  background: rgba(6,14,21,.9);
+}
+.paint-popover[hidden] { display:none; }
+.paint-slots,.paint-actions { display:grid; grid-template-columns:repeat(3,1fr); gap:4px; }
+.paint-slots button,.paint-actions button {
+  min-height:30px;
+  padding:4px 3px;
+  border:1px solid rgba(255,255,255,.12);
+  border-radius:6px;
+  color:#9eafbd;
+  background:rgba(22,34,44,.88);
+  font:800 7px/1.1 ui-sans-serif,sans-serif;
+}
+.paint-slots button.active { color:#fff;border-color:#67d9ff;background:#174e69; }
+.paint-slots i { display:inline-block;width:8px;height:8px;margin-right:3px;border-radius:50%;background:var(--paint-slot-color,#39afe7);vertical-align:-1px;box-shadow:0 0 5px currentColor; }
+.paint-swatches { display:grid;grid-template-columns:repeat(5,1fr);gap:5px;margin:7px 0; }
+.paint-swatches button { width:100%;aspect-ratio:1;border:2px solid rgba(255,255,255,.28);border-radius:50%;background:var(--swatch);box-shadow:inset 0 1px rgba(255,255,255,.42); }
+.paint-swatches button.active { border-color:#fff;box-shadow:0 0 0 2px #40d8ff,0 0 11px var(--swatch); }
+.paint-actions { grid-template-columns:1fr 1fr; }
+.paint-actions button:last-child { color:#10212b;background:#67d8ff;border-color:#a7edff; }
+.paint-popover small { display:block;margin-top:6px;color:#8294a3;font:700 7px/1.35 ui-sans-serif,sans-serif; }
+
 #functional-catalog[hidden],
 #block-catalog[hidden],
+#robot-preset-catalog[hidden],
 #functional-inspector[hidden],
 #functional-transform-controls[hidden],
 #block-inspector[hidden],
 #block-transform-controls[hidden] { display: none !important; }
+
+.robot-preset-chip i { background:#f4ad3c; box-shadow:0 0 12px rgba(244,173,60,.62); }
+.robot-preset-grid button { min-height:48px; text-align:left; border-color:rgba(244,173,60,.18); }
+.robot-preset-grid button:hover { border-color:rgba(244,173,60,.64); }
 
 .catalog-grid {
   display: grid;
@@ -1237,4 +1308,164 @@ body.lobby-mode .lobby-robot-sync { display:none; }
   .side-card .lobby-icon { transform:scale(.52); margin:-10px; }
   .side-card b { font-size:8px; }
   .side-card small { font-size:6px; }
+}
+
+/* Complete mobile workshop/combat pass. Mobile gets its own compact HUD and
+   collapsible tools instead of shrinking the desktop panels. */
+.mobile-workshop-tab,
+.mobile-placement-controls,
+.mobile-scale-toggle,
+.mobile-scale-readout { display:none; }
+
+#weight-class-select {
+  min-width:92px;
+  height:25px;
+  margin-left:4px;
+  border:1px solid rgba(121,199,236,.38);
+  border-radius:5px;
+  color:#eaf7ff;
+  background:#172531;
+  font:800 8px ui-sans-serif,sans-serif;
+}
+#garage-limits.limit-warning { color:#ffd25e; }
+#garage-limits.limit-invalid { color:#ff7165; font-weight:900; }
+button#attack { border-color:rgba(255,168,53,.76); background:linear-gradient(145deg,rgba(196,103,23,.94),rgba(88,38,10,.95)); }
+button#attack.active { filter:brightness(1.28); box-shadow:0 0 24px rgba(255,152,34,.5),inset 0 1px rgba(255,255,255,.3); }
+
+@media (pointer:coarse), (max-width:900px) {
+  button, select, input { touch-action:manipulation; }
+  #game,.joystick,.knob { touch-action:none; }
+  body.mobile-scale-mode { touch-action:none; }
+  .hud { top:max(6px,env(safe-area-inset-top)); left:max(7px,env(safe-area-inset-left)); right:max(7px,env(safe-area-inset-right)); min-height:49px; height:49px; padding:6px 9px; border-radius:9px; }
+  .brand { min-width:100px; }
+  .eyebrow { display:none; }
+  h1 { font-size:14px; }
+
+  body:not(.lobby-mode):not(.garage-mode) .hud { left:max(8px,env(safe-area-inset-left)); bottom:max(7px,env(safe-area-inset-bottom)); width:232px; min-height:47px; padding:5px 8px; }
+  body:not(.lobby-mode):not(.garage-mode) .player-readout { width:100%; }
+  .meter-label { font-size:7px; }
+  .meter { height:5px; margin:3px 0; }
+  .substatus { grid-template-columns:repeat(2,auto); gap:2px 6px; font-size:6px; }
+
+  .conquest-hud { top:max(5px,env(safe-area-inset-top)); width:min(430px,calc(100vw - 106px)); height:43px; grid-template-columns:1fr 74px 1fr; gap:2px; padding:3px 5px; border-radius:7px; pointer-events:auto; }
+  .conquest-team { padding:2px 4px; cursor:pointer; touch-action:manipulation; }
+  .conquest-team b { font-size:6px; }
+  .conquest-team span { font-size:7px; }
+  .conquest-icons { min-height:15px; gap:0; }
+  .unit-icon { flex-basis:14px; width:14px; height:12px; transform:scale(calc(var(--unit-scale) * .74)); transform-origin:left center; }
+  .conquest-centre { gap:2px; }
+  .conquest-centre>strong { font-size:13px; }
+  .conquest-centre>small { max-width:74px; font-size:5px; }
+  .capture-points { grid-template-columns:14px 1fr 14px; }
+  .capture-points>span { width:14px; height:14px; font-size:6px; }
+
+  .team-roster { display:none !important; top:54px; width:min(148px,31vw); max-height:calc(100vh - 112px); padding:4px; overflow:auto; pointer-events:auto; backdrop-filter:blur(8px); }
+  body.mobile-blue-roster-open .team-roster.blue:not([hidden]),
+  body.mobile-red-roster-open .team-roster.red:not([hidden]) { display:block !important; }
+  .team-roster>b { font-size:7px; }
+  .enemy-card { margin-top:2px; padding:3px 4px; }
+  .enemy-name { font-size:6px; }
+  .enemy-meter { height:3px; margin-top:2px; }
+
+  .pause-toggle { top:max(5px,env(safe-area-inset-top)); right:max(7px,env(safe-area-inset-right)); width:40px; height:40px; }
+  .pause-panel { width:min(470px,calc(100vw - 24px)); max-height:calc(100vh - 20px); padding:12px; overflow:auto; }
+  .pause-panel header { margin-bottom:8px; }
+  .pause-panel header strong { font-size:15px; }
+  .pause-panel .audio-control { display:grid; grid-template-columns:58px 1fr 42px; gap:6px; padding:6px; }
+  .pause-panel .audio-control .audio-mute { min-height:72px; }
+  .pause-actions { margin-top:8px; }
+
+  .joystick { left:max(16px,calc(env(safe-area-inset-left) + 10px)); bottom:max(59px,calc(env(safe-area-inset-bottom) + 48px)); width:114px; height:114px; }
+  .knob { width:49px; height:49px; }
+  .mobile-actions { right:max(12px,calc(env(safe-area-inset-right) + 7px)); bottom:max(48px,calc(env(safe-area-inset-bottom) + 41px)); width:142px; grid-template-columns:repeat(2,64px); gap:8px; }
+  .mobile-actions button { width:64px; height:64px; font-size:8px; }
+  .mobile-actions button small { font-size:6px; }
+  .mobile-actions #reset { position:absolute; right:0; top:-34px; width:31px; height:31px; font-size:6px; opacity:.78; }
+  .mobile-actions #reset small { display:none; }
+
+  .conquest-minimap { left:max(7px,env(safe-area-inset-left)); bottom:60px; width:126px; padding:4px; opacity:.9; }
+  .conquest-minimap header,.conquest-minimap footer { font-size:5px; }
+  .conquest-minimap header b { font-size:6px; }
+  .notice,.help { display:none !important; }
+
+  body.garage-mode .hud { pointer-events:none; }
+  .mobile-workshop-tab { position:fixed; z-index:24; top:max(57px,calc(env(safe-area-inset-top) + 52px)); display:block; width:54px; height:34px; border-radius:7px; color:#dff6ff; background:rgba(15,42,57,.92); font:900 8px ui-sans-serif,sans-serif; pointer-events:auto; }
+  .mobile-workshop-tab.catalog-tab { left:max(6px,env(safe-area-inset-left)); }
+  .mobile-workshop-tab.inspector-tab { right:max(6px,env(safe-area-inset-right)); }
+  body.mobile-catalog-open .mobile-workshop-tab.catalog-tab,
+  body.mobile-inspector-open .mobile-workshop-tab.inspector-tab { border-color:#70d8ff; background:#176485; }
+
+  .garage-panel { top:max(96px,calc(env(safe-area-inset-top) + 91px)); bottom:max(52px,calc(env(safe-area-inset-bottom) + 48px)); width:22vw; min-width:136px; max-width:190px; max-height:none; padding:8px; overflow-y:auto; overscroll-behavior:contain; touch-action:pan-y; border-radius:9px; transition:transform .18s ease,opacity .18s ease; }
+  .catalog-panel { left:max(5px,env(safe-area-inset-left)); transform:translateX(calc(-100% - 9px)); opacity:0; pointer-events:none; }
+  .inspector-panel { right:max(5px,env(safe-area-inset-right)); width:25vw; min-width:155px; max-width:210px; transform:translateX(calc(100% + 9px)); opacity:0; pointer-events:none; }
+  body.mobile-catalog-open .catalog-panel,
+  body.mobile-inspector-open .inspector-panel { transform:translateX(0); opacity:1; pointer-events:auto; }
+  body.garage-editing .catalog-panel { transform:translateX(calc(-100% - 9px)); opacity:0; pointer-events:none; }
+  .garage-heading { gap:5px; margin-bottom:7px; touch-action:none; }
+  .garage-heading>span { width:22px; height:22px; border-radius:5px; font-size:7px; }
+  .garage-heading b { font-size:10px; }
+  .garage-heading small { font-size:6px; }
+  .assembly-mode-tabs { gap:2px; margin-bottom:6px; }
+  .assembly-mode-tabs button { min-height:28px; padding:3px; font-size:7px; }
+  .paint-toggle { min-height:28px;margin-bottom:5px;font-size:7px; }
+  .paint-popover { padding:5px;margin-bottom:6px; }
+  .paint-slots button,.paint-actions button { min-height:27px;font-size:6px; }
+  .paint-swatches { gap:4px;margin:5px 0; }
+  .paint-popover small { font-size:5px; }
+  .block-tier-chip { gap:4px; padding:4px; margin-bottom:5px; }
+  .block-tier-chip i { width:18px; height:18px; }
+  .block-tier-chip b,.block-tier-chip small { font-size:6px; }
+  .catalog-grid { grid-template-columns:1fr; gap:4px; }
+  .catalog-grid button { min-height:36px; padding:5px 6px; touch-action:manipulation; }
+  .catalog-grid button b { font-size:8px; }
+  .catalog-grid button small { font-size:6px; }
+  .block-grid button { min-height:45px; padding-left:34px; }
+  .catalog-note,.size-edit-help,.clearance-toggle { display:none; }
+  .transform-readout { min-height:30px; padding:5px; font-size:6px; }
+  .mount-status { min-height:33px; margin:6px 0; padding:5px; font-size:7px; }
+  .free-actions,.block-actions { gap:3px; }
+  .free-actions button,.block-actions button,.confirm-actions button,.block-rotate-row button { min-height:32px; padding:4px; font-size:7px; }
+
+  .garage-toolbar { left:50%; right:auto; bottom:max(4px,env(safe-area-inset-bottom)); width:auto; min-width:0; padding:4px; border-radius:8px; }
+  .garage-summary,.battle-setup,#undo-garage,#enter-battle { display:none !important; }
+  .garage-actions { gap:4px; }
+  .garage-actions button { display:none; width:76px; min-height:38px; padding:4px 7px; }
+  .garage-actions #return-lobby,.garage-actions #save-garage { display:block; }
+  .garage-actions #test-drive { display:block; position:absolute; right:-54px; bottom:1px; width:48px; min-height:27px; font-size:6px; opacity:.8; }
+  .orbit-hint { display:none; }
+
+  .mobile-placement-controls { position:fixed; z-index:23; left:max(7px,env(safe-area-inset-left)); bottom:max(53px,calc(env(safe-area-inset-bottom) + 49px)); display:flex; align-items:flex-end; gap:5px; padding:5px; border-radius:8px; pointer-events:auto; }
+  .mobile-placement-controls[hidden] { display:none !important; }
+  .mobile-placement-controls>button { width:48px; height:34px; border-radius:6px; font-size:7px; }
+  .placement-pad { display:none; width:122px; grid-template-columns:repeat(3,1fr); gap:3px; }
+  .button-mode .placement-pad { display:grid; }
+  .placement-pad button { width:38px; height:32px; border-radius:6px; padding:0; font-size:7px; }
+  .mobile-scale-toggle { position:fixed; z-index:23; right:max(7px,env(safe-area-inset-right)); bottom:max(54px,calc(env(safe-area-inset-bottom) + 50px)); display:block; width:50px; height:38px; border-radius:7px; pointer-events:auto; }
+  .mobile-scale-toggle[hidden] { display:none !important; }
+  .mobile-scale-readout { position:fixed; z-index:23; right:max(63px,calc(env(safe-area-inset-right) + 58px)); bottom:max(62px,calc(env(safe-area-inset-bottom) + 58px)); display:block; padding:5px 7px; border-radius:5px; color:#ddf8ff; background:rgba(7,25,34,.86); font:900 9px ui-monospace,monospace; pointer-events:none; }
+  .mobile-scale-readout[hidden] { display:none !important; }
+}
+
+@media (pointer:coarse) and (orientation:portrait), (max-width:620px) and (orientation:portrait) {
+  .garage-panel { top:auto !important; left:max(5px,env(safe-area-inset-left)) !important; right:max(5px,env(safe-area-inset-right)) !important; bottom:max(50px,calc(env(safe-area-inset-bottom) + 46px)); width:auto; min-width:0; max-width:none; max-height:42vh; transform:translateY(calc(100% + 62px)); }
+  body.mobile-catalog-open .catalog-panel,
+  body.mobile-inspector-open .inspector-panel { transform:translateY(0); }
+  body.garage-editing .catalog-panel { transform:translateY(calc(100% + 62px)); }
+  .mobile-workshop-tab { top:auto; bottom:max(52px,calc(env(safe-area-inset-bottom) + 48px)); }
+  .mobile-workshop-tab.catalog-tab { left:max(7px,env(safe-area-inset-left)); }
+  .mobile-workshop-tab.inspector-tab { right:max(7px,env(safe-area-inset-right)); }
+  .conquest-hud { width:calc(100vw - 62px); }
+  .conquest-minimap { display:none; }
+}
+
+@media (max-width:1050px) and (orientation:landscape) {
+  .pause-panel { overflow-x:hidden; overflow-y:auto; }
+  .pause-panel .audio-control { grid-template-columns:52px repeat(3,minmax(0,1fr)); grid-template-rows:auto auto; gap:7px; }
+  .pause-panel .audio-control .audio-mute { grid-column:1; grid-row:1/3; width:52px; min-height:70px; }
+  .pause-panel .audio-control #volume-value { display:none; }
+  .pause-panel .audio-control .mixer-control,
+  .pause-panel .audio-control .quality-control { min-width:0; width:100%; justify-self:stretch; margin:0; }
+  .pause-panel .audio-control .mixer-control { grid-template-columns:25px minmax(0,1fr); }
+  .pause-panel .audio-control .mixer-control input,
+  .pause-panel .audio-control .quality-control select { width:100%; min-width:0; }
 }
