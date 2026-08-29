@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
     <title>Battlebot Workshop & Arena</title>
     <link rel="icon" href="data:," />
-    <link rel="stylesheet" href="./styles.css?v=20260829-assault-four-weapon-167" />
+    <link rel="stylesheet" href="./styles.css?v=20260830-sniper-ai-257" />
     <script type="importmap">
       {
         "imports": {
@@ -18,7 +18,7 @@
   <body class="lobby-mode">
     <canvas id="game" aria-label="3D battlebot test arena"></canvas>
 
-    <main id="lobby-ui" class="lobby-ui" aria-label="배틀봇 멀티맵 메인 로비">
+    <main id="lobby-ui" class="lobby-ui" aria-label="배틀봇 메인 화면">
       <div class="lobby-vignette" aria-hidden="true"></div>
       <header class="lobby-topbar">
         <section class="lobby-profile lobby-panel" aria-label="플레이어 프로필">
@@ -28,46 +28,64 @@
           <div class="profile-rank"><span class="lobby-icon icon-achievement" aria-hidden="true"></span><span><small>RANK</small><b>SILVER II</b><em>1,850</em></span></div>
         </section>
         <section class="lobby-currency" aria-label="보유 재화">
-          <div class="currency-chip"><span class="lobby-icon icon-achievement" aria-hidden="true"></span><b>12,450</b><button type="button" data-lobby-action="gold">+</button></div>
-          <div class="currency-chip premium"><span class="lobby-icon icon-upgrade" aria-hidden="true"></span><b>1,280</b><button type="button" data-lobby-action="premium">+</button></div>
+          <div class="currency-chip"><span class="currency-symbol coin" aria-hidden="true"></span><b>12,450</b><button type="button" data-lobby-action="gold">+</button></div>
+          <div class="currency-chip premium"><span class="currency-symbol diamond" aria-hidden="true"></span><b>1,280</b><button type="button" data-lobby-action="premium">+</button></div>
         </section>
         <nav class="lobby-social" aria-label="소셜 및 설정">
           <button type="button" data-lobby-action="friends" aria-label="친구"><span class="lobby-icon icon-friends" aria-hidden="true"></span></button>
-          <button type="button" data-lobby-action="mail" aria-label="우편"><span class="lobby-icon icon-mail" aria-hidden="true"></span><i class="notification-dot"></i></button>
+          <button type="button" data-lobby-action="mail" aria-label="우편"><span class="lobby-icon icon-mail" aria-hidden="true"></span></button>
           <button type="button" data-lobby-action="settings" aria-label="설정"><span class="lobby-icon icon-settings" aria-hidden="true"></span></button>
         </nav>
       </header>
 
       <nav class="lobby-main-menu" aria-label="메인 메뉴">
+        <button type="button" class="active" data-lobby-action="home"><span class="lobby-icon icon-home" aria-hidden="true"></span><span><b>홈</b><small>메인 화면</small></span></button>
+        <button type="button" data-lobby-action="workshop"><span class="lobby-icon icon-build" aria-hidden="true"></span><span><b>로봇 제작</b><small>로봇 조립 및 커스터마이징</small></span></button>
         <button type="button" data-lobby-action="career"><span class="lobby-icon icon-career" aria-hidden="true"></span><span><b>커리어</b><small>스토리 / 진행 모드</small></span></button>
-        <button type="button" data-lobby-action="workshop"><span class="lobby-icon icon-build" aria-hidden="true"></span><span><b>로봇 제작</b><small>로봇 조립 및 수정</small></span></button>
         <button type="button" data-lobby-action="shop"><span class="lobby-icon icon-shop" aria-hidden="true"></span><span><b>상점</b><small>부품 및 아이템 구매</small></span></button>
         <button type="button" data-lobby-action="event"><span class="lobby-icon icon-event" aria-hidden="true"></span><span><b>이벤트</b><small>기간 한정 콘텐츠</small></span></button>
       </nav>
 
-      <button id="lobby-fight" class="lobby-fight" type="button"><b>FIGHT!</b><span>전투 시작</span></button>
+      <section class="lobby-robot-showcase" aria-label="현재 저장 로봇">
+        <button id="lobby-robot-prev" class="lobby-robot-arrow prev" type="button" aria-label="이전 저장 로봇">‹</button>
+        <button id="lobby-robot-next" class="lobby-robot-arrow next" type="button" aria-label="다음 저장 로봇">›</button>
+        <div class="lobby-robot-info">
+          <b id="lobby-robot-label">ROBOT 01</b>
+          <span id="lobby-robot-spec">중량급 | 무기 | 중량 바퀴</span>
+          <button id="lobby-robot-edit" type="button">로봇 편집</button>
+        </div>
+      </section>
 
       <aside class="lobby-sidecards" aria-label="시즌과 미션">
-        <button type="button" class="season-card" data-lobby-action="season"><span>SEASON 01</span><b>STEEL CIRCUIT</b><small>ARENA 01 · 4 vs 4</small><i class="lobby-icon icon-weapon" aria-hidden="true"></i></button>
-        <button type="button" class="side-card reward" data-lobby-action="reward"><span class="lobby-icon icon-achievement" aria-hidden="true"></span><span><b>일일 보상</b><small>수령 가능</small></span><i class="notification-dot"></i></button>
-        <button type="button" class="side-card" data-lobby-action="mission"><span class="lobby-icon icon-mission" aria-hidden="true"></span><span><b>초보자 미션</b><small>3 / 7 완료</small></span></button>
+        <button type="button" class="season-card" data-lobby-action="season"><span>SEASON 01</span><b>STEEL CIRCUIT</b><small>시즌 종료까지 32일</small><i class="lobby-icon icon-career" aria-hidden="true"></i></button>
+        <button type="button" class="side-card reward" data-lobby-action="reward"><span class="lobby-icon icon-reward" aria-hidden="true"></span><span><b>일일 보상</b><small>보상을 받을 수 있습니다</small></span><i>›</i></button>
+        <button type="button" class="side-card" data-lobby-action="mission"><span class="lobby-icon icon-mission" aria-hidden="true"></span><span><b>미션</b><small>3 / 7 완료</small></span><i>›</i></button>
       </aside>
 
-      <section class="lobby-robot-sync lobby-panel" aria-label="현재 전시 로봇">
-        <span class="lobby-icon icon-robot" aria-hidden="true"></span>
-        <span><small>CURRENT ROBOT</small><b id="lobby-robot-label">ROBOT 01</b><em id="lobby-robot-spec">저장 조립 데이터 동기화</em></span>
-      </section>
+      <footer class="lobby-bottombar">
+        <button id="lobby-mode-card" class="lobby-mode-card" type="button">
+          <span><b>8 VS 8</b><strong>점령전</strong><small>사막 전장</small></span>
+          <i class="mode-thumbnail" aria-hidden="true"></i>
+        </button>
+        <button id="lobby-fight" class="lobby-fight" type="button"><span class="battle-cross" aria-hidden="true"></span><b>전투 시작</b></button>
+        <nav class="lobby-bottom-menu" aria-label="추가 메뉴">
+          <button type="button" data-lobby-action="friends"><span class="lobby-icon icon-friends" aria-hidden="true"></span><small>친구</small></button>
+          <button type="button" data-lobby-action="clan"><span class="lobby-icon icon-clan" aria-hidden="true"></span><small>클랜</small></button>
+          <button type="button" data-lobby-action="ranking"><span class="lobby-icon icon-ranking" aria-hidden="true"></span><small>랭킹</small></button>
+          <button type="button" data-lobby-action="achievement"><span class="lobby-icon icon-achievement" aria-hidden="true"></span><small>업적</small></button>
+        </nav>
+      </footer>
 
       <section id="lobby-modal" class="lobby-modal lobby-panel" aria-modal="true" role="dialog" aria-labelledby="lobby-modal-title" hidden>
         <button id="lobby-modal-close" class="modal-close" type="button" aria-label="닫기">닫기</button>
         <span id="lobby-modal-icon" class="lobby-icon icon-mission" aria-hidden="true"></span>
         <h2 id="lobby-modal-title">전투 선택</h2>
-        <p id="lobby-modal-copy">Arena 01에서 싸울 모드를 선택하세요.</p>
+        <p id="lobby-modal-copy">Industrial Battle Zone 또는 Red Canyon 전장을 선택하세요.</p>
         <div id="lobby-battle-options" class="lobby-battle-options">
-          <label>맵<select id="lobby-battle-map"><option value="arena01">Arena 01</option><option value="industrial01">Industrial Battle Zone 01</option><option value="desert01">Red Canyon Conquest 01</option></select></label>
+          <label>맵<select id="lobby-battle-map"><option value="industrial01">Industrial Battle Zone 01</option><option value="desert01">Red Canyon Conquest 01</option></select></label>
           <label>모드<select id="lobby-battle-mode"><option value="ffa4">개인전 4대</option><option value="ffa8">개인전 8대</option><option value="2v2">2 vs 2</option><option value="3v3">3 vs 3</option><option value="4v4" selected>4 vs 4</option><option value="6v6">6 vs 6</option><option value="8v8">8 vs 8</option><option value="10v10">10 vs 10 점령전</option></select></label>
           <label><input id="lobby-friendly-fire" type="checkbox" /> 아군 피해</label>
-          <button id="lobby-enter-battle" type="button">ARENA 01 출전</button>
+          <button id="lobby-enter-battle" type="button">INDUSTRIAL ZONE 출전</button>
         </div>
       </section>
       <div id="lobby-fade" class="lobby-fade" aria-hidden="true"></div>
@@ -119,9 +137,9 @@
         </label>
         <label class="quality-control">프레임
           <select id="frame-rate-limit" aria-label="모바일 프레임 제한">
-            <option value="30" selected>30 FPS</option>
+            <option value="30">30 FPS</option>
             <option value="45">45 FPS</option>
-            <option value="60">60 FPS</option>
+            <option value="60" selected>60 FPS</option>
           </select>
         </label>
         <label class="quality-control">대시
@@ -206,26 +224,26 @@
         <div id="robot-preset-catalog" hidden>
           <div class="block-tier-chip robot-preset-chip"><i></i><span><b>편집 가능한 로봇</b><small>체급 × 무기 20종 · 선택 후 전부 수정 가능</small></span></div>
           <div class="catalog-grid robot-preset-grid">
-            <button type="button" data-robot-preset="lightweight:spinner"><b>경량 · 톱날</b><small>24블록 · 저상 쐐기</small></button>
-            <button type="button" data-robot-preset="lightweight:bar"><b>경량 · 바 스피너</b><small>24블록 · 넓은 타격</small></button>
-            <button type="button" data-robot-preset="lightweight:drum"><b>경량 · 드럼</b><small>24블록 · 하부 공격</small></button>
-            <button type="button" data-robot-preset="lightweight:puncher"><b>경량 · 펀처</b><small>24블록 · 직선 돌출</small></button>
-            <button type="button" data-robot-preset="middleweight:spinner"><b>중량 · 톱날</b><small>45블록 · 균형형</small></button>
-            <button type="button" data-robot-preset="middleweight:bar"><b>중량 · 바 스피너</b><small>45블록 · 전면 타격</small></button>
-            <button type="button" data-robot-preset="middleweight:drum"><b>중량 · 드럼</b><small>45블록 · 압박형</small></button>
-            <button type="button" data-robot-preset="middleweight:puncher"><b>중량 · 펀처</b><small>45블록 · 돌격형</small></button>
-            <button type="button" data-robot-preset="superheavy:spinner"><b>초중량 · 톱날</b><small>70블록 · 요새형</small></button>
-            <button type="button" data-robot-preset="superheavy:bar"><b>초중량 · 바 스피너</b><small>70블록 · 대형 타격</small></button>
-            <button type="button" data-robot-preset="superheavy:drum"><b>초중량 · 드럼</b><small>70블록 · 중장갑</small></button>
-            <button type="button" data-robot-preset="superheavy:puncher"><b>초중량 · 펀처</b><small>70블록 · 공성형</small></button>
-            <button type="button" data-robot-preset="assault:spinner"><b>돌격형 · 톱날</b><small>55블록 · 접촉 돌파</small></button>
-            <button type="button" data-robot-preset="assault:bar"><b>돌격형 · 바 스피너</b><small>55블록 · 수평 강타</small></button>
-            <button type="button" data-robot-preset="assault:drum"><b>돌격형 · 드럼</b><small>55블록 · 하부 돌파</small></button>
-            <button type="button" data-robot-preset="assault:puncher"><b>돌격형 · 펀처</b><small>55블록 · 관통 돌진</small></button>
-            <button type="button" data-robot-preset="healer:spinner"><b>힐러 · 톱날</b><small>40블록 · 지원 경량</small></button>
-            <button type="button" data-robot-preset="healer:bar"><b>힐러 · 바 스피너</b><small>40블록 · 지원 방어</small></button>
-            <button type="button" data-robot-preset="healer:drum"><b>힐러 · 드럼</b><small>40블록 · 지원 돌파</small></button>
-            <button type="button" data-robot-preset="healer:puncher"><b>힐러 · 펀처</b><small>40블록 · 지원 견제</small></button>
+            <button type="button" data-robot-preset="lightweight:spinner"><b>경량 · 톱날</b><small>44블록 · 저상 쐐기</small></button>
+            <button type="button" data-robot-preset="lightweight:bar"><b>경량 · 바 스피너</b><small>44블록 · 넓은 타격</small></button>
+            <button type="button" data-robot-preset="lightweight:drum"><b>경량 · 드럼</b><small>44블록 · 하부 공격</small></button>
+            <button type="button" data-robot-preset="lightweight:puncher"><b>경량 · 펀처</b><small>44블록 · 직선 돌출</small></button>
+            <button type="button" data-robot-preset="middleweight:spinner"><b>중량 · 톱날</b><small>65블록 · 균형형</small></button>
+            <button type="button" data-robot-preset="middleweight:bar"><b>중량 · 바 스피너</b><small>65블록 · 전면 타격</small></button>
+            <button type="button" data-robot-preset="middleweight:drum"><b>중량 · 드럼</b><small>65블록 · 압박형</small></button>
+            <button type="button" data-robot-preset="middleweight:puncher"><b>중량 · 펀처</b><small>65블록 · 돌격형</small></button>
+            <button type="button" data-robot-preset="superheavy:spinner"><b>초중량 · 톱날</b><small>90블록 · 요새형</small></button>
+            <button type="button" data-robot-preset="superheavy:bar"><b>초중량 · 바 스피너</b><small>90블록 · 대형 타격</small></button>
+            <button type="button" data-robot-preset="superheavy:drum"><b>초중량 · 드럼</b><small>90블록 · 중장갑</small></button>
+            <button type="button" data-robot-preset="superheavy:puncher"><b>초중량 · 펀처</b><small>90블록 · 공성형</small></button>
+            <button type="button" data-robot-preset="assault:spinner"><b>돌격형 · 톱날</b><small>78블록 · 접촉 돌파</small></button>
+            <button type="button" data-robot-preset="assault:bar"><b>돌격형 · 바 스피너</b><small>78블록 · 수평 강타</small></button>
+            <button type="button" data-robot-preset="assault:drum"><b>돌격형 · 드럼</b><small>78블록 · 하부 돌파</small></button>
+            <button type="button" data-robot-preset="assault:puncher"><b>돌격형 · 펀처</b><small>78블록 · 관통 돌진</small></button>
+            <button type="button" data-robot-preset="healer:spinner"><b>힐러 · 톱날</b><small>60블록 · 지원 경량</small></button>
+            <button type="button" data-robot-preset="healer:bar"><b>힐러 · 바 스피너</b><small>60블록 · 지원 방어</small></button>
+            <button type="button" data-robot-preset="healer:drum"><b>힐러 · 드럼</b><small>60블록 · 지원 돌파</small></button>
+            <button type="button" data-robot-preset="healer:puncher"><b>힐러 · 펀처</b><small>60블록 · 지원 견제</small></button>
           </div>
           <p class="catalog-note">프리셋은 완성품 슬롯이 아니라 편집 시작점입니다. 불러온 뒤 블록·바퀴·무기·장갑·색상을 그대로 수정하고 저장할 수 있습니다.</p>
         </div>
@@ -288,7 +306,7 @@
       <section class="garage-toolbar glass">
         <div class="garage-summary"><b id="garage-count">부품 0개</b><label>체급 <select id="weight-class-select"><option value="lightweight">경량급</option><option value="middleweight" selected>중량급</option><option value="superheavy">초중량급</option><option value="assault">돌격형</option><option value="healer">힐러</option></select></label><span id="garage-mass">총 질량 0kg</span><span id="garage-limits">BLOCKS 1/45 · WEIGHT 10/680kg</span><span id="save-state">저장 전</span></div>
         <div class="battle-setup" aria-label="전투 설정">
-          <label>맵<select id="battle-map"><option value="arena01">Arena 01</option><option value="industrial01">Industrial Battle Zone 01</option><option value="desert01">Red Canyon Conquest 01</option></select></label>
+          <label>맵<select id="battle-map"><option value="industrial01">Industrial Battle Zone 01</option><option value="desert01">Red Canyon Conquest 01</option></select></label>
           <label>모드<select id="battle-mode"><option value="ffa4">개인전 4대</option><option value="ffa8">개인전 8대</option><option value="2v2">2 vs 2</option><option value="3v3">3 vs 3</option><option value="4v4">4 vs 4</option><option value="6v6">6 vs 6</option><option value="8v8">8 vs 8</option><option value="10v10">10 vs 10 점령전</option></select></label>
           <label class="friendly-fire"><input id="friendly-fire" type="checkbox" /> 아군 피해</label>
         </div>
@@ -319,12 +337,19 @@
 
     <div class="mobile-actions">
       <button id="dash" class="dash" type="button"><b>DASH</b><small>READY</small></button>
-      <button id="attack" class="attack" type="button"><b>ATTACK</b><small>무기 가동</small></button>
+      <button id="attack" class="attack" type="button"><b>ATTACK</b><small>근접 무기</small></button>
+      <button id="aim-toggle" class="aim-toggle" type="button" aria-pressed="false"><b>AIM</b><small>수동 조준</small></button>
+      <button id="aim-assist" class="aim-assist" type="button" aria-pressed="true"><b>ASSIST</b><small>SOFT</small></button>
+      <button id="ranged-fire" class="ranged-fire ready" type="button" style="--reload:1"><b>FIRE</b><small>READY</small></button>
+      <button id="weapon-switch" class="weapon-switch" type="button"><b>RANGED</b><small>원거리</small></button>
       <button id="brake" type="button"><b>BRAKE</b><small>HOLD</small></button>
       <button id="self-right" type="button" disabled><b>SELF RIGHT</b><small>T · 현재 위치</small></button>
       <button id="combat-respawn" type="button" hidden><b>RESPAWN</b><small>10초 후 복귀</small></button>
       <button id="reset" type="button"><b>RESET</b><small>R</small></button>
     </div>
+    <div id="aim-crosshair" class="aim-crosshair" hidden aria-hidden="true"><i></i><i></i><i></i><i></i></div>
+    <output id="aim-readout" class="aim-readout" hidden>1.0x · --m</output>
+    <label id="aim-zoom-control" class="aim-zoom-control" hidden>ZOOM<input id="aim-zoom" type="range" min="0" max="100" step="1" value="0" aria-label="조준 확대" /></label>
 
     <div id="message" class="message"></div>
     <output id="physics-debug" class="physics-debug" hidden></output>
@@ -341,6 +366,6 @@
         type: 'rejection', message: String(event.reason?.stack || event.reason || 'unknown rejection'),
       }));
     </script>
-  <script type="module" src="./app.js?v=20260829-assault-four-weapon-167"></script>
+  <script type="module" src="./app.js?v=20260830-sniper-ai-257"></script>
   </body>
 </html>
