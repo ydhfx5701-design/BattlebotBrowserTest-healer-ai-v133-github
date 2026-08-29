@@ -213,7 +213,7 @@ const ui = {
   paintStatus: document.querySelector('#paint-status'),
 };
 
-const LOWPOLY_REVISION = 'remesh-226-ranged-combat';
+const LOWPOLY_REVISION = 'remesh-258-mobile-runtime';
 const ASSETS = [
   'new_wheel', 'wheel_light', 'wheel_wide', 'wheel_assault',
   'new_saw_blade', 'drum_spinner', 'bar_spinner',
@@ -314,6 +314,8 @@ const MAP_ASSET_IDS = Object.freeze({
 });
 const loadedAssetIds = new Set();
 const assetFallbackIds = new Set();
+let mountGeometryPrepared = false;
+let lobbyPreviewAssetLoadPromise = null;
 
 function requiredAssetIdsForMap(mapId) {
   const normalized = MAP_ASSET_IDS[mapId] ? mapId : 'industrial01';
@@ -398,9 +400,9 @@ const WEIGHT_CLASSES = Object.freeze({
   // For generated/default robots maxBlocks is an exact construction budget,
   // not an upper bound. Keep aiBlockTarget identical so no path can silently
   // finish a 24/44 or 45/65 hull.
-  lightweight: { label: '경량급', maxHp: 625, maxArmor: 325, minBlocks: 12, maxBlocks: 44, aiBlockTarget: 44, aiLayerCount: 3, maxWeight: 540, allowedWheels: ['wheel_light'], heightRange: [1, 3], wheelModel: 'wheel_light', acceleration: 1.32, topSpeed: 19.5, massScale: 0.74, hpScale: 0.78, knockbackResistance: 0.72, traction: 0.9, steering: 1.18, dashDelta: 8.4, dashCooldown: 2.65, dashDuration: 0.4, dashPrimeRatio: 1.6, dashPeakRatio: 2.75, dashSteering: 0.66, dashChassisLengths: 5.1 },
-  middleweight: { label: '중량급', maxHp: 813, maxArmor: 455, minBlocks: 25, maxBlocks: 65, aiBlockTarget: 65, aiLayerCount: 4, maxWeight: 960, allowedWheels: ['new_wheel'], heightRange: [2, 4], wheelModel: 'new_wheel', acceleration: 1, topSpeed: 16.5, massScale: 1, hpScale: 1, knockbackResistance: 1, traction: 1, steering: 1, dashDelta: 7.1, dashCooldown: 3.05, dashDuration: 0.35, dashPrimeRatio: 1.45, dashPeakRatio: 2.25, dashSteering: 0.56, dashChassisLengths: 4.05 },
-  superheavy: { label: '초중량급', maxHp: 1000, maxArmor: 585, minBlocks: 46, maxBlocks: 90, aiBlockTarget: 90, aiLayerCount: 5, maxWeight: 1830, allowedWheels: ['wheel_wide'], heightRange: [3, 5], wheelModel: 'wheel_wide', acceleration: 0.72, topSpeed: 12.4, massScale: 1.45, hpScale: 1.35, knockbackResistance: 1.42, traction: 1.34, steering: 0.76, dashDelta: 5.7, dashCooldown: 3.65, dashDuration: 0.39, dashPrimeRatio: 1.3, dashPeakRatio: 1.92, dashSteering: 0.44, dashChassisLengths: 3.05 },
+  lightweight: { label: '경량형', maxHp: 625, maxArmor: 325, minBlocks: 12, maxBlocks: 44, aiBlockTarget: 44, aiLayerCount: 3, maxWeight: 540, allowedWheels: ['wheel_light'], heightRange: [1, 3], wheelModel: 'wheel_light', acceleration: 1.32, topSpeed: 19.5, massScale: 0.74, hpScale: 0.78, knockbackResistance: 0.72, traction: 0.9, steering: 1.18, dashDelta: 8.4, dashCooldown: 2.65, dashDuration: 0.4, dashPrimeRatio: 1.6, dashPeakRatio: 2.75, dashSteering: 0.66, dashChassisLengths: 5.1 },
+  middleweight: { label: '중량형', maxHp: 813, maxArmor: 455, minBlocks: 25, maxBlocks: 65, aiBlockTarget: 65, aiLayerCount: 4, maxWeight: 960, allowedWheels: ['new_wheel'], heightRange: [2, 4], wheelModel: 'new_wheel', acceleration: 1, topSpeed: 16.5, massScale: 1, hpScale: 1, knockbackResistance: 1, traction: 1, steering: 1, dashDelta: 7.1, dashCooldown: 3.05, dashDuration: 0.35, dashPrimeRatio: 1.45, dashPeakRatio: 2.25, dashSteering: 0.56, dashChassisLengths: 4.05 },
+  superheavy: { label: '초중량형', maxHp: 1000, maxArmor: 585, minBlocks: 46, maxBlocks: 90, aiBlockTarget: 90, aiLayerCount: 5, maxWeight: 1830, allowedWheels: ['wheel_wide'], heightRange: [3, 5], wheelModel: 'wheel_wide', acceleration: 0.72, topSpeed: 12.4, massScale: 1.45, hpScale: 1.35, knockbackResistance: 1.42, traction: 1.34, steering: 0.76, dashDelta: 5.7, dashCooldown: 3.65, dashDuration: 0.39, dashPrimeRatio: 1.3, dashPeakRatio: 1.92, dashSteering: 0.44, dashChassisLengths: 3.05 },
   assault: { label: '돌격형', maxHp: 875, maxArmor: 507, minBlocks: 34, maxBlocks: 78, aiBlockTarget: 78, aiLayerCount: 4, maxWeight: 1320, allowedWheels: ['wheel_assault'], heightRange: [2, 4], wheelModel: 'wheel_assault', acceleration: 1.04, topSpeed: 17.4, massScale: 1.18, hpScale: 1.1, knockbackResistance: 1.18, traction: 1.18, steering: 0.84, dashDelta: 10.2, dashCooldown: 3.25, dashDuration: 0.46, dashPrimeRatio: 1.72, dashPeakRatio: 2.85, dashSteering: 0.34, dashChassisLengths: 5.8, momentumBuildSeconds: 3.2, momentumTurnDrain: 1.45, momentumIdleDrain: 0.48, momentumTopSpeedGain: 0.34 },
   healer: { label: '힐러', maxHp: 719, maxArmor: 390, minBlocks: 20, maxBlocks: 60, aiBlockTarget: 60, aiLayerCount: 4, maxWeight: 800, allowedWheels: ['wheel_light', 'new_wheel'], heightRange: [2, 4], wheelModel: 'new_wheel', acceleration: 1.08, topSpeed: 17.2, massScale: 0.94, hpScale: 0.96, knockbackResistance: 0.92, traction: 1.04, steering: 1.08, dashDelta: 6.6, dashCooldown: 3.2, dashDuration: 0.34, dashPrimeRatio: 1.38, dashPeakRatio: 2.05, dashSteering: 0.6, dashChassisLengths: 3.8 },
 });
@@ -445,6 +447,13 @@ const RANGED_WEAPON_CONFIGS = Object.freeze({
 });
 const RANGED_WEAPON_BY_CLASS = Object.freeze({
   lightweight: 'machineGun', middleweight: 'autocannon', superheavy: 'cannon', assault: 'machineGun', healer: null,
+});
+const CLASS_COMBAT_DOCTRINE = Object.freeze({
+  lightweight: Object.freeze({ label: '경량형', role: 'scout-mobile-fire-hit-and-run', ranged: 'machineGun', meleeSwitchDistance: 10, standoff: 32, moveWhileFiring: true }),
+  middleweight: Object.freeze({ label: '중량형', role: 'midrange-pressure-balanced-melee', ranged: 'autocannon', meleeSwitchDistance: 12, standoff: 49, moveWhileFiring: true }),
+  superheavy: Object.freeze({ label: '초중량형', role: 'longrange-line-defence', ranged: 'cannon', meleeSwitchDistance: 15, standoff: 76, chaseLightweight: false }),
+  assault: Object.freeze({ label: '돌격형', role: 'direct-breach-dash-melee', ranged: 'machineGun-support-only', meleeSwitchDistance: 18, directCharge: true }),
+  healer: Object.freeze({ label: '힐러', role: 'heal-rescue-retreat-support', ranged: 'healerEmitter', soloCharge: false }),
 });
 const DETECTION_RADIUS_BY_CLASS = Object.freeze({ lightweight: 60, middleweight: 38, superheavy: 32, assault: 35, healer: 40 });
 const DETECTION_UPDATE_INTERVAL = 0.2;
@@ -2023,6 +2032,7 @@ let teamDetectionAccumulator = 0;
 let lastDetectionSoundAt = -Infinity;
 const rangedTelemetry = {
   shots: { machineGun: 0, autocannon: 0, cannon: 0 }, hits: { machineGun: 0, autocannon: 0, cannon: 0 },
+  audioEvents: { machineGun: 0, autocannon: 0, cannon: 0 },
   partHits: { block: 0, wheel: 0, weapon: 0, armor: 0, decoration: 0, other: 0 },
   detections: 0, detectionSounds: 0, tracersSpawned: 0, maximumActiveTracers: 0,
 };
@@ -2351,12 +2361,15 @@ let audioUnlocked = false;
 let musicDuck = 0;
 const audioSamples = Object.fromEntries(Object.entries(AUDIO_FILES).map(([key, files]) => [key, files.map((file) => {
   const audio = new Audio(file);
-  audio.preload = 'auto';
+  // Mobile boot must not download/decode the complete battle sound bank before
+  // the main menu is visible.  Individual samples are fetched only after the
+  // first user gesture or when battle audio is primed.
+  audio.preload = 'none';
   return audio;
 })]));
 const musicTracks = Object.fromEntries(Object.entries(MUSIC_FILES).map(([key, file]) => {
   const audio = new Audio(file);
-  audio.preload = 'auto';
+  audio.preload = 'none';
   audio.loop = true;
   audio.__mixGain = 0;
   return [key, audio];
@@ -2755,8 +2768,13 @@ function ensureAudio() {
   if (!audioContext) audioContext = new (window.AudioContext || window.webkitAudioContext)();
   if (audioContext.state === 'suspended') audioContext.resume();
   audioUnlocked = true;
-  for (const files of Object.values(AUDIO_FILES)) for (const file of files) loadDecodedAudio(file);
   for (const track of Object.values(musicTracks)) track.play().catch(() => {});
+}
+
+function primeBattleAudio() {
+  if (!audioUnlocked || !audioContext) return Promise.resolve([]);
+  const files = [...new Set(Object.values(AUDIO_FILES).flat())];
+  return Promise.all(files.map((file) => loadDecodedAudio(file)));
 }
 
 function loadDecodedAudio(file) {
@@ -2834,6 +2852,23 @@ function noteSpatialAudioKind(kind, choiceIndex = 0) {
   if (kind === 'partBreak') audioStats.partBreaks++;
 }
 
+const SPATIAL_DISTANCE_GAIN_POINTS = Object.freeze([
+  Object.freeze([0, 1]), Object.freeze([10, 1]), Object.freeze([20, 0.8]),
+  Object.freeze([40, 0.55]), Object.freeze([70, 0.3]), Object.freeze([100, 0.15]),
+]);
+
+function spatialDistanceGain(distance, kind = 'generic') {
+  const metres = Math.max(0, Number(distance) || 0);
+  for (let index = 1; index < SPATIAL_DISTANCE_GAIN_POINTS.length; index++) {
+    const [rightDistance, rightGain] = SPATIAL_DISTANCE_GAIN_POINTS[index];
+    const [leftDistance, leftGain] = SPATIAL_DISTANCE_GAIN_POINTS[index - 1];
+    if (metres <= rightDistance) return lerp(leftGain, rightGain, (metres - leftDistance) / Math.max(0.001, rightDistance - leftDistance));
+  }
+  const maximumDistance = kind === 'machineGun' ? 112 : kind === 'autocannon' ? 132 : kind === 'cannon' ? 165 : selectedMapId === 'desert01' ? 150 : 112;
+  if (metres >= maximumDistance) return 0;
+  return lerp(0.15, 0, (metres - 100) / Math.max(1, maximumDistance - 100));
+}
+
 function playSpatialSample(kind, position, volume = 0.8, rate = 1, priority = 1) {
   const files = AUDIO_FILES[kind];
   if (!files?.length) return;
@@ -2847,6 +2882,7 @@ function playSpatialSample(kind, position, volume = 0.8, rate = 1, priority = 1)
   const mixedVolume = volume * (impactKind ? IMPACT_SOUND_GAIN : 1);
   const buffer = decodedAudioBuffers.get(file);
   if (!buffer || !audioContext) {
+    if (audioContext) loadDecodedAudio(file);
     playSample(kind, mixedVolume, rate);
     if (kind.startsWith('hit')) noteSpatialAudioKind(kind, choiceIndex);
     return;
@@ -2865,17 +2901,22 @@ function playSpatialSample(kind, position, volume = 0.8, rate = 1, priority = 1)
   source.playbackRate.value = clamp(rate, 0.76, 1.3);
   const panner = audioContext.createPanner();
   panner.panningModel = 'HRTF';
+  // Panner supplies left/right HRTF direction.  Gain uses the documented
+  // smooth 10/20/40/70/100 m curve so every browser hears the same falloff.
   panner.distanceModel = 'inverse';
-  panner.refDistance = 3.2;
-  panner.maxDistance = selectedMapId === 'desert01' ? 150 : 72;
-  panner.rolloffFactor = selectedMapId === 'desert01' ? 0.82 : 1.05;
+  panner.refDistance = 1;
+  panner.maxDistance = 1000;
+  panner.rolloffFactor = 0;
   if (panner.positionX) {
     panner.positionX.value = position.x; panner.positionY.value = position.y; panner.positionZ.value = position.z;
   } else panner.setPosition(position.x, position.y, position.z);
   const gain = audioContext.createGain();
-  gain.gain.value = clamp(mixedVolume * masterVolume * mixerSettings.effects, 0, 1.8);
+  const distance = camera.position.distanceTo(position);
+  const distanceGain = spatialDistanceGain(distance, kind);
+  if (distanceGain <= 0) return;
+  gain.gain.value = clamp(mixedVolume * distanceGain * masterVolume * mixerSettings.effects, 0, 1.8);
   source.connect(panner).connect(gain).connect(audioContext.destination);
-  const voice = { source, gain, priority, baseVolume: mixedVolume, kind };
+  const voice = { source, gain, priority, baseVolume: mixedVolume * distanceGain, kind, distance, distanceGain };
   spatialAudioVoices.push(voice);
   audioStats.spatialVoicesPeak = Math.max(audioStats.spatialVoicesPeak, spatialAudioVoices.length);
   source.onended = () => {
@@ -5552,6 +5593,7 @@ function prepareMountGeometry() {
     probe.updateWorldMatrix(true, true);
     mountLocalBounds.set(type, new THREE.Box3().setFromObject(probe));
   }
+  mountGeometryPrepared = true;
 }
 
 function getSurfaceAlignmentQuaternion(record) {
@@ -8463,7 +8505,7 @@ class Robot {
       if (record.type === 'drumSpinner') this.attachRotary(record, supports, 'drum', 'x');
       if (record.type === 'puncher') this.attachPuncher(record, supports);
     }
-    if (this.type === 'healer') this.attachHealerEmitter();
+    if (this.weightClass === 'healer' || this.type === 'healer') this.attachHealerEmitter();
     else this.attachRangedWeapon();
     this.runtimeAssetSources = this.assembly.parts.flatMap((record) => {
       if (record.type === 'wheel') return [{ part: record.id, type: 'wheel', source: ASSET_PATHS[record.wheelModel] }];
@@ -8473,7 +8515,7 @@ class Robot {
       if (meta.tipModel) result.push({ part: `${record.id}:tip`, type: `${record.type}-tip`, source: ASSET_PATHS[meta.tipModel] });
       return result;
     });
-    if (this.type === 'healer') this.runtimeAssetSources.push(
+    if ((this.weightClass === 'healer' || this.type === 'healer') && this.healerEmitter) this.runtimeAssetSources.push(
       { part: 'healer-turret-base', type: 'healer-turret-fixed-base', source: ASSET_PATHS.healer_turret_base },
       { part: 'healer-turret-gun', type: 'healer-turret-360-yaw', source: ASSET_PATHS.healer_turret_gun },
     );
@@ -8533,6 +8575,10 @@ class Robot {
   }
 
   attachHealerEmitter() {
+    if (HEALER_TURRET_ASSET_IDS.some((id) => !models[id] || assetFallbackIds.has(id))) {
+      this.healerWeaponLoadFailure = 'healer-turret-glb-unavailable';
+      return;
+    }
     const topBlock = [...(this.assembly.blocks ?? [])].sort((left, right) => {
       const leftBounds = getBlockBounds(left);
       const rightBounds = getBlockBounds(right);
@@ -8624,6 +8670,11 @@ class Robot {
     const weaponType = RANGED_WEAPON_BY_CLASS[this.weightClass];
     const config = RANGED_WEAPON_CONFIGS[weaponType];
     if (!config) return;
+    if ([config.baseAsset, config.upperAsset].some((id) => !models[id] || assetFallbackIds.has(id))) {
+      this.rangedWeaponLoadFailure = `${weaponType}-glb-unavailable`;
+      this.selectedWeaponMode = 'melee';
+      return;
+    }
     const topBlock = [...(this.assembly.blocks ?? [])].sort((left, right) => {
       const leftBounds = getBlockBounds(left);
       const rightBounds = getBlockBounds(right);
@@ -8646,8 +8697,12 @@ class Robot {
     });
     basePart.object.userData = { ...basePart.object.userData, fixedBase: true, rotates: false, mountBlockId: topBlock.id, sourceAsset: ASSET_PATHS[config.baseAsset] };
     basePart.object.updateWorldMatrix(true, true);
-    const baseWorldBounds = new THREE.Box3().setFromObject(basePart.object);
-    const baseHeight = Math.max(0.06, baseWorldBounds.max.y - baseWorldBounds.min.y);
+    const mountWorldY = mount.getWorldPosition(new THREE.Vector3()).y;
+    let baseWorldBounds = new THREE.Box3().setFromObject(basePart.object);
+    basePart.object.position.y += mountWorldY - baseWorldBounds.min.y;
+    basePart.object.updateWorldMatrix(true, true);
+    baseWorldBounds = new THREE.Box3().setFromObject(basePart.object);
+    const baseHeight = Math.max(0.06, baseWorldBounds.max.y - mountWorldY);
 
     const yawPivot = new THREE.Group();
     yawPivot.name = `${this.name}_${config.label}_Yaw360`;
@@ -8664,6 +8719,10 @@ class Robot {
       hp: config.gunHp, mass: 22 * config.classScale, armor: 12, type: 'weapon', weaponKey: 'ranged', radius: 0.58,
     });
     upperPart.object.userData = { ...upperPart.object.userData, yaw360: true, pitchEnabled: true, sourceAsset: ASSET_PATHS[config.upperAsset] };
+    upperPart.object.updateWorldMatrix(true, true);
+    const upperPivotWorldY = pitchPivot.getWorldPosition(new THREE.Vector3()).y;
+    const upperBounds = new THREE.Box3().setFromObject(upperPart.object);
+    upperPart.object.position.y += upperPivotWorldY - upperBounds.min.y;
     const muzzle = new THREE.Object3D();
     muzzle.name = `${this.name}_${config.label}_Muzzle`;
     muzzle.position.set(0, weaponType === 'cannon' ? 0.12 : 0.09, weaponType === 'cannon' ? 0.7 : weaponType === 'autocannon' ? 0.61 : 0.52);
@@ -8943,6 +9002,7 @@ class Robot {
     spawnRangedTracer(origin, hitPoint, weapon.type);
     spawnRangedMuzzleFlash(origin, weapon.type);
     playSpatialSample(config.audio, origin, weapon.type === 'cannon' ? 0.96 : weapon.type === 'autocannon' ? 0.76 : 0.5, 0.97 + Math.random() * 0.06, weapon.type === 'cannon' ? 5 : 3);
+    rangedTelemetry.audioEvents[weapon.type]++;
     rangedTelemetry.shots[weapon.type]++;
     this.stats.rangedShots++;
     if (hitRobot) {
@@ -10301,20 +10361,26 @@ class Robot {
     // rotating turret continues to track the detected target. Assault robots
     // remain melee-first and only use the machine gun during the approach.
     if (this.rangedAvailable()) {
+      const doctrine = CLASS_COMBAT_DOCTRINE[this.weightClass] ?? CLASS_COMBAT_DOCTRINE.middleweight;
       if (this.weightClass === 'assault') {
-        const assaultMode = distance > 18 && distance < 48 ? 'ranged' : 'melee';
+        const assaultMode = distance > doctrine.meleeSwitchDistance && distance < 48 ? 'ranged' : 'melee';
         if (this.selectedWeaponMode !== assaultMode && this.weaponSwitchCooldown <= 0) this.switchWeaponMode(assaultMode);
       } else {
-        const meleeSwitchDistance = this.weightClass === 'lightweight' ? 10
-          : this.weightClass === 'middleweight' ? 12 : 15;
+        const meleeSwitchDistance = doctrine.meleeSwitchDistance;
         const meleeOperational = this.weaponAvailable(this.type);
         const desiredMode = distance <= meleeSwitchDistance && meleeOperational ? 'melee' : 'ranged';
         if (this.selectedWeaponMode !== desiredMode && this.weaponSwitchCooldown <= 0) this.switchWeaponMode(desiredMode);
         if (this.selectedWeaponMode === 'ranged') {
-          const standoff = this.weightClass === 'lightweight' ? 32 : this.weightClass === 'middleweight' ? 49 : 76;
+          const standoff = doctrine.standoff;
           const band = this.weightClass === 'lightweight' ? 7 : this.weightClass === 'middleweight' ? 9 : 14;
           const lateral = this.weightClass === 'lightweight' ? 7.5 : this.weightClass === 'middleweight' ? 3.8 : 1.4;
-          if (distance < standoff - band) {
+          const refuseLightweightChase = this.weightClass === 'superheavy' && target.weightClass === 'lightweight'
+            && distance > standoff + band;
+          if (refuseLightweightChase) {
+            // The cannon keeps its defence line and lets the 360-degree turret
+            // solve the shot; a superheavy never turns a scout into a chase.
+            desiredPoint.copy(this.root.position).addScaledVector(side, this.aiPreferredSide * 0.8);
+          } else if (distance < standoff - band) {
             desiredPoint.copy(this.root.position).addScaledVector(playerDirection, -(standoff - distance + 5));
             desiredPoint.addScaledVector(side, this.aiPreferredSide * lateral * 0.55);
           } else if (distance > standoff + band) {
@@ -17039,6 +17105,115 @@ function buildLobbyEnvironment() {
   };
 }
 
+function releaseLobbyHeavyAssetsForBattle() {
+  if (!lobbyEnvironmentDecorationRoot) return;
+  for (const child of [...lobbyEnvironmentDecorationRoot.children]) {
+    lobbyEnvironmentDecorationRoot.remove(child);
+    disposeRuntimeObjectResources(child);
+  }
+  for (const id of LOBBY_ASSET_IDS) {
+    delete models[id];
+    loadedAssetIds.delete(id);
+    assetFallbackIds.delete(id);
+    THREE.Cache.remove?.(LOBBY_ASSET_PATHS[id]);
+  }
+  lobbyEnvironmentBuilt = false;
+  lobbyPlatformTop = 0.32;
+  window.__battlebotLobbyRuntimeRelease = {
+    released: true,
+    releasedAssetCount: LOBBY_ASSET_IDS.length,
+    reason: 'battle-runtime-memory-separation',
+  };
+}
+
+function createRuntimeAssetFallback(id) {
+  const group = new THREE.Group();
+  const rotary = /wheel|spinner|saw/i.test(id);
+  const geometry = rotary ? new THREE.CylinderGeometry(0.5, 0.5, 0.35, 14) : new THREE.BoxGeometry(1, 0.55, 1);
+  const material = new THREE.MeshStandardMaterial({ color: rotary ? 0x222831 : 0x52606c, metalness: 0.72, roughness: 0.38 });
+  const mesh = new THREE.Mesh(geometry, material);
+  if (rotary) mesh.rotation.z = Math.PI / 2;
+  mesh.name = `Fallback_${id}`;
+  group.add(mesh);
+  group.userData.fallbackAsset = id;
+  return group;
+}
+
+async function loadRuntimeAssetSubset(assetIds, statusPrefix = '로봇 에셋') {
+  const ids = [...new Set(assetIds)].filter((id) => ASSET_PATHS[id] && !models[id]);
+  const loader = new GLTFLoader();
+  loader.setMeshoptDecoder(MeshoptDecoder);
+  let completed = 0;
+  for (const id of ids) {
+    try {
+      const file = await loader.loadAsync(ASSET_PATHS[id]);
+      models[id] = file.scene;
+      loadedAssetIds.add(id);
+      models[id].userData.assetSource = ASSET_PATHS[id];
+      models[id].userData.assetRevision = LOWPOLY_REVISION;
+      models[id].traverse((node) => {
+        if (!node.isMesh || !node.material) return;
+        for (const material of (Array.isArray(node.material) ? node.material : [node.material])) {
+          for (const key of ['map', 'normalMap', 'roughnessMap', 'metalnessMap', 'aoMap', 'emissiveMap']) registerQualityTexture(material?.[key]);
+        }
+      });
+    } catch (error) {
+      console.error(`[MOBILE_DEFERRED_ASSET_FAILED] ${id}`, error);
+      models[id] = createRuntimeAssetFallback(id);
+      loadedAssetIds.add(id);
+      assetFallbackIds.add(id);
+    }
+    completed++;
+    if (mode === 'lobby') ui.status.textContent = `${statusPrefix} 준비 중… ${completed}/${ids.length}`;
+    await new Promise((resolve) => window.setTimeout(resolve, 0));
+  }
+}
+
+function lobbyPreviewAssetIds(assembly) {
+  const ids = new Set();
+  for (const record of assembly?.parts ?? []) {
+    if (record.type === 'wheel') ids.add(ASSET_PATHS[record.wheelModel] ? record.wheelModel : 'new_wheel');
+    const meta = PART_META[record.type];
+    if (meta?.model && ASSET_PATHS[meta.model]) ids.add(meta.model);
+    if (meta?.tipModel && ASSET_PATHS[meta.tipModel]) ids.add(meta.tipModel);
+  }
+  if ((assembly?.parts ?? []).some((record) => record.nativeBlockPlate)) ids.add('armor_flat');
+  if (assembly?.weightClass === 'healer') for (const id of HEALER_TURRET_ASSET_IDS) ids.add(id);
+  const rangedType = RANGED_WEAPON_BY_CLASS[assembly?.weightClass];
+  const rangedConfig = RANGED_WEAPON_CONFIGS[rangedType];
+  if (rangedConfig) { ids.add(rangedConfig.baseAsset); ids.add(rangedConfig.upperAsset); }
+  return [...ids];
+}
+
+function prepareLoadedPreviewBounds(assembly) {
+  const assetIds = lobbyPreviewAssetIds(assembly);
+  for (const modelId of assetIds) {
+    if (!models[modelId] || modelLocalBounds.has(modelId)) continue;
+    const probe = cloneModel(modelId);
+    probe.updateWorldMatrix(true, true);
+    modelLocalBounds.set(modelId, new THREE.Box3().setFromObject(probe));
+  }
+  const partTypes = new Set((assembly?.parts ?? []).map((record) => record.type));
+  for (const type of partTypes) {
+    const meta = PART_META[type];
+    if (!meta || mountLocalBounds.has(type) || !meta.model || !models[meta.model] || (meta.tipModel && !models[meta.tipModel])) continue;
+    const probe = createPartVisualContent(type);
+    probe.updateWorldMatrix(true, true);
+    mountLocalBounds.set(type, new THREE.Box3().setFromObject(probe));
+  }
+}
+
+async function ensureLobbyPreviewAssets() {
+  if (lobbyPreviewAssetLoadPromise) return lobbyPreviewAssetLoadPromise;
+  const assembly = enrichAssembly(loadStoredAssembly());
+  const requiredIds = lobbyPreviewAssetIds(assembly);
+  lobbyPreviewAssetLoadPromise = (async () => {
+    await loadRuntimeAssetSubset(requiredIds, '저장 로봇');
+    prepareLoadedPreviewBounds(assembly);
+  })().finally(() => { lobbyPreviewAssetLoadPromise = null; });
+  return lobbyPreviewAssetLoadPromise;
+}
+
 async function ensureLobbyAssets() {
   if (LOBBY_ASSET_IDS.every((id) => models[id])) {
     buildLobbyEnvironment();
@@ -17129,6 +17304,13 @@ function buildLobbyRobot() {
     savedAssembly = enrichAssembly(selected.assembly);
     localStorage.setItem(STORAGE_KEY, JSON.stringify(savedAssembly));
   }
+  const lobbyFloorRepairs = repairAssemblyBuildFloor(savedAssembly, 'saved-player-lobby-hydration');
+  const lobbyPlacementRepairs = repairLoadedFunctionalPlacement(savedAssembly);
+  if (lobbyFloorRepairs.length || lobbyPlacementRepairs.length) {
+    savedAssembly = enrichAssembly(savedAssembly);
+    repairAssemblyBuildFloor(savedAssembly, 'saved-player-lobby-persisted');
+    localStorage.setItem(STORAGE_KEY, JSON.stringify(savedAssembly));
+  }
   workingAssembly = cloneData(savedAssembly);
   lobbyRobot = new Robot({
     id: -100, name: `${selected?.name ?? 'ROBOT 01'} DISPLAY`, type: 'player', isPlayer: true, team: 'display', tint: 0xffffff,
@@ -17185,9 +17367,16 @@ function updateLobbyTelemetry() {
 }
 
 function updateLobby(dt) {
-  if (!lobbyRobot) return;
   worldTime += dt;
   lobbyOrbitTime += dt;
+  if (!lobbyRobot) {
+    desiredCamera.set(-4.25, 2.9, 5.5);
+    camera.position.lerp(desiredCamera, 1 - Math.exp(-3.2 * dt));
+    camera.up.set(0, 1, 0);
+    camera.lookAt(0, 1.05, 0.1);
+    updateEffects(dt);
+    return;
+  }
   const baseYaw = 0.34;
   lobbyRobot.root.rotation.y = baseYaw + lobbyRobotUserYaw + Math.sin(lobbyOrbitTime * 0.24) * 0.018;
   for (const rotary of lobbyRobot.rotaryWeapons) rotary.pivot.rotation[rotary.axis] += dt * 1.35;
@@ -17234,9 +17423,13 @@ function showLobbyModal(action, battle = false) {
 
 function lobbyFadeTo(callback) {
   ui.lobbyFade.classList.add('active');
-  window.setTimeout(() => {
-    callback();
-    ui.lobbyFade.classList.remove('active');
+  window.setTimeout(async () => {
+    try { await callback(); }
+    catch (error) {
+      console.error('[LOBBY_TRANSITION_FAILED]', error);
+      ui.status.textContent = `전환 실패: ${error.message}`;
+      ui.status.classList.add('error');
+    } finally { ui.lobbyFade.classList.remove('active'); }
   }, 230);
 }
 
@@ -17263,10 +17456,22 @@ function enterLobby() {
   renderer.shadowMap.enabled = qualityPreset !== 'low';
   setLobbyEnvironmentActive(true);
   setLobbyLights(true);
-  buildLobbyRobot();
-  ensureLobbyAssets().catch((error) => {
-    console.error('[LOBBY_ENVIRONMENT_LOAD_FAILED]', error);
-    if (mode === 'lobby') ui.status.textContent = '메인화면 창고 일부 에셋 로드 실패 — 코드 배경으로 계속 실행합니다.';
+  const previewAssembly = enrichAssembly(loadStoredAssembly());
+  const previewReady = lobbyPreviewAssetIds(previewAssembly).every((id) => Boolean(models[id]));
+  if (previewReady) {
+    prepareLoadedPreviewBounds(previewAssembly);
+    buildLobbyRobot();
+  } else removeLobbyRobot();
+  ui.status.textContent = previewReady ? '메인메뉴 코어 준비 완료 · 창고 장식 지연 로딩 중' : '메인메뉴 코어 준비 완료 · 저장 로봇 지연 로딩 중';
+  ui.status.classList.add('ready');
+  (async () => {
+    await ensureLobbyPreviewAssets();
+    if (mode !== 'lobby') return;
+    if (!lobbyRobot) buildLobbyRobot();
+    await ensureLobbyAssets();
+  })().catch((error) => {
+    console.error('[LOBBY_DEFERRED_LOAD_FAILED]', error);
+    if (mode === 'lobby') ui.status.textContent = '메인화면 코어는 정상 실행 중 · 일부 3D 에셋만 대체 표시합니다.';
   });
   hideLobbyModal();
   ui.lobbyFade.classList.remove('active');
@@ -17423,6 +17628,13 @@ function resetGame(testOnly = mode === 'test', playerAssembly = workingAssembly)
   collisionEventCache.clear();
   resetTeamDetection();
   clearRangedVfx();
+  Object.assign(rangedTelemetry, {
+    shots: { machineGun: 0, autocannon: 0, cannon: 0 },
+    hits: { machineGun: 0, autocannon: 0, cannon: 0 },
+    audioEvents: { machineGun: 0, autocannon: 0, cannon: 0 },
+    partHits: { block: 0, wheel: 0, weapon: 0, armor: 0, decoration: 0, other: 0 },
+    detections: 0, detectionSounds: 0, tracersSpawned: 0, maximumActiveTracers: 0,
+  });
   worldTime = 0;
   physicsStepAccumulator = 0;
   largeBattlePhysicsPhase = 0;
@@ -17624,6 +17836,10 @@ function resetGame(testOnly = mode === 'test', playerAssembly = workingAssembly)
       if (combatSlots >= 3 && !classes.includes('assault')) classes[Math.abs(team === 'red' ? 1 : 0) % combatSlots] = 'assault';
       if (combatSlots >= 5 && !classes.includes('superheavy')) classes[combatSlots - 1] = 'superheavy';
       if (combatSlots >= 4 && !classes.includes('lightweight')) classes[0] = 'lightweight';
+      if (combatSlots >= 4 && !classes.includes('middleweight')) {
+        const middleIndex = classes.findIndex((value, index) => index > 0 && value !== 'assault' && value !== 'superheavy');
+        classes[middleIndex >= 0 ? middleIndex : Math.min(2, combatSlots - 1)] = 'middleweight';
+      }
       for (let index = classes.length - 1; index > 0; index--) {
         const swap = Math.floor(Math.random() * (index + 1));
         [classes[index], classes[swap]] = [classes[swap], classes[index]];
@@ -17810,7 +18026,13 @@ function setGamePaused(paused) {
 
 async function startBattle(testOnly = false) {
   const requestedMapId = ui.battleMap.value;
+  ui.status.textContent = `${MAP_DEFINITIONS[requestedMapId]?.name ?? '전투맵'} 전투 리소스 준비 중…`;
+  if (lobbyAssetLoadPromise) await lobbyAssetLoadPromise;
+  releaseLobbyHeavyAssetsForBattle();
   if (!mapAssetsReady(requestedMapId)) await ensureAssetsForMap(requestedMapId);
+  if (!mountGeometryPrepared) prepareMountGeometry();
+  ensureMapScene(requestedMapId);
+  if (audioUnlocked) await primeBattleAudio();
   setGamePaused(false);
   removeLobbyRobot();
   setLobbyEnvironmentActive(false);
@@ -17872,8 +18094,13 @@ function horizontalBarPoseTelemetry(robot, weapon) {
   };
 }
 
-function enterWorkshop() {
+async function enterWorkshop() {
   const fromLobby = mode === 'lobby';
+  if (!SHARED_ROBOT_ASSET_IDS.every((id) => Boolean(models[id]))) {
+    ui.status.textContent = '작업장 부품 카탈로그를 지연 로딩 중…';
+    await loadRuntimeAssetSubset(SHARED_ROBOT_ASSET_IDS, '작업장 부품');
+  }
+  if (!mountGeometryPrepared) prepareMountGeometry();
   removeLobbyRobot();
   setLobbyEnvironmentActive(false);
   setLobbyLights(false);
@@ -20420,8 +20647,6 @@ ui.lobbyModal.addEventListener('click', (event) => {
 ui.lobbyEnterBattle.addEventListener('click', async () => {
   playUIClick(true);
   ui.battleMap.value = ui.lobbyBattleMap.value;
-  await ensureAssetsForMap(ui.lobbyBattleMap.value);
-  setActiveMap(ui.lobbyBattleMap.value);
   ui.battleMode.value = ui.lobbyBattleMode.value;
   ui.friendlyFire.checked = ui.lobbyFriendlyFire.checked;
   battleMode = ui.battleMode.value;
@@ -20429,13 +20654,12 @@ ui.lobbyEnterBattle.addEventListener('click', async () => {
   hideLobbyModal();
   lobbyFadeTo(() => startBattle(false));
 });
-ui.lobbyBattleMap.addEventListener('change', async () => {
-  await ensureAssetsForMap(ui.lobbyBattleMap.value);
-  setActiveMap(ui.lobbyBattleMap.value);
-  ui.lobbyEnterBattle.textContent = selectedMapId === 'desert01' ? 'RED CANYON 10v10 출전' : 'INDUSTRIAL ZONE 출전';
-  ui.lobbyModalCopy.textContent = selectedMapId === 'desert01'
+ui.lobbyBattleMap.addEventListener('change', () => {
+  const pendingMapId = ui.lobbyBattleMap.value;
+  ui.lobbyEnterBattle.textContent = pendingMapId === 'desert01' ? 'RED CANYON 10v10 출전' : 'INDUSTRIAL ZONE 출전';
+  ui.lobbyModalCopy.textContent = pendingMapId === 'desert01'
     ? '붉은 협곡에서 A를 확보한 뒤 B로 진격하는 10v10 점령전을 시작합니다.'
-    : selectedMapId === 'industrial01'
+    : pendingMapId === 'industrial01'
     ? '넓은 산업 전장에서 4v4·6v6·8v8 대규모 근접전을 시작합니다.'
     : '좁은 실내 스포츠 경기장에서 빠르게 맞붙습니다.';
 });
@@ -20841,23 +21065,15 @@ async function loadAssets(mapId = 'industrial01', { reset = true } = {}) {
     for (const key of Object.keys(models)) delete models[key];
     loadedAssetIds.clear();
     assetFallbackIds.clear();
+    flattenedModelTemplateCache.clear();
+    mountLocalBounds.clear();
+    modelLocalBounds.clear();
+    mountGeometryPrepared = false;
   }
   const assetIds = requiredIds.filter((id) => !models[id]);
   let completed = 0;
   let nextAssetIndex = 0;
   const failed = [];
-  const fallbackModel = (id) => {
-    const group = new THREE.Group();
-    const rotary = /wheel|spinner|saw/i.test(id);
-    const geometry = rotary ? new THREE.CylinderGeometry(0.5, 0.5, 0.35, 18) : new THREE.BoxGeometry(1, 0.55, 1);
-    const material = new THREE.MeshStandardMaterial({ color: rotary ? 0x222831 : 0x52606c, metalness: 0.72, roughness: 0.38 });
-    const mesh = new THREE.Mesh(geometry, material);
-    if (rotary) mesh.rotation.z = Math.PI / 2;
-    mesh.name = `Fallback_${id}`;
-    group.add(mesh);
-    group.userData.fallbackAsset = id;
-    return group;
-  };
   const loadOne = async (id) => {
     const loader = new GLTFLoader();
     loader.setMeshoptDecoder(MeshoptDecoder);
@@ -20876,7 +21092,7 @@ async function loadAssets(mapId = 'industrial01', { reset = true } = {}) {
       });
     } catch (error) {
       console.warn(`Asset fallback: ${id}`, error);
-      models[id] = fallbackModel(id);
+      models[id] = createRuntimeAssetFallback(id);
       loadedAssetIds.add(id);
       assetFallbackIds.add(id);
       failed.push(id);
@@ -20932,8 +21148,8 @@ async function loadAssets(mapId = 'industrial01', { reset = true } = {}) {
 }
 
 async function ensureAssetsForMap(mapId) {
-  if (mapAssetsReady(mapId)) return;
-  await loadAssets(mapId, { reset: false });
+  if (!mapAssetsReady(mapId)) await loadAssets(mapId, { reset: false });
+  if (!mountGeometryPrepared) prepareMountGeometry();
 }
 
 let mobileFpsMeterActive = false;
@@ -21057,13 +21273,12 @@ if (new URLSearchParams(location.search).get('qa') === 'isolated'
 }
 
 window.__battlebotSpawnQA = {
-  start(mapId = 'industrial01', requestedMode = '8v8') {
+  async start(mapId = 'industrial01', requestedMode = '8v8') {
     ui.battleMap.value = mapId;
     ui.lobbyBattleMap.value = mapId;
     ui.battleMode.value = mapId === 'desert01' ? '10v10' : requestedMode;
     ui.lobbyBattleMode.value = ui.battleMode.value;
-    setActiveMap(mapId);
-    startBattle(false);
+    await startBattle(false);
     return this.snapshot('qa-start');
   },
   snapshot(stage = 'qa-snapshot') {
@@ -21725,6 +21940,81 @@ window.__battlebotRangedQA = Object.freeze({
   },
 });
 
+window.__battlebotMobileRuntimeQA = Object.freeze({
+  snapshot() {
+    const isLobby = mode === 'lobby' && document.body.classList.contains('lobby-mode');
+    const lobbyUi = document.querySelector('#lobby-ui');
+    const lobbyStyle = lobbyUi ? getComputedStyle(lobbyUi) : null;
+    const fightStyle = ui.lobbyFight ? getComputedStyle(ui.lobbyFight) : null;
+    const menuVisible = Boolean(lobbyUi && ui.lobbyFight && !lobbyUi.hidden && !ui.lobbyFight.hidden
+      && lobbyStyle?.display !== 'none' && lobbyStyle?.visibility !== 'hidden' && Number(lobbyStyle?.opacity ?? 1) > 0
+      && fightStyle?.display !== 'none' && fightStyle?.visibility !== 'hidden' && Number(fightStyle?.opacity ?? 1) > 0);
+    const mapBuilds = Object.entries(mapSceneBuilt).filter(([, built]) => built).map(([id]) => id);
+    const preview = lobbyRobot;
+    const previewWeapon = preview?.rangedWeapon ?? null;
+    const expectedPreviewWeapon = preview ? RANGED_WEAPON_BY_CLASS[preview.weightClass] ?? null : null;
+    const lobbyAudit = {
+      isLobby, menuVisible, combatRobots: robots.length, mapBuilds,
+      savedRobotVisible: Boolean(preview?.root?.visible),
+      savedRobotClass: preview?.weightClass ?? null,
+      expectedWeapon: expectedPreviewWeapon,
+      weapon: preview?.rangedWeaponType ?? null,
+      healerEmitter: Boolean(preview?.healerEmitter),
+      gunDirectBlockMount: Boolean(previewWeapon?.mount?.userData?.directBlockFaceMount),
+      fixedBase: Boolean(previewWeapon?.basePart?.object?.userData?.fixedBase),
+      rotatingUpperDegrees: previewWeapon?.yawPivot?.userData?.yawRangeDegrees ?? null,
+      loadFailure: preview?.rangedWeaponLoadFailure ?? preview?.healerWeaponLoadFailure ?? null,
+      battleRuntimeDeferred: robots.length === 0 && mapBuilds.length === 0,
+    };
+    const audio = {
+      eagerPreloads: Object.values(audioSamples).flat().filter((sample) => sample.preload !== 'none').length
+        + Object.values(musicTracks).filter((track) => track.preload !== 'none').length,
+      curve: Object.fromEntries([5, 10, 20, 40, 70, 100].map((distance) => [distance, Number(spatialDistanceGain(distance, 'machineGun').toFixed(3))])),
+      classMaximumDistance: { machineGun: 112, autocannon: 132, cannon: 165 },
+      hrtfPanning: true,
+    };
+    const classNames = Object.fromEntries(Object.entries(WEIGHT_CLASSES).map(([id, config]) => [id, config.label]));
+    const passed = isLobby && menuVisible && lobbyAudit.battleRuntimeDeferred && lobbyAudit.savedRobotVisible
+      && lobbyAudit.loadFailure == null
+      && (expectedPreviewWeapon == null ? lobbyAudit.healerEmitter : lobbyAudit.weapon === expectedPreviewWeapon
+        && lobbyAudit.gunDirectBlockMount && lobbyAudit.fixedBase && lobbyAudit.rotatingUpperDegrees === 360)
+      && audio.eagerPreloads === 0
+      && JSON.stringify(Object.values(classNames)) === JSON.stringify(['경량형', '중량형', '초중량형', '돌격형', '힐러']);
+    return { passed, lobby: lobbyAudit, audio, classNames, doctrine: cloneData(CLASS_COMBAT_DOCTRINE), loadedAssetIds: [...loadedAssetIds], fallbackAssetIds: [...assetFallbackIds] };
+  },
+  combatSnapshot() {
+    const ranged = window.__battlebotRangedQA.snapshot();
+    const live = robots.filter((robot) => robot.combatEntity && !robot.dead);
+    const rows = live.map((robot) => ({
+      robot: robot.name, player: robot.isPlayer, classId: robot.weightClass,
+      classLabel: WEIGHT_CLASSES[robot.weightClass]?.label ?? null,
+      role: CLASS_COMBAT_DOCTRINE[robot.weightClass]?.role ?? null,
+      expectedWeapon: RANGED_WEAPON_BY_CLASS[robot.weightClass] ?? (robot.weightClass === 'healer' ? 'healerEmitter' : null),
+      actualWeapon: robot.rangedWeaponType ?? (robot.healerEmitter ? 'healerEmitter' : null),
+      directBlockMount: Boolean(robot.rangedWeapon?.mount?.userData?.directBlockFaceMount
+        || robot.healerEmitter?.userData?.directBlockFaceMount),
+      baseFixed: Boolean(robot.rangedWeapon?.basePart?.object?.userData?.fixedBase || robot.healerTurretBase),
+      rotatingUpperDegrees: robot.rangedWeapon?.yawPivot?.userData?.yawRangeDegrees
+        ?? robot.healerTurretPivot?.userData?.yawRangeDegrees ?? null,
+      selectedMode: robot.selectedWeaponMode,
+      loadFailure: robot.rangedWeaponLoadFailure ?? robot.healerWeaponLoadFailure ?? null,
+      action: robot.aiAction, state: robot.aiState,
+    }));
+    const audioOneEventPerShot = Object.keys(rangedTelemetry.shots)
+      .every((kind) => rangedTelemetry.shots[kind] === rangedTelemetry.audioEvents[kind]);
+    const invalidRows = rows.filter((row) => row.expectedWeapon !== row.actualWeapon || !row.directBlockMount
+      || !row.baseFixed || row.rotatingUpperDegrees !== 360 || row.loadFailure);
+    const failedLoadStillRanged = live.filter((robot) => (robot.rangedWeaponLoadFailure || robot.healerWeaponLoadFailure)
+      && robot.selectedWeaponMode === 'ranged').map((robot) => robot.name);
+    return {
+      passed: ranged.passed && invalidRows.length === 0 && failedLoadStillRanged.length === 0 && audioOneEventPerShot,
+      mapId: selectedMapId, liveRobots: live.length, rows, invalidRows, failedLoadStillRanged,
+      doctrine: cloneData(CLASS_COMBAT_DOCTRINE), ranged,
+      audio: { shots: cloneData(rangedTelemetry.shots), events: cloneData(rangedTelemetry.audioEvents), oneEventPerShot: audioOneEventPerShot },
+    };
+  },
+});
+
 if (new URLSearchParams(location.search).get('qa') === 'isolated'
   || new URLSearchParams(location.search).get('runtimeQA') === '1') {
   const runtimePanel = document.createElement('section');
@@ -21740,9 +22030,10 @@ if (new URLSearchParams(location.search).get('qa') === 'isolated'
     button.type = 'button';
     button.textContent = label;
     button.style.cssText = 'min-height:26px;font:700 9px sans-serif';
-    button.addEventListener('click', () => {
+    button.addEventListener('click', async () => {
       try {
-        reportRuntimeQA(action());
+        if (!audioUnlocked) await ensureAudio();
+        reportRuntimeQA(await action());
       } catch (error) {
         console.error('[RUNTIME_QA_ERROR]', label, error);
         reportRuntimeQA({ passed: false, label, error: error.message, stack: error.stack });
@@ -21761,6 +22052,8 @@ if (new URLSearchParams(location.search).get('qa') === 'isolated'
   addRuntimeQAButton('PLAYER BLOCK', () => window.__battlebotSurvivalQA.playerBlockDestruction());
   addRuntimeQAButton('HEALER TEST', () => window.__battlebotHealerQA.run());
   addRuntimeQAButton('RANGED SNAP', () => window.__battlebotRangedQA.snapshot());
+  addRuntimeQAButton('MOBILE BOOT', () => window.__battlebotMobileRuntimeQA.snapshot());
+  addRuntimeQAButton('MOBILE COMBAT', () => window.__battlebotMobileRuntimeQA.combatSnapshot());
   addRuntimeQAButton('AIM STAGE 55m', () => window.__battlebotRangedQA.stagePrecisionTarget(55));
   addRuntimeQAButton('AIM STAGE 80m', () => window.__battlebotRangedQA.stagePrecisionTarget(80));
   addRuntimeQAButton('AIM BLOCK', () => window.__battlebotRangedQA.aimAtPart('block', 100));
@@ -24043,12 +24336,12 @@ window.__battlebotFatalQA = {
 window.__battlebotFloorQA = { runAll: runBuildFloorQA, runDynamic: exerciseDynamicFloorCollisionQA, auditAssemblyBuildFloor, validatePartPlacement };
 
 window.__battlebotConquestQA = {
-  start: () => {
+  start: async () => {
     ui.battleMap.value = 'desert01';
     ui.lobbyBattleMap.value = 'desert01';
     ui.battleMode.value = '10v10';
     ui.lobbyBattleMode.value = '10v10';
-    startBattle(false);
+    await startBattle(false);
     return conquestQASnapshot();
   },
   snapshot: conquestQASnapshot,
@@ -24549,10 +24842,12 @@ try {
   const requestedMap = initialParams.get('map');
   const initialMapId = requestedMap === 'desert01' || initialParams.get('conquestQA') === '1'
     ? 'desert01' : 'industrial01';
-  await loadAssets(initialMapId);
-  ensureMapScene(initialMapId);
-  setActiveMap(initialMapId);
-  prepareMountGeometry();
+  // Mobile boot is lobby-first.  Do not decode a battlefield, 16 robots and
+  // every weapon before the menu has rendered once.
+  selectedMapId = initialMapId;
+  activeMap = MAP_DEFINITIONS[initialMapId] ?? MAP_DEFINITIONS.industrial01;
+  ui.battleMap.value = selectedMapId;
+  ui.lobbyBattleMap.value = selectedMapId;
   const startupGeneratedBlueprint = regenerateGeneratedBlueprintIfStale(savedAssembly);
   if (startupGeneratedBlueprint.replaced) {
     savedAssembly = enrichAssembly(startupGeneratedBlueprint.assembly);
@@ -24560,18 +24855,13 @@ try {
     localStorage.setItem(STORAGE_KEY, JSON.stringify(savedAssembly));
     console.info('[AI_BLUEPRINT_REGENERATED]', startupGeneratedBlueprint.reason, savedAssembly.aiDesign?.referenceId, savedAssembly.blocks.length);
   }
-  const startupFloorRepairs = repairAssemblyBuildFloor(savedAssembly, 'saved-player-startup');
-  const startupPlacementRepairs = repairLoadedFunctionalPlacement(savedAssembly);
-  if (startupFloorRepairs.length || startupPlacementRepairs.length) {
-    savedAssembly = enrichAssembly(savedAssembly);
-    repairAssemblyBuildFloor(savedAssembly, 'saved-player-persisted');
-    workingAssembly = cloneData(savedAssembly);
-    localStorage.setItem(STORAGE_KEY, JSON.stringify(savedAssembly));
-  }
+  // Bounds-dependent placement repair runs after the saved robot's own GLBs
+  // have loaded in buildLobbyRobot(), never on an empty mobile asset registry.
+  const startupFloorRepairs = [];
+  const startupPlacementRepairs = [];
   createGarageStage();
   enterLobby();
-  ui.status.textContent = `Industrial Battle Zone 01 + Red Canyon 10v10 + 저장 로봇 동기화 완료${startupGeneratedBlueprint.replaced ? ' · 생성형 설계 MAX/대칭 규칙으로 재생성' : ''}${startupFloorRepairs.length ? ` · 바닥 위반 ${startupFloorRepairs.length}개 보정` : ''}${startupPlacementRepairs.length ? ` · 기존 장착 ${startupPlacementRepairs.length}개 안전 보정` : ''}`;
-  ui.status.classList.add('ready');
+  requestAnimationFrame(frame);
   if (initialParams.get('perfBench') === '1') {
     // `ai=16` denotes the complete 16-participant performance roster: one
     // player plus fifteen AI. This prevents the old 9-v-8/17-robot benchmark
@@ -24584,14 +24874,14 @@ try {
     ui.lobbyBattleMap.value = benchmarkMap;
     ui.battleMode.value = '8v8';
     ui.lobbyBattleMode.value = '8v8';
-    startBattle(false);
+    await startBattle(false);
     window.setTimeout(() => runAutomaticPerformanceBenchmark(requestedAI, requestedTotalRobots).catch((error) => {
       const output = installPerformanceBenchmarkOutput();
       output.textContent = JSON.stringify({ passed: false, error: error.message, stack: error.stack });
       output.dataset.qaResult = 'fail';
     }), 500);
   } else if (initialParams.get('floorBattleQA') === '1') {
-    startBattle(false);
+    await startBattle(false);
     window.setTimeout(() => {
       const floorQAResult = runBuildFloorQA();
       floorQAResult.dynamicCollision = exerciseDynamicFloorCollisionQA();
@@ -24608,7 +24898,7 @@ try {
     ui.qaState.dataset.qaResult = floorQAResult.passed ? 'pass' : 'fail';
     ui.qaState.dataset.qaPayload = JSON.stringify(floorQAResult);
   } else if (initialParams.get('conquestQA') === '1') {
-    window.__battlebotConquestQA.start();
+    await window.__battlebotConquestQA.start();
     if (initialParams.get('qa') === 'isolated') {
       installConquestQAPanel();
       // Query-driven QA is intentionally published in the DOM so the same
@@ -24662,11 +24952,10 @@ try {
       }
     }
   } else if (initialParams.get('autoQA') === '1') {
-    startBattle(true);
+    await startBattle(true);
     startSelfTest();
   }
   if (initialParams.get('fatalQA') === '1') installFatalRuntimeQAPanel();
-  requestAnimationFrame(frame);
 } catch (error) {
   console.error(error);
   ui.status.textContent = `로딩 실패: ${error.message}`;

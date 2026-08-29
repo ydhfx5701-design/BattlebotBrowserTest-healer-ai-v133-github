@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
     <title>Battlebot Workshop & Arena</title>
     <link rel="icon" href="data:," />
-    <link rel="stylesheet" href="./styles.css?v=20260830-sniper-ai-257" />
+    <link rel="stylesheet" href="./styles.css?v=20260830-mobile-runtime-258e" />
     <script type="importmap">
       {
         "imports": {
@@ -51,7 +51,7 @@
         <button id="lobby-robot-next" class="lobby-robot-arrow next" type="button" aria-label="다음 저장 로봇">›</button>
         <div class="lobby-robot-info">
           <b id="lobby-robot-label">ROBOT 01</b>
-          <span id="lobby-robot-spec">중량급 | 무기 | 중량 바퀴</span>
+          <span id="lobby-robot-spec">중량형 | 무기 | 중량 바퀴</span>
           <button id="lobby-robot-edit" type="button">로봇 편집</button>
         </div>
       </section>
@@ -97,7 +97,7 @@
         <h1 id="screen-title">작업장</h1>
       </div>
         <div class="player-readout">
-        <div class="meter-label"><span>ROBOT SURVIVAL</span><strong id="player-class">중량급</strong></div>
+        <div class="meter-label"><span>ROBOT SURVIVAL</span><strong id="player-class">중량형</strong></div>
         <div class="meter survival-meter health-meter"><i id="player-health"></i><strong id="player-health-text">650 / 650</strong></div>
         <div class="meter survival-meter armor-meter"><i id="player-armor"></i><strong id="player-armor-text">350 / 350</strong></div>
         <div class="substatus"><span id="player-core">CORE 100%</span><span id="player-blocks">BLOCKS 1/1</span><span id="player-weapon">무기 없음</span><span id="player-mobility">이동장치 없음</span></div>
@@ -189,8 +189,8 @@
         <div id="functional-catalog">
           <div class="block-tier-chip functional-chip"><i></i><span><b>기능 부품</b><small>블록 표면에 직접 연결</small></span></div>
           <div class="catalog-grid">
-            <button type="button" data-catalog="wheel" data-wheel-model="wheel_light"><b>경량급 바퀴</b><small>고속 · 빠른 가속</small></button>
-            <button type="button" data-catalog="wheel" data-wheel-model="new_wheel"><b>중량급 바퀴</b><small>균형형</small></button>
+            <button type="button" data-catalog="wheel" data-wheel-model="wheel_light"><b>경량형 바퀴</b><small>고속 · 빠른 가속</small></button>
+            <button type="button" data-catalog="wheel" data-wheel-model="new_wheel"><b>중량형 바퀴</b><small>균형형</small></button>
             <button type="button" data-catalog="wheel" data-wheel-model="wheel_wide"><b>초중량 광폭</b><small>고중량 · 접지</small></button>
             <button type="button" data-catalog="wheel" data-wheel-model="wheel_assault"><b>돌격형 바퀴</b><small>직선 가속 · 고접지</small></button>
             <button type="button" data-catalog="spinner"><b>톱날</b><small>블록 면 직접 장착</small></button>
@@ -224,18 +224,18 @@
         <div id="robot-preset-catalog" hidden>
           <div class="block-tier-chip robot-preset-chip"><i></i><span><b>편집 가능한 로봇</b><small>체급 × 무기 20종 · 선택 후 전부 수정 가능</small></span></div>
           <div class="catalog-grid robot-preset-grid">
-            <button type="button" data-robot-preset="lightweight:spinner"><b>경량 · 톱날</b><small>44블록 · 저상 쐐기</small></button>
-            <button type="button" data-robot-preset="lightweight:bar"><b>경량 · 바 스피너</b><small>44블록 · 넓은 타격</small></button>
-            <button type="button" data-robot-preset="lightweight:drum"><b>경량 · 드럼</b><small>44블록 · 하부 공격</small></button>
-            <button type="button" data-robot-preset="lightweight:puncher"><b>경량 · 펀처</b><small>44블록 · 직선 돌출</small></button>
-            <button type="button" data-robot-preset="middleweight:spinner"><b>중량 · 톱날</b><small>65블록 · 균형형</small></button>
-            <button type="button" data-robot-preset="middleweight:bar"><b>중량 · 바 스피너</b><small>65블록 · 전면 타격</small></button>
-            <button type="button" data-robot-preset="middleweight:drum"><b>중량 · 드럼</b><small>65블록 · 압박형</small></button>
-            <button type="button" data-robot-preset="middleweight:puncher"><b>중량 · 펀처</b><small>65블록 · 돌격형</small></button>
-            <button type="button" data-robot-preset="superheavy:spinner"><b>초중량 · 톱날</b><small>90블록 · 요새형</small></button>
-            <button type="button" data-robot-preset="superheavy:bar"><b>초중량 · 바 스피너</b><small>90블록 · 대형 타격</small></button>
-            <button type="button" data-robot-preset="superheavy:drum"><b>초중량 · 드럼</b><small>90블록 · 중장갑</small></button>
-            <button type="button" data-robot-preset="superheavy:puncher"><b>초중량 · 펀처</b><small>90블록 · 공성형</small></button>
+            <button type="button" data-robot-preset="lightweight:spinner"><b>경량형 · 톱날</b><small>44블록 · 저상 쐐기</small></button>
+            <button type="button" data-robot-preset="lightweight:bar"><b>경량형 · 바 스피너</b><small>44블록 · 넓은 타격</small></button>
+            <button type="button" data-robot-preset="lightweight:drum"><b>경량형 · 드럼</b><small>44블록 · 하부 공격</small></button>
+            <button type="button" data-robot-preset="lightweight:puncher"><b>경량형 · 펀처</b><small>44블록 · 직선 돌출</small></button>
+            <button type="button" data-robot-preset="middleweight:spinner"><b>중량형 · 톱날</b><small>65블록 · 균형형</small></button>
+            <button type="button" data-robot-preset="middleweight:bar"><b>중량형 · 바 스피너</b><small>65블록 · 전면 타격</small></button>
+            <button type="button" data-robot-preset="middleweight:drum"><b>중량형 · 드럼</b><small>65블록 · 압박형</small></button>
+            <button type="button" data-robot-preset="middleweight:puncher"><b>중량형 · 펀처</b><small>65블록 · 돌격형</small></button>
+            <button type="button" data-robot-preset="superheavy:spinner"><b>초중량형 · 톱날</b><small>90블록 · 요새형</small></button>
+            <button type="button" data-robot-preset="superheavy:bar"><b>초중량형 · 바 스피너</b><small>90블록 · 대형 타격</small></button>
+            <button type="button" data-robot-preset="superheavy:drum"><b>초중량형 · 드럼</b><small>90블록 · 중장갑</small></button>
+            <button type="button" data-robot-preset="superheavy:puncher"><b>초중량형 · 펀처</b><small>90블록 · 공성형</small></button>
             <button type="button" data-robot-preset="assault:spinner"><b>돌격형 · 톱날</b><small>78블록 · 접촉 돌파</small></button>
             <button type="button" data-robot-preset="assault:bar"><b>돌격형 · 바 스피너</b><small>78블록 · 수평 강타</small></button>
             <button type="button" data-robot-preset="assault:drum"><b>돌격형 · 드럼</b><small>78블록 · 하부 돌파</small></button>
@@ -304,7 +304,7 @@
       </section>
 
       <section class="garage-toolbar glass">
-        <div class="garage-summary"><b id="garage-count">부품 0개</b><label>체급 <select id="weight-class-select"><option value="lightweight">경량급</option><option value="middleweight" selected>중량급</option><option value="superheavy">초중량급</option><option value="assault">돌격형</option><option value="healer">힐러</option></select></label><span id="garage-mass">총 질량 0kg</span><span id="garage-limits">BLOCKS 1/45 · WEIGHT 10/680kg</span><span id="save-state">저장 전</span></div>
+        <div class="garage-summary"><b id="garage-count">부품 0개</b><label>체급 <select id="weight-class-select"><option value="lightweight">경량형</option><option value="middleweight" selected>중량형</option><option value="superheavy">초중량형</option><option value="assault">돌격형</option><option value="healer">힐러</option></select></label><span id="garage-mass">총 질량 0kg</span><span id="garage-limits">BLOCKS 1/45 · WEIGHT 10/680kg</span><span id="save-state">저장 전</span></div>
         <div class="battle-setup" aria-label="전투 설정">
           <label>맵<select id="battle-map"><option value="industrial01">Industrial Battle Zone 01</option><option value="desert01">Red Canyon Conquest 01</option></select></label>
           <label>모드<select id="battle-mode"><option value="ffa4">개인전 4대</option><option value="ffa8">개인전 8대</option><option value="2v2">2 vs 2</option><option value="3v3">3 vs 3</option><option value="4v4">4 vs 4</option><option value="6v6">6 vs 6</option><option value="8v8">8 vs 8</option><option value="10v10">10 vs 10 점령전</option></select></label>
@@ -366,6 +366,6 @@
         type: 'rejection', message: String(event.reason?.stack || event.reason || 'unknown rejection'),
       }));
     </script>
-  <script type="module" src="./app.js?v=20260830-sniper-ai-257"></script>
+  <script type="module" src="./app.js?v=20260830-mobile-runtime-258e"></script>
   </body>
 </html>

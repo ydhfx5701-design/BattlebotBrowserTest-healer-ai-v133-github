@@ -99,7 +99,10 @@ assert('weapon channels are separated', ['HorizontalImpulse', 'VerticalImpulse',
 assert('class and weapon AI roles are explicit', app.includes("this.classRole = {") && app.includes("this.weaponRole = {") && app.includes("this.objectiveRole ="));
 assert('AI reverse has a hard time limit', app.includes('this.reverseContinuousSeconds >= 1.95'));
 assert('assault generic evasive actions are disabled', app.includes('flankWeight = reverseWeight = rearWeight = feintWeight = 0'));
-assert('only active map is built at startup', app.includes('ensureMapScene(initialMapId)') && !app.includes("captureMapScene('industrial01', createIndustrialBattleZone);"));
+assert('no battlefield is built before the mobile lobby',
+  !app.includes('ensureMapScene(initialMapId)')
+  && app.includes('ensureMapScene(requestedMapId)')
+  && !app.includes("captureMapScene('industrial01', createIndustrialBattleZone);"));
 assert('near AI tactical cadence is capped at 5 Hz', app.includes('const thinkInterval = [0.2, 0.28, 0.55, 1]'));
 assert('assault runtime audit is exposed', app.includes('assaultAudit: {') && app.includes('maxReverseContinuousSeconds'));
 assert('assault wheel is selectable', index.includes('data-wheel-model="wheel_assault"'));
@@ -218,7 +221,23 @@ assert('lobby primary actions are wired',
   ['settings', 'reward', 'mission', 'workshop'].every((action) => index.includes(`data-lobby-action="${action}"`))
   && app.includes("ui.lobbyRobotNext?.addEventListener('click'")
   && app.includes("ui.lobbyFight.addEventListener('click'"));
-assert('cachebuster updated', index.includes('20260830-sniper-ai-257'));
+assert('cachebuster updated', index.includes('20260830-mobile-runtime-258e'));
+assert('mobile boot enters lobby before battlefield asset decoding',
+  app.includes('Mobile boot is lobby-first')
+  && app.indexOf('enterLobby();') < app.indexOf("if (initialParams.get('perfBench') === '1')")
+  && app.includes('ensureLobbyPreviewAssets()')
+  && app.includes('battleRuntimeDeferred'));
+assert('battle audio is lazy and uses the authored spatial distance curve',
+  app.includes("audio.preload = 'none'")
+  && app.includes('SPATIAL_DISTANCE_GAIN_POINTS')
+  && app.includes('Object.freeze([100, 0.15])')
+  && app.includes("panner.panningModel = 'HRTF'"));
+assert('every ranged discharge records exactly one spatial audio event',
+  app.includes('rangedTelemetry.audioEvents[weapon.type]++')
+  && app.includes('oneEventPerShot'));
+assert('player-facing class names use the required 형 terminology',
+  ['경량형', '중량형', '초중량형', '돌격형', '힐러'].every((label) => app.includes(`label: '${label}'`))
+  && !index.includes('경량급') && !index.includes('중량급') && !index.includes('초중량급'));
 assert('precision QA restores authored player ranged weapon',
   app.includes('delete player.qaPrecisionOriginalRangedWeapon')
   && app.includes('restoredWeapon = original.type'));
