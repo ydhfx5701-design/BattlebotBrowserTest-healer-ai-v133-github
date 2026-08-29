@@ -39,6 +39,7 @@ const lowPolyCombatRegistry = {
   wheel_light: 'assets_lowpoly/wheel_light.glb',
   new_wheel: 'assets_lowpoly/wheel_medium.glb',
   wheel_wide: 'assets_lowpoly/wheel_heavy.glb',
+  wheel_assault: 'assets_lowpoly/wheel_assault.glb',
   new_saw_blade: 'assets_lowpoly/saw.glb',
   bar_spinner: 'assets_lowpoly/bar_spinner.glb',
   drum_spinner: 'assets_lowpoly/drum_spinner.glb',
@@ -77,13 +78,25 @@ assert('player destruction QA exists', app.includes('playerBlockDestruction()'))
 assert('block rendering is instanced', app.includes('buildBlockRenderBatches()') && app.includes('new THREE.InstancedMesh(getBlockGeometry'));
 assert('destroyed block becomes real debris', app.includes('this.hideBlockRenderInstance(part);') && app.includes('chunk.attach(part.object);'));
 assert('one compound body profile remains', app.includes('this.colliderComponents = createBlockColliderProfile(this.assembly.blocks);'));
+assert('assault class data exists', app.includes("assault: { label: '돌격형'") && app.includes("allowedWheels: ['wheel_assault']"));
+assert('assault has six silhouettes', ['WEDGE RAMMER', 'LONG NOSE', 'WIDE BULL', 'SPLIT NOSE', 'LOW SPEAR', 'ARMORED RAM'].every((name) => app.includes(name)));
+assert('assault momentum is runtime physics', app.includes('this.momentumCharge') && app.includes('momentumTopSpeedGain') && app.includes('dashMomentumAtStart'));
+assert('weapon channels are separated', ['HorizontalImpulse', 'VerticalImpulse', 'TorqueImpulse', 'PenetrationDamage', 'ContactDPS', 'ArmorDamage', 'BlockDamage'].every((field) => app.includes(field)));
+assert('class and weapon AI roles are explicit', app.includes("this.classRole = {") && app.includes("this.weaponRole = {") && app.includes("this.objectiveRole ="));
+assert('AI reverse has a hard time limit', app.includes('this.reverseContinuousSeconds >= 1.95'));
+assert('assault generic evasive actions are disabled', app.includes("for (const action of actions) if (action.key !== 'DIRECT_CHARGE') action.weight = 0"));
+assert('assault runtime audit is exposed', app.includes('assaultAudit: {') && app.includes('maxReverseContinuousSeconds'));
+assert('assault wheel is selectable', index.includes('data-wheel-model="wheel_assault"'));
+assert('assault presets are selectable', index.includes('data-robot-preset="assault:puncher"') && index.includes('<option value="assault">돌격형</option>'));
+assert('new lobby music is active', app.includes("lobby: './audio/music_main_menu_assault.mp3'") && fs.existsSync(path.join(root, 'audio/music_main_menu_assault.mp3')));
+assert('old lobby music is retired', !fs.existsSync(path.join(root, 'audio/music_main_menu.mp3')) && !app.includes('music_main_menu.mp3'));
 
 assert('mobile quality scale low', app.includes('renderScale: 0.85') && app.includes('pixelRatio: 1.25'));
 assert('mobile quality scale medium', app.includes('renderScale: 0.9') && app.includes('pixelRatio: 1.4'));
 assert('mobile quality scale high', app.includes('renderScale: 1') && app.includes('pixelRatio: 1.5'));
 assert('sustained thermal frame lock', app.includes('[THERMAL FRAME LOCK]') && app.includes('thermalFrameRateLimit > 45'));
 assert('top FPS meter uses effective limit', app.includes('effectiveFrameRateLimit()') && app.includes('LOCK ${activeLimit}'));
-assert('cachebuster updated', index.includes('20260829-lowpoly-damage-154'));
+assert('cachebuster updated', index.includes('20260829-assault-four-weapon-167'));
 
 console.log(JSON.stringify({
   ok: checks.every((check) => check.pass),

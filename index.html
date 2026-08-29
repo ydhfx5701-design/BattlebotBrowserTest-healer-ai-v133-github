@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
     <title>Battlebot Workshop & Arena</title>
     <link rel="icon" href="data:," />
-    <link rel="stylesheet" href="./styles.css?v=20260829-lowpoly-damage-154" />
+    <link rel="stylesheet" href="./styles.css?v=20260829-assault-four-weapon-167" />
     <script type="importmap">
       {
         "imports": {
@@ -88,7 +88,7 @@
       <button id="workshop-toggle" class="mode-button" type="button">작업장</button>
     </header>
 
-    <section id="conquest-hud" class="conquest-hud" hidden aria-label="10 대 10 점령전 진행 상황">
+    <section id="conquest-hud" class="conquest-hud" hidden aria-label="전투 진행 상황">
       <div class="conquest-team blue"><b>BLUE TEAM</b><span id="conquest-blue-count">10</span><div id="conquest-blue-icons" class="conquest-icons"></div></div>
       <div class="conquest-centre"><strong id="conquest-timer">10:00</strong><div class="capture-points"><span id="capture-a" class="active">A</span><i id="capture-progress"><em></em></i><span id="capture-b" class="locked">B</span></div><small id="capture-state">A 거점 공격</small></div>
       <div class="conquest-team red"><b>RED TEAM</b><span id="conquest-red-count">10</span><div id="conquest-red-icons" class="conquest-icons"></div></div>
@@ -174,6 +174,7 @@
             <button type="button" data-catalog="wheel" data-wheel-model="wheel_light"><b>경량급 바퀴</b><small>고속 · 빠른 가속</small></button>
             <button type="button" data-catalog="wheel" data-wheel-model="new_wheel"><b>중량급 바퀴</b><small>균형형</small></button>
             <button type="button" data-catalog="wheel" data-wheel-model="wheel_wide"><b>초중량 광폭</b><small>고중량 · 접지</small></button>
+            <button type="button" data-catalog="wheel" data-wheel-model="wheel_assault"><b>돌격형 바퀴</b><small>직선 가속 · 고접지</small></button>
             <button type="button" data-catalog="spinner"><b>톱날</b><small>블록 면 직접 장착</small></button>
             <button type="button" data-catalog="barSpinner"><b>바 스피너</b><small>블록 면 직접 장착</small></button>
             <button type="button" data-catalog="drumSpinner"><b>드럼 스피너</b><small>블록 면 직접 장착</small></button>
@@ -203,7 +204,7 @@
           <p class="catalog-note">면 위를 가리키면 가장 가까운 유효 Grid에 스냅됩니다. 하늘색은 설치 가능, 빨간색은 겹침 또는 연결 불가입니다.</p>
         </div>
         <div id="robot-preset-catalog" hidden>
-          <div class="block-tier-chip robot-preset-chip"><i></i><span><b>편집 가능한 로봇</b><small>체급 × 무기 16종 · 선택 후 전부 수정 가능</small></span></div>
+          <div class="block-tier-chip robot-preset-chip"><i></i><span><b>편집 가능한 로봇</b><small>체급 × 무기 20종 · 선택 후 전부 수정 가능</small></span></div>
           <div class="catalog-grid robot-preset-grid">
             <button type="button" data-robot-preset="lightweight:spinner"><b>경량 · 톱날</b><small>24블록 · 저상 쐐기</small></button>
             <button type="button" data-robot-preset="lightweight:bar"><b>경량 · 바 스피너</b><small>24블록 · 넓은 타격</small></button>
@@ -217,6 +218,10 @@
             <button type="button" data-robot-preset="superheavy:bar"><b>초중량 · 바 스피너</b><small>70블록 · 대형 타격</small></button>
             <button type="button" data-robot-preset="superheavy:drum"><b>초중량 · 드럼</b><small>70블록 · 중장갑</small></button>
             <button type="button" data-robot-preset="superheavy:puncher"><b>초중량 · 펀처</b><small>70블록 · 공성형</small></button>
+            <button type="button" data-robot-preset="assault:spinner"><b>돌격형 · 톱날</b><small>55블록 · 접촉 돌파</small></button>
+            <button type="button" data-robot-preset="assault:bar"><b>돌격형 · 바 스피너</b><small>55블록 · 수평 강타</small></button>
+            <button type="button" data-robot-preset="assault:drum"><b>돌격형 · 드럼</b><small>55블록 · 하부 돌파</small></button>
+            <button type="button" data-robot-preset="assault:puncher"><b>돌격형 · 펀처</b><small>55블록 · 관통 돌진</small></button>
             <button type="button" data-robot-preset="healer:spinner"><b>힐러 · 톱날</b><small>40블록 · 지원 경량</small></button>
             <button type="button" data-robot-preset="healer:bar"><b>힐러 · 바 스피너</b><small>40블록 · 지원 방어</small></button>
             <button type="button" data-robot-preset="healer:drum"><b>힐러 · 드럼</b><small>40블록 · 지원 돌파</small></button>
@@ -281,7 +286,7 @@
       </section>
 
       <section class="garage-toolbar glass">
-        <div class="garage-summary"><b id="garage-count">부품 0개</b><label>체급 <select id="weight-class-select"><option value="lightweight">경량급</option><option value="middleweight" selected>중량급</option><option value="superheavy">초중량급</option><option value="healer">힐러</option></select></label><span id="garage-mass">총 질량 0kg</span><span id="garage-limits">BLOCKS 1/45 · WEIGHT 10/680kg</span><span id="save-state">저장 전</span></div>
+        <div class="garage-summary"><b id="garage-count">부품 0개</b><label>체급 <select id="weight-class-select"><option value="lightweight">경량급</option><option value="middleweight" selected>중량급</option><option value="superheavy">초중량급</option><option value="assault">돌격형</option><option value="healer">힐러</option></select></label><span id="garage-mass">총 질량 0kg</span><span id="garage-limits">BLOCKS 1/45 · WEIGHT 10/680kg</span><span id="save-state">저장 전</span></div>
         <div class="battle-setup" aria-label="전투 설정">
           <label>맵<select id="battle-map"><option value="arena01">Arena 01</option><option value="industrial01">Industrial Battle Zone 01</option><option value="desert01">Red Canyon Conquest 01</option></select></label>
           <label>모드<select id="battle-mode"><option value="ffa4">개인전 4대</option><option value="ffa8">개인전 8대</option><option value="2v2">2 vs 2</option><option value="3v3">3 vs 3</option><option value="4v4">4 vs 4</option><option value="6v6">6 vs 6</option><option value="8v8">8 vs 8</option><option value="10v10">10 vs 10 점령전</option></select></label>
@@ -336,6 +341,6 @@
         type: 'rejection', message: String(event.reason?.stack || event.reason || 'unknown rejection'),
       }));
     </script>
-  <script type="module" src="./app.js?v=20260829-lowpoly-damage-154"></script>
+  <script type="module" src="./app.js?v=20260829-assault-four-weapon-167"></script>
   </body>
 </html>

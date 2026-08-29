@@ -137,9 +137,9 @@ const ui = {
   paintStatus: document.querySelector('#paint-status'),
 };
 
-const LOWPOLY_REVISION = 'remesh-154-integrated-environment-damage';
+const LOWPOLY_REVISION = 'remesh-167-assault-four-weapon-qa';
 const ASSETS = [
-  'new_wheel', 'wheel_light', 'wheel_wide',
+  'new_wheel', 'wheel_light', 'wheel_wide', 'wheel_assault',
   'new_saw_blade', 'drum_spinner', 'bar_spinner',
   'puncher_housing', 'puncher_tip',
   'arena_stands', 'arena_low_barrier', 'industrial_container', 'industrial_barrier',
@@ -155,6 +155,7 @@ Object.assign(ASSET_PATHS, {
   new_wheel: `./assets_lowpoly/wheel_medium.glb?v=${LOWPOLY_REVISION}`,
   wheel_light: `./assets_lowpoly/wheel_light.glb?v=${LOWPOLY_REVISION}`,
   wheel_wide: `./assets_lowpoly/wheel_heavy.glb?v=${LOWPOLY_REVISION}`,
+  wheel_assault: `./assets_lowpoly/wheel_assault.glb?v=${LOWPOLY_REVISION}`,
   new_saw_blade: `./assets_lowpoly/saw.glb?v=${LOWPOLY_REVISION}`,
   drum_spinner: `./assets_lowpoly/drum_spinner.glb?v=${LOWPOLY_REVISION}`,
   bar_spinner: `./assets_lowpoly/bar_spinner.glb?v=${LOWPOLY_REVISION}`,
@@ -190,7 +191,7 @@ Object.assign(ASSET_PATHS, {
   desert_small_4: `./assets_lowpoly/desert_small_4.glb?v=${LOWPOLY_REVISION}`,
   desert_small_5: `./assets_lowpoly/desert_small_5.glb?v=${LOWPOLY_REVISION}`,
 });
-const LOWPOLY_COMBAT_IDS = Object.freeze(['wheel_light', 'new_wheel', 'wheel_wide', 'new_saw_blade', 'bar_spinner', 'drum_spinner', 'puncher_housing', 'puncher_tip', 'armor_flat', 'armor_curved']);
+const LOWPOLY_COMBAT_IDS = Object.freeze(['wheel_light', 'new_wheel', 'wheel_wide', 'wheel_assault', 'new_saw_blade', 'bar_spinner', 'drum_spinner', 'puncher_housing', 'puncher_tip', 'armor_flat', 'armor_curved']);
 const LOWPOLY_DESERT_IDS = Object.freeze([
   'desert_cliff_1', 'desert_cliff_2', 'desert_cliff_3', 'desert_cliff_4',
   'desert_ridge_1', 'desert_ridge_2', 'desert_ridge_3', 'desert_ridge_4',
@@ -205,6 +206,7 @@ const MODEL_TRANSFORMS = {
   new_wheel: { scale: [1, 1, 1], rotation: [0, Math.PI / 2, 0], targetMax: 0.92 },
   wheel_light: { scale: [1, 1, 1], rotation: [0, Math.PI / 2, 0], targetMax: 0.76 },
   wheel_wide: { scale: [1, 1, 1], rotation: [0, Math.PI / 2, 0], targetMax: 1.08 },
+  wheel_assault: { scale: [1, 1, 1], rotation: [0, Math.PI / 2, 0], targetMax: 1.02 },
   new_saw_blade: { scale: [1, 1, 1], rotation: [-Math.PI / 2, 0, 0], targetMax: 1.56 },
   drum_spinner: { scale: [1, 1, 1], rotation: [0, 0, 0], targetMax: 1.82 },
   // GLB bounds prove the remeshed bar is authored long on local X and thin on
@@ -253,7 +255,21 @@ const WEIGHT_CLASSES = Object.freeze({
   lightweight: { label: '경량급', maxHp: 500, maxArmor: 250, minBlocks: 12, maxBlocks: 44, aiBlockTarget: 24, aiLayerCount: 3, maxWeight: 540, allowedWheels: ['wheel_light'], heightRange: [1, 3], wheelModel: 'wheel_light', acceleration: 1.32, topSpeed: 19.5, massScale: 0.74, hpScale: 0.78, knockbackResistance: 0.72, traction: 0.9, steering: 1.18, dashDelta: 8.4, dashCooldown: 2.65, dashDuration: 0.4, dashPrimeRatio: 1.6, dashPeakRatio: 2.75, dashSteering: 0.66, dashChassisLengths: 5.1 },
   middleweight: { label: '중량급', maxHp: 650, maxArmor: 350, minBlocks: 25, maxBlocks: 65, aiBlockTarget: 45, aiLayerCount: 4, maxWeight: 960, allowedWheels: ['new_wheel'], heightRange: [2, 4], wheelModel: 'new_wheel', acceleration: 1, topSpeed: 16.5, massScale: 1, hpScale: 1, knockbackResistance: 1, traction: 1, steering: 1, dashDelta: 7.1, dashCooldown: 3.05, dashDuration: 0.35, dashPrimeRatio: 1.45, dashPeakRatio: 2.25, dashSteering: 0.56, dashChassisLengths: 4.05 },
   superheavy: { label: '초중량급', maxHp: 800, maxArmor: 450, minBlocks: 46, maxBlocks: 90, aiBlockTarget: 70, aiLayerCount: 5, maxWeight: 1830, allowedWheels: ['wheel_wide'], heightRange: [3, 5], wheelModel: 'wheel_wide', acceleration: 0.72, topSpeed: 12.4, massScale: 1.45, hpScale: 1.35, knockbackResistance: 1.42, traction: 1.34, steering: 0.76, dashDelta: 5.7, dashCooldown: 3.65, dashDuration: 0.39, dashPrimeRatio: 1.3, dashPeakRatio: 1.92, dashSteering: 0.44, dashChassisLengths: 3.05 },
+  assault: { label: '돌격형', maxHp: 700, maxArmor: 390, minBlocks: 34, maxBlocks: 78, aiBlockTarget: 55, aiLayerCount: 4, maxWeight: 1320, allowedWheels: ['wheel_assault'], heightRange: [2, 4], wheelModel: 'wheel_assault', acceleration: 1.04, topSpeed: 17.4, massScale: 1.18, hpScale: 1.1, knockbackResistance: 1.18, traction: 1.18, steering: 0.84, dashDelta: 10.2, dashCooldown: 3.25, dashDuration: 0.46, dashPrimeRatio: 1.72, dashPeakRatio: 2.85, dashSteering: 0.34, dashChassisLengths: 5.8, momentumBuildSeconds: 3.2, momentumTurnDrain: 1.45, momentumIdleDrain: 0.48, momentumTopSpeedGain: 0.34 },
   healer: { label: '힐러', maxHp: 575, maxArmor: 300, minBlocks: 20, maxBlocks: 60, aiBlockTarget: 40, aiLayerCount: 4, maxWeight: 800, allowedWheels: ['wheel_light', 'new_wheel'], heightRange: [2, 4], wheelModel: 'new_wheel', acceleration: 1.08, topSpeed: 17.2, massScale: 0.94, hpScale: 0.96, knockbackResistance: 0.92, traction: 1.04, steering: 1.08, dashDelta: 6.6, dashCooldown: 3.2, dashDuration: 0.34, dashPrimeRatio: 1.38, dashPeakRatio: 2.05, dashSteering: 0.6, dashChassisLengths: 3.8 },
+});
+
+// Tuning lives in data instead of being scattered across hit handlers.  These
+// seven channels are intentionally independent so a weapon can launch without
+// also becoming the best cutter, or cut armour without sending every victim
+// airborne.
+const WEAPON_PHYSICS_PROFILES = Object.freeze({
+  spinner: Object.freeze({ HorizontalImpulse: 0.22, VerticalImpulse: 0.05, TorqueImpulse: 0.2, PenetrationDamage: 0.72, ContactDPS: 1.72, ArmorDamage: 1.35, BlockDamage: 1.45 }),
+  bar: Object.freeze({ HorizontalImpulse: 1.48, VerticalImpulse: 0.08, TorqueImpulse: 1.42, PenetrationDamage: 0.82, ContactDPS: 0.62, ArmorDamage: 0.9, BlockDamage: 1.02 }),
+  drum: Object.freeze({ HorizontalImpulse: 0.72, VerticalImpulse: 1.58, TorqueImpulse: 1.62, PenetrationDamage: 0.9, ContactDPS: 0.76, ArmorDamage: 0.94, BlockDamage: 1.34 }),
+  puncher: Object.freeze({ HorizontalImpulse: 1.26, VerticalImpulse: 0.045, TorqueImpulse: 0.48, PenetrationDamage: 1.58, ContactDPS: 0.55, ArmorDamage: 1.5, BlockDamage: 1.62 }),
+  dash: Object.freeze({ HorizontalImpulse: 1, VerticalImpulse: 0.03, TorqueImpulse: 0.72, PenetrationDamage: 0.76, ContactDPS: 0.5, ArmorDamage: 0.92, BlockDamage: 0.86 }),
+  collision: Object.freeze({ HorizontalImpulse: 1, VerticalImpulse: 0.04, TorqueImpulse: 0.7, PenetrationDamage: 0.68, ContactDPS: 0.45, ArmorDamage: 0.72, BlockDamage: 0.7 }),
 });
 const GRID_UNIT = 0.36;
 const BLOCK_SIZE = GRID_UNIT;
@@ -355,6 +371,7 @@ function classRuleStatus(assembly, { extraBlock = null, extraPart = null, requir
 function inferredLegacyWeightClass(assembly) {
   if (assembly.aiDesign?.weightClass === 'healer' || assembly.aiDesign?.role === 'healer') return 'healer';
   const wheels = (assembly.parts ?? []).filter((part) => part.type === 'wheel');
+  if (wheels.some((part) => part.wheelModel === 'wheel_assault')) return 'assault';
   if (wheels.some((part) => part.wheelModel === 'wheel_wide')) return 'superheavy';
   if (wheels.length && wheels.every((part) => part.wheelModel === 'wheel_light')) return 'lightweight';
   return WEIGHT_CLASSES[assembly.weightClass] ? assembly.weightClass : 'middleweight';
@@ -481,7 +498,7 @@ function enrichAssembly(assembly) {
       // face. Preserve only an explicit player-requested visual flip.
       part.hubFlipManual = Boolean(part.hubFlipManual);
       part.hubFlipped = part.hubFlipManual ? Boolean(part.hubFlipped) : false;
-      part.wheelModel = ['wheel_light', 'new_wheel', 'wheel_wide'].includes(part.wheelModel) ? part.wheelModel : 'new_wheel';
+      part.wheelModel = ['wheel_light', 'new_wheel', 'wheel_wide', 'wheel_assault'].includes(part.wheelModel) ? part.wheelModel : 'new_wheel';
       part.driveType = 'wheel';
     }
     part.mass = part.mass ?? meta.mass;
@@ -1789,7 +1806,7 @@ const AUDIO_FILES = {
 };
 const IMPACT_SOUND_GAIN = 1.42;
 const lastAudioVariantByKind = new Map();
-const MUSIC_FILES = { lobby: './audio/music_main_menu.mp3', battle: './audio/music_battle.mp3' };
+const MUSIC_FILES = { lobby: './audio/music_main_menu_assault.mp3', battle: './audio/music_battle.mp3' };
 const VOLUME_STORAGE_KEY = 'battlebot-master-volume-v1';
 const MIXER_STORAGE_KEY = 'battlebot-mixer-volume-v2';
 function loadMasterVolume() {
@@ -4694,7 +4711,7 @@ function addMountStandoffVisual(object, record, tint = 0xffffff, ghost = false) 
 function prepareMountGeometry() {
   mountLocalBounds.clear();
   modelLocalBounds.clear();
-  for (const modelId of new Set(Object.values(PART_META).flatMap((meta) => [meta.model, meta.tipModel]).filter(Boolean).concat(['wheel_light', 'wheel_wide']))) {
+  for (const modelId of new Set(Object.values(PART_META).flatMap((meta) => [meta.model, meta.tipModel]).filter(Boolean).concat(['wheel_light', 'wheel_wide', 'wheel_assault']))) {
     const modelProbe = cloneModel(modelId);
     modelProbe.updateWorldMatrix(true, true);
     modelLocalBounds.set(modelId, new THREE.Box3().setFromObject(modelProbe));
@@ -4874,8 +4891,15 @@ const AI_SILHOUETTE_SPECS = Object.freeze({
   dinosaur: { name: 'RAPTOR SPINE', family: 'Dinosaur Bot', silhouette: 'long-front-top-spine', aspect: 0.6, profile: 'dinosaur', wheelPairs: 3, animal: true, exterior: 'top-spine' },
   manta: { name: 'MANTA WING', family: 'Manta Bot', silhouette: 'very-wide-low-diamond', aspect: 2.05, profile: 'manta', wheelPairs: 2, animal: true, exterior: 'wing-armor' },
   dragon: { name: 'RED DRAGON', family: 'Dragon Bot', silhouette: 'long-aggressive-winged-spine', aspect: 1.05, profile: 'dragon', wheelPairs: 3, animal: true, exterior: 'wing-and-spine' },
+  'assault-wedge': { name: 'WEDGE RAMMER', family: 'Assault Ram', silhouette: 'low-wide-integrated-ram', aspect: 1.32, profile: 'wedge', wheelPairs: 3, exterior: 'armored-nose' },
+  'assault-long': { name: 'LONG NOSE', family: 'Assault Spear', silhouette: 'long-low-projecting-nose', aspect: 0.58, profile: 'long', wheelPairs: 3, exterior: 'long-nose-armor' },
+  'assault-bull': { name: 'WIDE BULL', family: 'Assault Bull', silhouette: 'wide-thick-forward-shoulders', aspect: 1.48, profile: 'bull', wheelPairs: 3, exterior: 'wide-front-armor' },
+  'assault-split': { name: 'SPLIT NOSE', family: 'Assault Fork', silhouette: 'low-split-forward-prongs', aspect: 0.86, profile: 'scorpion', wheelPairs: 3, exterior: 'split-nose-armor' },
+  'assault-spear': { name: 'LOW SPEAR', family: 'Assault Spear', silhouette: 'very-low-narrow-point', aspect: 0.5, profile: 'shark', wheelPairs: 3, exterior: 'centre-spear-armor' },
+  'assault-armored': { name: 'ARMORED RAM', family: 'Assault Fortress', silhouette: 'thick-armored-forward-ram', aspect: 1.08, profile: 'fortress', wheelPairs: 3, exterior: 'layered-front-armor' },
 });
 const AI_HULL_ARCHETYPES = Object.freeze(Object.keys(AI_SILHOUETTE_SPECS));
+const ASSAULT_HULL_ARCHETYPES = Object.freeze(['assault-wedge', 'assault-long', 'assault-bull', 'assault-split', 'assault-spear', 'assault-armored']);
 const AI_ARCHETYPE_NAMES = Object.freeze(Object.fromEntries(Object.entries(AI_SILHOUETTE_SPECS).map(([key, value]) => [key, value.name])));
 const AI_DESIGN_CONCEPTS = Object.freeze(Object.fromEntries(Object.entries(AI_SILHOUETTE_SPECS).map(([key, value]) => [key, {
   family: value.family,
@@ -5305,12 +5329,16 @@ function normalizeAIHullForClass(hull, weightClass, designSeed = 0.5, reservedSt
 function createAIAssembly(type, options = {}) {
   if (REMOVED_WEAPON_TYPES.has(type)) type = 'spinner';
   const designSeed = options.designSeed ?? Math.random();
-  const hull = createAIBlockHull(type, designSeed, options.archetypeIndex ?? null, options.heightTier ?? null);
+  let requestedWeightClass = type === 'healer' ? 'healer' : options.weightClass;
+  const requestedArchetypeIndex = requestedWeightClass === 'assault'
+    ? AI_HULL_ARCHETYPES.indexOf(ASSAULT_HULL_ARCHETYPES[Math.abs(Math.floor((options.archetypeIndex ?? designSeed * 1000))) % ASSAULT_HULL_ARCHETYPES.length])
+    : options.archetypeIndex ?? null;
+  const hull = createAIBlockHull(type, designSeed, requestedArchetypeIndex, options.heightTier ?? null);
   const { archetype, random } = hull;
   const silhouetteSpec = AI_SILHOUETTE_SPECS[archetype] ?? AI_SILHOUETTE_SPECS.wedge;
   const lightArchetypes = new Set(['wedge', 'low-flat', 'shark', 'cobra', 'eagle', 'rabbit', 'manta']);
   const heavyArchetypes = new Set(['short-bull', 'high-back', 'fortress', 'crocodile', 'rhino', 'bull', 'bear', 'lion', 'whale', 'dragon']);
-  let weightClass = type === 'healer' ? 'healer' : options.weightClass;
+  let weightClass = requestedWeightClass;
   if (!WEIGHT_CLASSES[weightClass]) {
     const roll = random();
     weightClass = lightArchetypes.has(archetype) ? (roll < 0.72 ? 'lightweight' : 'middleweight')
@@ -5486,6 +5514,28 @@ function createAIAssembly(type, options = {}) {
     : weaponLayout === 'side-left' ? -Math.PI / 2 : weaponLayout === 'side-right' ? Math.PI / 2 : 0;
   const topTarget = targetBlock.id;
   const largeWeaponScale = ['fortress', 'bear', 'whale', 'high-back'].includes(archetype) ? 1.16 : ['long-nose', 'cobra', 'dinosaur', 'crocodile'].includes(archetype) ? 0.9 : 1;
+  if (type === 'bar') {
+    // Reserve a real low, forward rotor bay instead of raising the blade onto
+    // a mast when a dense two/three-tier nose blocks its sweep. Reuse existing
+    // top-layer blocks so the class block quota remains exact; the relocated
+    // cubes form a face-connected centre spine ahead of the original hull.
+    const groundFront = blocks.filter((block) => block.gridPosition[1] === 0)
+      .sort((left, right) => right.gridPosition[2] - left.gridPosition[2]
+        || Math.abs(left.gridPosition[0]) - Math.abs(right.gridPosition[0]))[0];
+    const noseLength = weightClass === 'lightweight' ? 3 : 4;
+    const topDonors = blocks.filter((block) => !block.isCore && ['cube', 'silverCube'].includes(block.type)
+      && block.gridPosition[1] > 0
+      && !blocks.some((other) => other.gridPosition[0] === block.gridPosition[0]
+        && other.gridPosition[2] === block.gridPosition[2]
+        && other.gridPosition[1] > block.gridPosition[1]))
+      .sort((left, right) => left.gridPosition[2] - right.gridPosition[2]
+        || right.gridPosition[1] - left.gridPosition[1]);
+    if (groundFront && topDonors.length >= noseLength) {
+      for (let index = 0; index < noseLength; index++) {
+        topDonors[index].gridPosition = [groundFront.gridPosition[0], 0, frontZ + index + 1];
+      }
+    }
+  }
   if (type === 'spinner') {
     const [targetX, targetY, targetZ] = targetBlock.gridPosition;
     const frontPoint = [targetX * GRID_UNIT, targetY * GRID_UNIT, (targetZ + 0.5) * GRID_UNIT];
@@ -5498,21 +5548,48 @@ function createAIAssembly(type, options = {}) {
     // sweeping backwards through its own chassis. Pick a genuine exposed top
     // face on the front two structural layers, then keep the pivot world-up.
     // This is still a direct block-face mount and stays at opponent height.
-    const barTarget = blocks
+    const barTargets = blocks
       .filter((block) => block.gridPosition[1] <= 1 && !blocks.some((other) => other.gridPosition[0] === block.gridPosition[0]
         && other.gridPosition[1] === block.gridPosition[1] + 1 && other.gridPosition[2] === block.gridPosition[2]))
       .sort((left, right) => right.gridPosition[2] - left.gridPosition[2]
-        || Math.abs(left.gridPosition[0]) - Math.abs(right.gridPosition[0])
-        || right.gridPosition[1] - left.gridPosition[1])[0] ?? targetBlock;
-    const boomPoint = [
-      barTarget.gridPosition[0] * GRID_UNIT,
-      (barTarget.gridPosition[1] + 0.5) * GRID_UNIT,
-      barTarget.gridPosition[2] * GRID_UNIT,
-    ];
-    const weapon = part('ai-bar', 'barSpinner', boomPoint, barTarget.id, [0, 1, 0], { scaleFactor: largeWeaponScale, rotation: [0, weaponYaw, 0], directWeaponMount: true, functionalAxis: 'world-y', expectedPlane: 'horizontal' });
-    weapon.mount.standoff = 0.06;
-    refreshRecordMount(weapon);
-    parts.push(weapon);
+        || right.gridPosition[1] - left.gridPosition[1]
+        || Math.abs(left.gridPosition[0]) - Math.abs(right.gridPosition[0]));
+    let weapon = null;
+    let bestFallback = null;
+    // Imported bar bounds are wider than one grid cell. Test every exposed
+    // low deck face against the real rotor sweep before committing it. This
+    // prevents the generator from accepting a vertical/mast workaround or a
+    // horizontal blade that immediately intersects a neighbouring tier.
+    for (const candidateTarget of barTargets.length ? barTargets : [targetBlock]) {
+      const boomPoint = [
+        candidateTarget.gridPosition[0] * GRID_UNIT,
+        (candidateTarget.gridPosition[1] + 0.5) * GRID_UNIT,
+        candidateTarget.gridPosition[2] * GRID_UNIT,
+      ];
+      for (const standoff of [0.04, 0.08, 0.12, 0.16, 0.2, 0.24, 0.28, 0.32, 0.34]) {
+        const candidate = part('ai-bar', 'barSpinner', boomPoint, candidateTarget.id, [0, 1, 0], {
+          scaleFactor: largeWeaponScale,
+          rotation: [0, weaponYaw, 0],
+          directWeaponMount: true,
+          functionalAxis: 'world-y',
+          expectedPlane: 'horizontal',
+        });
+        candidate.mount.standoff = standoff;
+        refreshRecordMount(candidate);
+        const draft = { blocks, parts: [...parts, candidate] };
+        const clearance = weaponClearanceBlockIds(candidate, draft);
+        const collisions = partCollisionState(candidate, candidate.id, draft);
+        const score = clearance.length * 100 + collisions.blockPenetrations.length * 30
+          + collisions.partPenetrations.length * 15 + standoff;
+        if (!bestFallback || score < bestFallback.score) bestFallback = { candidate, score };
+        if (!clearance.length && !collisions.blockPenetrations.length && !collisions.partPenetrations.length) {
+          weapon = candidate;
+          break;
+        }
+      }
+      if (weapon) break;
+    }
+    parts.push(weapon ?? bestFallback.candidate);
   } else if (type === 'drum') {
     const point = [mountX, targetBlock.gridPosition[1] * GRID_UNIT, (targetBlock.gridPosition[2] + 0.5) * GRID_UNIT];
     const weapon = part('ai-drum', 'drumSpinner', point, topTarget, [0, 0, 1], { scaleFactor: largeWeaponScale, rotation: [0, weaponYaw, 0], directWeaponMount: true, functionalAxis: 'local-x', expectedPlane: 'front-roller' });
@@ -5844,9 +5921,15 @@ function createAIAssembly(type, options = {}) {
     && primaryWeaponRecord.mount?.normal?.[1] > 0.985
     && barLongAxisUpDot < 0.15 && barRotationAxisUpDot > 0.95
     && (weaponTargetBlock?.gridPosition?.[1] ?? Infinity) <= 1
-    && barMountOffset <= 0.3 && barSweptClearanceBlockIds.length === 0
+    // The low front hub may rise by roughly one grid unit to clear its own
+    // face-connected nose spine. This is still a horizontal front weapon;
+    // vertical mast/rotor orientation remains rejected by the axis tests.
+    && barMountOffset <= 0.4 && barSweptClearanceBlockIds.length === 0
   );
-  if (!barOrientationPassed) installationValidationFailures.push(`${primaryWeaponRecord?.id ?? 'ai-bar'}:bar-not-helicopter-rotor`);
+  if (!barOrientationPassed) installationValidationFailures.push(`${primaryWeaponRecord?.id ?? 'ai-bar'}:bar-not-helicopter-rotor`
+    + `:longUp=${barLongAxisUpDot.toFixed(3)}:axisUp=${barRotationAxisUpDot.toFixed(3)}`
+    + `:layer=${weaponTargetBlock?.gridPosition?.[1] ?? 'missing'}:offset=${Number.isFinite(barMountOffset) ? barMountOffset.toFixed(3) : 'inf'}`
+    + `:sweep=${barSweptClearanceBlockIds.join(',') || 'clear'}`);
   const initialInstallationAudit = {
     DetachedArmor: armorRecords.filter((record) => record.detached).length,
     FloatingArmor: exteriorValidationFailures.filter((failure) => failure.includes('missing-target') || failure.includes('off-surface') || failure.includes('buried-face')).length,
@@ -5862,6 +5945,8 @@ function createAIAssembly(type, options = {}) {
     version: ASSEMBLY_VERSION, weightClass, driveType, paintPalette, blocks, parts,
     aiDesign: {
       archetype, displayName: AI_ARCHETYPE_NAMES[archetype], colorMode, paintPalette, paintIndex, weaponLayout, signature, weightClass, weightClassLabel: classProfile.label, driveType, wheelModel,
+      generator: weightClass === 'assault' ? 'assault-six-silhouette-generator' : 'general-silhouette-generator',
+      classRole: weightClass === 'assault' ? 'breach-rammer' : weightClass === 'superheavy' ? 'point-tank' : weightClass === 'lightweight' ? 'scout-flanker' : weightClass === 'healer' ? 'backline-support' : 'all-rounder',
       conceptFamily: concept.family, silhouette: concept.silhouette, symmetryMode: concept.symmetry, exteriorIntent: concept.exterior,
       isAnimalArchetype: Boolean(silhouetteSpec.animal), silhouettePlan: hull.silhouettePlan,
       width, length, height: layerCount, frontWidth, rearWidth, centerHeight: layerCount,
@@ -5984,7 +6069,9 @@ class Robot {
     this.aiHealTargetLockedUntil = 0;
     this.lastDamageTakenAt = -Infinity;
     this.lastDamageTakenAmount = 0;
-    this.classRole = options.type === 'healer' ? 'healer' : 'assault';
+    this.classRole = 'unassigned';
+    this.weaponRole = 'unassigned';
+    this.objectiveRole = 'unassigned';
     this.aiRetreatUntil = 0;
     this.aiLastAttackTime = -Infinity;
     this.aiDecisionOffset = ((Number(options.id ?? 0) * 37) % 17) / 17;
@@ -6126,6 +6213,13 @@ class Robot {
     this.dashTravelled = 0;
     this.dashDistanceRecorded = true;
     this.lastDashTime = -Infinity;
+    this.momentumCharge = 0;
+    this.peakMomentumCharge = 0;
+    this.momentumStraightSeconds = 0;
+    this.dashMomentumAtStart = 0;
+    this.assaultCycle = 'SCAN';
+    this.reverseContinuousSeconds = 0;
+    this.maxReverseContinuousSeconds = 0;
     this.aiOrbit = options.type === 'hammer' ? -1 : 1;
     this.stats = {
       distance: 0, attacks: 0, hits: 0, detached: 0, detachedByType: {}, maxSpeed: 0, torqueSigns: [],
@@ -6204,6 +6298,29 @@ class Robot {
     this.solverIterations = 12;
     this.solverVelocityIterations = 6;
     this.build();
+    this.classRole = {
+      lightweight: 'scout-flanker', middleweight: 'all-rounder', superheavy: 'point-tank',
+      assault: 'breach-rammer', healer: 'backline-support',
+    }[this.weightClass] ?? 'all-rounder';
+    this.weaponRole = {
+      spinner: 'contact-cutter', bar: 'horizontal-knockback', drum: 'vertical-lifter',
+      puncher: 'penetration-striker', healer: 'support-emitter',
+    }[this.type] ?? 'ram-contact';
+    this.objectiveRole = this.weightClass === 'lightweight' ? 'capture-flank'
+      : this.weightClass === 'superheavy' ? 'hold-frontline'
+        : this.weightClass === 'assault' ? 'break-line'
+          : this.weightClass === 'healer' ? 'heal-and-support' : this.aiRole;
+    if (this.weightClass === 'assault') {
+      this.aiRole = 'breacher';
+      this.aiMovementStyle = 'AGGRESSIVE';
+      this.aiAccelerationPreference = Math.max(this.aiAccelerationPreference, 1.16);
+      this.aiDashAggression = 1;
+    } else if (this.weightClass === 'superheavy') {
+      this.aiRole = 'blocker';
+      this.aiDashAggression = Math.min(this.aiDashAggression, 0.58);
+    } else if (this.weightClass === 'lightweight') {
+      this.aiRole = this.aiRole === 'blocker' ? 'flanker' : this.aiRole;
+    }
     this.maxHp = Number(this.driveProfile.maxHp);
     this.hp = this.maxHp;
     this.maxArmor = Number(this.driveProfile.maxArmor);
@@ -7043,7 +7160,9 @@ class Robot {
     const forward = forwardFor(this.yaw);
     const profile = this.driveProfile ?? WEIGHT_CLASSES.middleweight;
     const planarSpeed = this.velocity.clone().setY(0).dot(forward);
-    const primeSpeed = Math.max(profile.topSpeed * profile.dashPrimeRatio, planarSpeed + profile.dashDelta * 0.72);
+    const assaultMomentum = this.weightClass === 'assault' ? clamp(this.momentumCharge, 0, 1) : 0;
+    const assaultDashBoost = this.weightClass === 'assault' ? lerp(1.12, 1.68, assaultMomentum) : 1;
+    const primeSpeed = Math.max(profile.topSpeed * profile.dashPrimeRatio, planarSpeed + profile.dashDelta * 0.72) * assaultDashBoost;
     const impulseDelta = forward.clone().multiplyScalar(Math.max(0, primeSpeed - planarSpeed));
     this.velocity.add(impulseDelta);
     this.dashActiveTimer = profile.dashDuration;
@@ -7051,12 +7170,14 @@ class Robot {
     this.dashCooldown = profile.dashCooldown;
     this.dashDirection.copy(forward);
     this.dashStartPosition.copy(this.root.position);
-    this.dashPeakSpeed = profile.topSpeed * profile.dashPeakRatio;
+    this.dashMomentumAtStart = assaultMomentum;
+    this.dashPeakSpeed = profile.topSpeed * profile.dashPeakRatio * assaultDashBoost;
     const chassisLength = Math.max(1.45, (this.aiDesign?.length ?? 7) * GRID_UNIT);
-    this.dashTargetDistance = chassisLength * profile.dashChassisLengths;
+    this.dashTargetDistance = chassisLength * profile.dashChassisLengths * (this.weightClass === 'assault' ? lerp(1.05, 1.34, assaultMomentum) : 1);
     this.dashTravelled = 0;
     this.dashDistanceRecorded = false;
     this.lastDashTime = worldTime;
+    if (this.weightClass === 'assault') this.momentumCharge *= 0.38;
     this.aiDashIntent = reason;
     this.stats.dashUses++;
     this.stats.maximumDashSpeed = Math.max(this.stats.maximumDashSpeed, this.velocity.clone().setY(0).length());
@@ -7810,6 +7931,21 @@ class Robot {
       ];
       if (this.type === 'drum' || this.type === 'puncher') actions.find((entry) => entry.key === 'DIRECT_CHARGE').weight += 2.3;
       if (this.type === 'spinner') actions.find((entry) => entry.key === 'SHORT_FLANK').weight += 1.4;
+      if (this.weightClass === 'lightweight') {
+        actions.find((entry) => entry.key === 'SHORT_FLANK').weight += 3.2;
+        actions.find((entry) => entry.key === 'REAR_AMBUSH').weight += 2.1;
+      } else if (this.weightClass === 'superheavy') {
+        actions.find((entry) => entry.key === 'DIRECT_CHARGE').weight += 3.6;
+        actions.find((entry) => entry.key === 'FEINT_RETREAT').weight *= 0.12;
+        actions.find((entry) => entry.key === 'REVERSE_STRIKE').weight *= 0.2;
+      } else if (this.weightClass === 'assault') {
+        // Assault bots use a deliberate scan -> straight momentum build ->
+        // dash impact -> exit cycle.  Leaving even a tiny random weight on the
+        // generic flank/feint/reverse actions made some rammers visibly abandon
+        // their charge lane, so those unrelated actions are unavailable here.
+        actions.find((entry) => entry.key === 'DIRECT_CHARGE').weight += 12;
+        for (const action of actions) if (action.key !== 'DIRECT_CHARGE') action.weight = 0;
+      }
       const total = actions.reduce((sum, entry) => sum + entry.weight, 0);
       let pick = ((Math.sin(this.id * 17.17 + this.aiActionSerial * 9.31 + worldTime * 0.07) + 1) * 0.5) * total;
       this.aiAction = actions.find((entry) => ((pick -= entry.weight) <= 0))?.key ?? 'DIRECT_CHARGE';
@@ -7832,6 +7968,13 @@ class Robot {
     else if (distance < (this.type === 'puncher'
       ? Math.max(5.1, this.radius + target.radius + 2.2)
       : this.type === 'hammer' ? 5.8 : this.type === 'flipper' ? 4.6 : 4.9)) nextState = 'ATTACK';
+    if (this.weightClass === 'assault') {
+      const justHit = worldTime - this.aiLastAttackTime < 0.95;
+      if (justHit) { nextState = 'REENTRY'; this.assaultCycle = 'EXIT'; }
+      else if (distance > 9 && this.momentumCharge < 0.72) { nextState = 'CHASE'; this.assaultCycle = 'BUILD_MOMENTUM'; }
+      else if (distance > 5.4) { nextState = 'CHASE'; this.assaultCycle = 'ALIGN_AND_DASH'; }
+      else { nextState = 'ATTACK'; this.assaultCycle = 'IMPACT'; }
+    }
     this.transitionAIState(nextState, `combat-${nextState.toLowerCase()}`);
 
     if (this.aiState === 'RETREAT') {
@@ -7861,10 +8004,18 @@ class Robot {
       }
       if (this.type === 'drum') desiredPoint.addScaledVector(side, this.aiOrbit * clamp(distance * 0.08, 0.2, 0.75));
     }
-    if (this.aiAction === 'SHORT_FLANK') desiredPoint.addScaledVector(side, this.aiPreferredSide * clamp(distance * 0.14, 1.1, 3.1));
-    else if (this.aiAction === 'REAR_AMBUSH' && targetEngaged) desiredPoint.add(forwardFor(target.yaw).multiplyScalar(-4.2)).addScaledVector(side, this.aiPreferredSide * 1.5);
-    else if (this.aiAction === 'FEINT_RETREAT' && distance < 9.5) desiredPoint.copy(this.root.position).addScaledVector(playerDirection, -5.8);
-    else if (this.aiAction === 'REVERSE_STRIKE' && distance < 7.5) desiredPoint.copy(this.root.position).addScaledVector(playerDirection, -3.5);
+    if (this.weightClass === 'assault') {
+      if (this.assaultCycle === 'EXIT') desiredPoint.copy(this.root.position).addScaledVector(playerDirection, -8.5).addScaledVector(side, this.aiPreferredSide * 2.4);
+      else desiredPoint.copy(target.root.position).addScaledVector(target.velocity, clamp(distance / Math.max(8, this.driveProfile.topSpeed), 0.1, 0.55));
+    } else if (this.weightClass === 'superheavy' && distance > 30 && selectedMapId !== 'desert01') {
+      desiredPoint.lerp(this.root.position, 0.42);
+    }
+    if (this.weightClass !== 'assault') {
+      if (this.aiAction === 'SHORT_FLANK') desiredPoint.addScaledVector(side, this.aiPreferredSide * clamp(distance * 0.14, 1.1, 3.1));
+      else if (this.aiAction === 'REAR_AMBUSH' && targetEngaged) desiredPoint.add(forwardFor(target.yaw).multiplyScalar(-4.2)).addScaledVector(side, this.aiPreferredSide * 1.5);
+      else if (this.aiAction === 'FEINT_RETREAT' && distance < 9.5) desiredPoint.copy(this.root.position).addScaledVector(playerDirection, -5.8);
+      else if (this.aiAction === 'REVERSE_STRIKE' && distance < 7.5) desiredPoint.copy(this.root.position).addScaledVector(playerDirection, -3.5);
+    }
     desiredPoint.x = clamp(desiredPoint.x, -activeHalfWidth() + 8, activeHalfWidth() - 8);
     desiredPoint.z = clamp(desiredPoint.z, -activeHalfLength() + 8, activeHalfLength() - 8);
     for (const ally of robots.filter((robot) => robot !== this && !robot.dead && robot.team === this.team)) {
@@ -7881,7 +8032,7 @@ class Robot {
     const damageDriveScale = clamp((0.38 + activeWheelRatio * 0.62) * healthDriveScale, 0.34, 1);
     this.control.throttle *= damageDriveScale;
     this.control.steering = clamp(this.control.steering * this.aiPersonality.turnSensitivity, -1, 1);
-    if (this.aiAction === 'REVERSE_STRIKE' && distance < 7.5 && !this.aiObstacleScan?.blocked) {
+    if (this.weightClass !== 'assault' && this.aiAction === 'REVERSE_STRIKE' && distance < 7.5 && !this.aiObstacleScan?.blocked) {
       this.control.throttle = -0.78 * damageDriveScale;
       this.control.steering = clamp(-angleError * 0.72, -0.58, 0.58);
     }
@@ -7894,15 +8045,19 @@ class Robot {
     // their chassis colliders touched first, so they rammed repeatedly without
     // ever firing.  A forward puncher may fire during the physical approach,
     // while checkPuncherHit still performs the precise tip/target test.
-    const puncherAttackDistance = Math.max(7.2, this.radius + target.radius + 3.6);
-    if (this.type === 'puncher' && Math.abs(angleError) < 1.25 && distance < puncherAttackDistance
+    const puncherAttackDistance = this.weightClass === 'assault'
+      ? Math.max(5.2, this.radius + target.radius + 1.45)
+      : Math.max(6.2, this.radius + target.radius + 2.4);
+    const puncherTimingReady = this.weightClass !== 'assault' || this.dashHitWindow > 0 || this.momentumCharge > 0.7;
+    if (this.type === 'puncher' && puncherTimingReady && Math.abs(angleError) < 0.72 && distance < puncherAttackDistance
       && this.requestPuncher()) this.aiLastAttackTime = worldTime;
     if (this.type === 'hammer' && Math.abs(angleError) < 1.25 && distance < 5.8 && this.requestHammer()) this.aiLastAttackTime = worldTime;
     if (this.type === 'flipper' && Math.abs(angleError) < 0.88 && distance < 4.7 && this.requestFlipper()) this.aiLastAttackTime = worldTime;
     const weaponChargeReady = this.type === 'bar' ? (this.weapons.bar?.rpm ?? 0) >= (this.weapons.bar?.maxRpm ?? 1) * 0.82
       : this.type === 'drum' ? (this.weapons.drum?.rpm ?? 0) >= (this.weapons.drum?.maxRpm ?? 1) * 0.62 : true;
     const dashApproach = ['CHASE', 'ATTACK', 'FLANK', 'AMBUSH'].includes(this.aiState) && weaponChargeReady
-      && facing && distance > 5.2 && distance < (this.weightClass === 'lightweight' ? 18 : 14.5);
+      && facing && distance > 5.2 && distance < (this.weightClass === 'assault' ? 28 : this.weightClass === 'lightweight' ? 18 : 14.5)
+      && (this.weightClass !== 'assault' || this.momentumCharge >= 0.48);
     const dashEscape = this.aiState === 'RETREAT' && facing && distance < 13;
     const dashPersonality = this.aiTrait === 'berserker' || this.aiTrait === 'chaser' ? 0.92
       : this.aiTrait === 'cautious' || this.aiTrait === 'survivor' ? 0.46 : 0.68;
@@ -7910,7 +8065,7 @@ class Robot {
       const predictionTime = clamp(distance / Math.max(8, this.driveProfile.topSpeed + this.driveProfile.dashDelta), 0.18, 0.8);
       const predicted = target.root.position.clone().addScaledVector(target.velocity, predictionTime * this.aiPersonality.predictionAccuracy);
       const dashDirection = predicted.sub(this.root.position).setY(0).normalize();
-      const dashDistance = Math.min(distance + 2, this.weightClass === 'lightweight' ? 18 : 15);
+      const dashDistance = Math.min(distance + 2, this.weightClass === 'assault' ? 30 : this.weightClass === 'lightweight' ? 18 : 15);
       if (!dashPathClear(this, dashDirection, dashDistance)) this.stats.dashCancelledByObstacle++;
       else if (Math.random() < clamp(dt * (0.75 + dashPersonality) * this.aiPersonality.dashFrequency, 0.1, 0.62)
         && this.requestDash(dashEscape ? 'ai-retreat' : 'ai-predicted-attack')) {
@@ -7918,7 +8073,7 @@ class Robot {
         this.transitionAIState(dashEscape ? 'DASH_ESCAPE' : 'DASH_ATTACK', dashEscape ? 'dash-retreat' : 'predicted-dash-attack');
       }
     }
-    if (this.aiState === 'ATTACK' && distance < preferredDistance + 1.3 && ['flanker', 'ambusher', 'defensive', 'cautious'].includes(this.aiTrait)) {
+    if (this.type !== 'spinner' && this.weightClass !== 'assault' && this.aiState === 'ATTACK' && distance < preferredDistance + 1.3 && ['flanker', 'ambusher', 'defensive', 'cautious'].includes(this.aiTrait)) {
       this.aiRetreatUntil = Math.max(this.aiRetreatUntil, worldTime + (['flanker', 'ambusher'].includes(this.aiTrait) ? 1.25 : 1.8));
     }
     if (!weaponOperational) {
@@ -8410,20 +8565,43 @@ class Robot {
     const right = new THREE.Vector3(forward.z, 0, -forward.x);
     const forwardSpeed = this.velocity.dot(forward);
     const lateralSpeed = this.velocity.dot(right);
+    const profile = this.driveProfile ?? WEIGHT_CLASSES.middleweight;
 
     const minimumDriveWheels = 2;
     const groundDriveReady = !this.dead && upright && activeWheels >= minimumDriveWheels;
     this.controlsEnabled = !this.dead;
     this.motorEnabled = !this.dead && activeWheels >= minimumDriveWheels && !this.postureRecovery;
     this.driveEnabled = this.motorEnabled && groundDriveReady;
+    if (!this.isPlayer) {
+      this.reverseContinuousSeconds = this.control.throttle < -0.2 ? this.reverseContinuousSeconds + dt : Math.max(0, this.reverseContinuousSeconds - dt * 4);
+      this.maxReverseContinuousSeconds = Math.max(this.maxReverseContinuousSeconds, this.reverseContinuousSeconds);
+      if (this.reverseContinuousSeconds >= 1.95) {
+        this.control.throttle = 0.35;
+        this.reverseContinuousSeconds = 0;
+        this.transitionAIState('REPOSITION', 'reverse-hard-limit');
+      }
+    }
+    if (this.weightClass === 'assault') {
+      const buildingMomentum = this.driveEnabled && this.control.throttle > 0.68 && Math.abs(this.control.steering) < 0.22;
+      if (buildingMomentum) {
+        this.momentumStraightSeconds += dt;
+        this.momentumCharge = clamp(this.momentumCharge + dt / Math.max(1, profile.momentumBuildSeconds ?? 3.2), 0, 1);
+        this.peakMomentumCharge = Math.max(this.peakMomentumCharge, this.momentumCharge);
+      } else {
+        this.momentumStraightSeconds = Math.max(0, this.momentumStraightSeconds - dt * 2);
+        const turnDrain = Math.abs(this.control.steering) * (profile.momentumTurnDrain ?? 1.45);
+        const idleDrain = this.control.throttle > 0.15 ? 0.14 : (profile.momentumIdleDrain ?? 0.48);
+        this.momentumCharge = clamp(this.momentumCharge - dt * (turnDrain + idleDrain), 0, 1);
+      }
+    }
     if (Math.abs(this.control.throttle) > 0.2) {
       this.wakePhysicsFromControl(this.isPlayer ? 'player-throttle-input' : 'ai-throttle-command');
       if (this.control.brake && (!this.isPlayer || !brakeHeld)) this.control.brake = false;
     }
 
     if (this.driveEnabled && driveFactor > 0) {
-      const profile = this.driveProfile ?? WEIGHT_CLASSES.middleweight;
-      const acceleration = (this.type === 'hammer' ? 6.4 : 8.2) * profile.acceleration * (0.25 + driveFactor * 0.75);
+      const momentumAcceleration = this.weightClass === 'assault' ? lerp(0.9, 1.42, this.momentumCharge) : 1;
+      const acceleration = (this.type === 'hammer' ? 6.4 : 8.2) * profile.acceleration * momentumAcceleration * (0.25 + driveFactor * 0.75);
       const driveDelta = forward.clone().multiplyScalar(this.control.throttle * acceleration * dt);
       this.velocity.add(driveDelta);
       this.recordLinearDelta('wheel-drive', driveDelta, 'Robot.updatePhysics');
@@ -8476,8 +8654,8 @@ class Robot {
     this.velocity.add(gravityDelta);
     this.recordLinearDelta('gravity', gravityDelta, 'Robot.updatePhysics');
     const planarSpeed = Math.hypot(this.velocity.x, this.velocity.z);
-    const profile = this.driveProfile ?? WEIGHT_CLASSES.middleweight;
-    const commandedTopSpeed = this.dashActiveTimer > 0 ? this.dashPeakSpeed : profile.topSpeed;
+    const momentumTopSpeed = this.weightClass === 'assault' ? profile.topSpeed * (1 + (profile.momentumTopSpeedGain ?? 0.34) * this.momentumCharge) : profile.topSpeed;
+    const commandedTopSpeed = this.dashActiveTimer > 0 ? this.dashPeakSpeed : momentumTopSpeed;
     const terminalSpeed = this.dead || worldTime - this.lastExternalImpactTime < 0.45 ? 44 : commandedTopSpeed;
     if (planarSpeed > terminalSpeed) {
       const scale = terminalSpeed / planarSpeed;
@@ -9038,6 +9216,7 @@ class Robot {
     }
     const baseTier = intensityScore >= 140 ? 'veryStrong' : intensityScore >= 105 ? 'strong' : intensityScore >= 58 ? 'medium' : 'weak';
     const tier = forcedTier ?? (critical ? 'critical' : baseTier);
+    const weaponProfile = WEAPON_PHYSICS_PROFILES[sourceType] ?? WEAPON_PHYSICS_PROFILES.collision;
     const impulseScale = tier === 'critical' ? 2.15 : tier === 'veryStrong' ? 1.7 : tier === 'strong' ? 1.35 : tier === 'medium' ? 1 : 0.82;
     const forceScale = clamp(Number(impactOptions.forceScale ?? 1), 0, 1);
     const scaledImpulse = impulse.clone().multiplyScalar(impulseScale * forceScale);
@@ -9051,6 +9230,10 @@ class Robot {
       const upwardRatio = sourceType === 'bar' ? 0.1 : 0.065;
       scaledImpulse.y = clamp(scaledImpulse.y, -planar * 0.2, planar * upwardRatio);
     }
+    scaledImpulse.x *= weaponProfile.HorizontalImpulse;
+    scaledImpulse.z *= weaponProfile.HorizontalImpulse;
+    scaledImpulse.y *= weaponProfile.VerticalImpulse;
+    scaledImpulse.multiplyScalar(clamp(Number(impactOptions.impulseMultiplier ?? 1), 0.2, 2.4));
     const heightOffset = point.y - centre.y;
     const horizontalImpulse = Math.hypot(scaledImpulse.x, scaledImpulse.z);
     const underbodyFactor = clamp((-heightOffset - 0.12) / 0.85, 0, 1);
@@ -9090,7 +9273,7 @@ class Robot {
     const arm = point.clone().sub(centre);
     const torque = new THREE.Vector3().crossVectors(arm, scaledImpulse);
     const torqueLocal = worldTorqueToEulerAxes(torque, this.yaw, this.pitch);
-    const torqueScale = tier === 'critical' ? 1.9 : tier === 'veryStrong' ? 1.45 : tier === 'strong' ? 1.05 : tier === 'medium' ? 0.62 : 0.32;
+    const torqueScale = (tier === 'critical' ? 1.9 : tier === 'veryStrong' ? 1.45 : tier === 'strong' ? 1.05 : tier === 'medium' ? 0.62 : 0.32) * weaponProfile.TorqueImpulse;
     const yawDelta = torqueLocal.y / (this.mass * 2.35) * torqueScale;
     const pitchDelta = torqueLocal.x / (this.mass * 2.25) * torqueScale;
     const rollDelta = torqueLocal.z / (this.mass * 2.25) * torqueScale;
@@ -9114,9 +9297,10 @@ class Robot {
       const maximumStructureHp = [...this.blockParts.values()].reduce((sum, blockPart) => sum + blockPart.maxHp, 0);
       const situational = clamp((intensityScore - 35) / 185, 0, 1);
       const targetStructureDamage = maximumStructureHp * lerp(minimumFraction, maximumFraction, clamp(situational * 0.72 + Math.random() * 0.28, 0, 1));
-      const tunedDamage = Math.max(damage * damageScale, targetStructureDamage);
+      const tunedDamage = Math.max(damage * damageScale, targetStructureDamage) * weaponProfile.BlockDamage;
       const survivalTierScale = { weak: 0.72, medium: 0.92, strong: 1.12, veryStrong: 1.34, critical: 1.62 }[tier] ?? 1;
-      const survivalDamage = clamp(damage * survivalTierScale + intensityScore * 0.035, 0.5, tier === 'critical' ? 96 : 68);
+      const survivalLayerScale = this.armor > 0.001 ? weaponProfile.ArmorDamage : weaponProfile.PenetrationDamage;
+      const survivalDamage = clamp((damage * survivalTierScale + intensityScore * 0.035) * survivalLayerScale, 0.5, tier === 'critical' ? 112 : 82);
       survivalDamageResult = this.applySurvivalDamage(survivalDamage, tier, {
         directCoreHit: Boolean(part?.isCore),
         remainingBlockRatio: this.remainingBlockRatio(),
@@ -9789,6 +9973,17 @@ function updateDesertObjectiveAI(robot, dt) {
       : robot.type === 'spinner' ? 'SHORT_FLANK'
         : robot.type === 'puncher' || robot.type === 'drum' ? 'DIRECT_CHARGE'
           : 'OBJECTIVE_INTERCEPT';
+    if (robot.weightClass === 'assault') {
+      // Conquest still owns the destination, but an assault bot's combat
+      // execution is always the class-specific straight breach cycle. Generic
+      // BAR feints or spinner flanks made the class indistinguishable from a
+      // medium bot and drained all accumulated momentum before impact.
+      robot.aiAction = 'DIRECT_CHARGE';
+      const justHit = worldTime - robot.aiLastAttackTime < 0.95;
+      robot.assaultCycle = justHit ? 'EXIT'
+        : robot.momentumCharge < 0.72 ? 'BUILD_MOMENTUM'
+          : combatDistance > 5.4 ? 'ALIGN_AND_DASH' : 'IMPACT';
+    }
     driveRobotTowardPoint(robot, combatGoal, dt, contactCommitment ? 1.34 : 1.25, { directWhenClear: true, forceForward: contactCommitment });
     for (const key of ['spinner', 'bar', 'drum']) if (robot.weapons[key]) robot.weapons[key].active = robot.weaponAvailable(key);
     for (const rotary of robot.rotaryWeapons) rotary.active = robot.rotaryAvailable(rotary);
@@ -9826,7 +10021,7 @@ function updateDesertObjectiveAI(robot, dt) {
       robot.aiAttackAttemptCooldown = robot.type === 'spinner' ? 0.34 : 0.48;
     }
     if (combatDistance > 6 && combatDistance < (contactCommitment ? 22 : 15) && chargeReady && robot.dashCooldown <= 0 && Math.abs(robot.control.steering) < 0.46
-      && (contactCommitment || Math.random() < clamp(0.35 + robot.aiDashAggression * 0.45, 0.35, 0.88))) robot.requestDash(contactCommitment ? 'first-weapon-contact' : 'objective-intercept');
+      && (contactCommitment || robot.weightClass === 'assault' || Math.random() < clamp(0.35 + robot.aiDashAggression * 0.45, 0.35, 0.88))) robot.requestDash(contactCommitment ? 'first-weapon-contact' : 'objective-intercept');
     return true;
   }
   if (!objective.urgent) robot.lastDefenceAlert = null;
@@ -9868,6 +10063,13 @@ function updateDesertObjectiveAI(robot, dt) {
   } else {
     robot.aiObjectivePatrolPoint = null;
     robot.aiAction = objective.urgent ? 'OBJECTIVE_INTERCEPT' : 'OBJECTIVE_ROUTE';
+  }
+  if (robot.weightClass === 'assault') {
+    // The route to A/B is the run-up lane, not a generic cruise state. Keep the
+    // assault identity and build cycle visible while the objective remains the
+    // authoritative goal.
+    robot.aiAction = 'DIRECT_CHARGE';
+    robot.assaultCycle = robot.momentumCharge < 0.72 ? 'BUILD_MOMENTUM' : 'ALIGN_AND_DASH';
   }
   driveRobotTowardPoint(robot, movementGoal, dt, objective.urgent ? 1.2 : 1);
   return true;
@@ -10553,8 +10755,10 @@ const game = {
     const impactDamage = Math.max(0, closingSpeed - 3.5) * 0.72;
     const dashFromA = a.dashHitWindow > 0;
     const dashFromB = b.dashHitWindow > 0;
-    const dashDamageA = dashFromB ? clamp(closingSpeed * b.mass * 0.0048, 8, 70) : 0;
-    const dashDamageB = dashFromA ? clamp(closingSpeed * a.mass * 0.0048, 8, 70) : 0;
+    const dashPowerA = dashFromA && a.weightClass === 'assault' ? 1.18 + clamp(a.dashMomentumAtStart * 0.62, 0, 0.62) : 1;
+    const dashPowerB = dashFromB && b.weightClass === 'assault' ? 1.18 + clamp(b.dashMomentumAtStart * 0.62, 0, 0.62) : 1;
+    const dashDamageA = dashFromB ? clamp(closingSpeed * b.mass * 0.0048, 8, 70) * dashPowerB : 0;
+    const dashDamageB = dashFromA ? clamp(closingSpeed * a.mass * 0.0048, 8, 70) * dashPowerA : 0;
     let resultA = null;
     let resultB = null;
     const bothDash = dashFromA && dashFromB;
@@ -10581,13 +10785,13 @@ const game = {
       const source = passivePuncherA ? 'puncher' : 'dash';
       const contactPoint = passivePuncherA?.point ?? point;
       const puncherDamage = passivePuncherA ? clamp(10 + closingSpeed * 1.2, 12, 38) : 0;
-      if (this.canDamage(a, b)) resultB = b.applyImpactAtPoint(impulse, contactPoint, impactDamage + dashDamageB + puncherDamage, source, a, { suppressSparks: true, suppressFlash: true, contactSpeed: closingSpeed, weaponMass: passivePuncherA ? PART_META.puncher.mass : a.mass * 0.28, allowCritical: true });
+      if (this.canDamage(a, b)) resultB = b.applyImpactAtPoint(impulse, contactPoint, impactDamage + dashDamageB + puncherDamage, source, a, { suppressSparks: true, suppressFlash: true, contactSpeed: closingSpeed, weaponMass: passivePuncherA ? PART_META.puncher.mass : a.mass * 0.28, allowCritical: true, impulseMultiplier: dashPowerA });
       attackerReaction(a, impulse.clone().multiplyScalar(-1));
     } else if (dashFromB && !bothDash) {
       const source = passivePuncherB ? 'puncher' : 'dash';
       const contactPoint = passivePuncherB?.point ?? point;
       const puncherDamage = passivePuncherB ? clamp(10 + closingSpeed * 1.2, 12, 38) : 0;
-      if (this.canDamage(b, a)) resultA = a.applyImpactAtPoint(impulse.clone().multiplyScalar(-1), contactPoint, impactDamage + dashDamageA + puncherDamage, source, b, { suppressSparks: true, suppressFlash: true, contactSpeed: closingSpeed, weaponMass: passivePuncherB ? PART_META.puncher.mass : b.mass * 0.28, allowCritical: true });
+      if (this.canDamage(b, a)) resultA = a.applyImpactAtPoint(impulse.clone().multiplyScalar(-1), contactPoint, impactDamage + dashDamageA + puncherDamage, source, b, { suppressSparks: true, suppressFlash: true, contactSpeed: closingSpeed, weaponMass: passivePuncherB ? PART_META.puncher.mass : b.mass * 0.28, allowCritical: true, impulseMultiplier: dashPowerB });
       attackerReaction(b, impulse);
     } else {
       const sourceA = passivePuncherB ? 'puncher' : dashFromB ? 'dash' : 'collision';
@@ -10596,9 +10800,9 @@ const game = {
       const pointB = passivePuncherA?.point ?? point;
       const puncherDamageA = passivePuncherB ? clamp(8 + closingSpeed * 0.9, 8, 28) : 0;
       const puncherDamageB = passivePuncherA ? clamp(8 + closingSpeed * 0.9, 8, 28) : 0;
-      if (this.canDamage(b, a)) resultA = a.applyImpactAtPoint(impulse.clone().multiplyScalar(-1), pointA, impactDamage + dashDamageA + puncherDamageA, sourceA, b, { suppressSparks: true, suppressFlash: true, contactSpeed: closingSpeed, weaponMass: passivePuncherB ? PART_META.puncher.mass : dashFromB ? b.mass * 0.28 : 0, allowCritical: dashFromB });
+      if (this.canDamage(b, a)) resultA = a.applyImpactAtPoint(impulse.clone().multiplyScalar(-1), pointA, impactDamage + dashDamageA + puncherDamageA, sourceA, b, { suppressSparks: true, suppressFlash: true, contactSpeed: closingSpeed, weaponMass: passivePuncherB ? PART_META.puncher.mass : dashFromB ? b.mass * 0.28 : 0, allowCritical: dashFromB, impulseMultiplier: dashPowerB });
       else a.velocity.addScaledVector(impulse, -0.32 / a.mass);
-      if (this.canDamage(a, b)) resultB = b.applyImpactAtPoint(impulse, pointB, impactDamage + dashDamageB + puncherDamageB, sourceB, a, { suppressSparks: true, suppressFlash: true, contactSpeed: closingSpeed, weaponMass: passivePuncherA ? PART_META.puncher.mass : dashFromA ? a.mass * 0.28 : 0, allowCritical: dashFromA });
+      if (this.canDamage(a, b)) resultB = b.applyImpactAtPoint(impulse, pointB, impactDamage + dashDamageB + puncherDamageB, sourceB, a, { suppressSparks: true, suppressFlash: true, contactSpeed: closingSpeed, weaponMass: passivePuncherA ? PART_META.puncher.mass : dashFromA ? a.mass * 0.28 : 0, allowCritical: dashFromA, impulseMultiplier: dashPowerA });
       else b.velocity.addScaledVector(impulse, 0.32 / b.mass);
     }
     collisionEventCache.set(eventKey, worldTime);
@@ -10685,6 +10889,10 @@ const game = {
         ? (freshBladeContact ? 'saw-first' : 'saw-continuous')
         : (fullImpact ? 'impact' : 'rotary-continuous');
       const sustainedDamageFactor = spinner.kind === 'spinner' ? 0.62 : spinner.kind === 'drum' ? 0.28 : 0.16;
+      const weaponProfile = WEAPON_PHYSICS_PROFILES[spinner.kind];
+      const contactDamageScale = fullImpact
+        ? (spinner.kind === 'bar' ? 1.14 : spinner.kind === 'drum' ? 1.06 : 1)
+        : weaponProfile.ContactDPS;
       // Rotary attacks are real blade/contact events rather than button
       // presses. Count them only after geometric contact is confirmed so
       // normal-runtime telemetry cannot show genuine hits with zero attempts.
@@ -10692,7 +10900,7 @@ const game = {
         robot.stats.attacksAttempted++;
         robot.aiAttackAttemptCooldown = spinner.kind === 'spinner' ? 0.34 : 0.48;
       }
-      const impactResult = target.applyImpactAtPoint(impulse, point, damage * (fullImpact ? 1 : sustainedDamageFactor), spinner.kind, robot, {
+      const impactResult = target.applyImpactAtPoint(impulse, point, damage * (fullImpact ? 1 : sustainedDamageFactor) * contactDamageScale, spinner.kind, robot, {
         tangentHint: tangent,
         sparkMode,
         contactSpeed,
@@ -10720,6 +10928,7 @@ const game = {
         contactSpeed: Number(contactSpeed.toFixed(2)), impulse: Number(impulse.length().toFixed(1)), resistance: Number(resistance.toFixed(3)),
         knockbackDistanceEstimate: Number((impulse.length() / Math.max(1, target.mass)).toFixed(3)), upwardImpulse: Number(upward.toFixed(1)),
         rotationImpulse: Number(new THREE.Vector3().crossVectors(point.clone().sub(targetCentre), impulse).length().toFixed(1)), tier: impactResult?.tier ?? null,
+        weaponPhysics: { ...weaponProfile },
       });
       if (weaponImpactTelemetry.length > 160) weaponImpactTelemetry.shift();
       if (fullImpact && impactResult) robot.applyWeaponReactionWear(spinner, clamp(damage * 0.42, 5, 18), impulse.clone().multiplyScalar(-0.16), point, impactResult.tier);
@@ -10757,9 +10966,11 @@ const game = {
       if ((physicalGap > 0.82 && distance > target.radius + 1.25) || distance < 0.001 || toTarget.normalize().dot(forward) < 0.12) continue;
       const dash = robot.dashHitWindow > 0 || robot.dashActiveTimer > 0;
       const closing = Math.max(0, robot.velocity.clone().sub(target.velocity).dot(forward));
-      const strength = (dash ? 390 : 235) + closing * (dash ? 18 : 10);
+      const assaultSynergy = robot.weightClass === 'assault'
+        ? 1.18 + clamp(robot.dashMomentumAtStart * 0.62 + robot.momentumCharge * 0.22, 0, 0.84) : 1;
+      const strength = ((dash ? 390 : 235) + closing * (dash ? 18 : 10)) * assaultSynergy;
       const impulse = forward.clone().multiplyScalar(strength).add(new THREE.Vector3(0, dash ? 38 : 18, 0));
-      const result = target.applyImpactAtPoint(impulse, point, (dash ? 58 : 35) + closing * 0.45, 'puncher', robot, { contactSpeed: closing, weaponMass: PART_META.puncher.mass, allowCritical: dash });
+      const result = target.applyImpactAtPoint(impulse, point, ((dash ? 58 : 35) + closing * 0.45) * assaultSynergy, 'puncher', robot, { contactSpeed: closing, weaponMass: PART_META.puncher.mass, allowCritical: dash });
       if (result) {
         robot.stats.hits++;
         robot.aiLastAttackTime = worldTime;
@@ -12262,7 +12473,8 @@ function refreshRecordDurability(record) {
   const volume = recordScaleVolume(record);
   const wheelFactor = record.type !== 'wheel' ? { mass: 1, hp: 1 }
     : record.wheelModel === 'wheel_light' ? { mass: 0.68, hp: 0.76 }
-      : record.wheelModel === 'wheel_wide' ? { mass: 1.48, hp: 1.32 } : { mass: 1, hp: 1 };
+      : record.wheelModel === 'wheel_wide' ? { mass: 1.48, hp: 1.32 }
+        : record.wheelModel === 'wheel_assault' ? { mass: 1.18, hp: 1.16 } : { mass: 1, hp: 1 };
   record.mass = meta.mass * volume * wheelFactor.mass;
   record.baseHp = meta.hp * Math.cbrt(volume) * wheelFactor.hp;
 }
@@ -12336,6 +12548,18 @@ function validateGaragePart(record, ignoreId = null, assembly = workingAssembly)
   return validatePartPlacement(record, ignoreId, assembly);
 }
 
+// Read-only QA bridge used by the browser regression suite. Keeping the
+// generator and placement validator behind one explicit object lets tests
+// inspect the same runtime data the match actually consumes, without creating
+// a second mock placement implementation.
+window.__battlebotBuildQA = Object.freeze({
+  createAIAssembly,
+  validateGaragePart,
+  weaponClearanceBlockIds,
+  recordLocalAABB,
+  blockLocalAABB,
+});
+
 function alignAxisRecordToSupports(record, assembly) {
   if (record.mount?.kind !== 'axis') return false;
   const ids = record.mount.targetIds ?? [record.mount.targetId];
@@ -12365,6 +12589,77 @@ function repairLoadedFunctionalPlacement(assembly) {
       if (result.valid) { repaired.push({ id: part.id, type: part.type, mode: 'surface-standoff', standoff: part.mount.standoff }); break; }
     }
     if (!result.valid) Object.assign(part, original);
+  }
+
+  // Migrate legacy bar spinners that were lifted on long invisible standoffs.
+  // The saved blade stays horizontal, but its pivot is reassigned to the first
+  // genuine low exposed deck face whose real rest bounds and full sweep pass
+  // the same validator used by the workshop and AI generator.
+  for (const bar of surfaceParts.filter((part) => part.type === 'barSpinner')) {
+    const original = cloneData(bar);
+    const originalMountOffset = bar.mount?.point
+      ? Math.abs(Number(bar.position?.[1] ?? 0) - Number(bar.mount.point?.[1] ?? 0)) : Infinity;
+    const relocatedDonors = [];
+    if (originalMountOffset > 0.4 || Math.abs(Number(bar.rotation?.[0] ?? 0)) > 0.001 || Math.abs(Number(bar.rotation?.[2] ?? 0)) > 0.001) {
+      const groundFront = assembly.blocks.filter((block) => block.gridPosition[1] === 0)
+        .sort((left, right) => right.gridPosition[2] - left.gridPosition[2]
+          || Math.abs(left.gridPosition[0]) - Math.abs(right.gridPosition[0]))[0];
+      const frontZ = Math.max(...assembly.blocks.filter((block) => block.gridPosition[1] === 0).map((block) => block.gridPosition[2]));
+      const topDonors = assembly.blocks.filter((block) => !block.isCore && ['cube', 'silverCube'].includes(block.type)
+        && block.gridPosition[1] > 0
+        && !assembly.blocks.some((other) => other.gridPosition[0] === block.gridPosition[0]
+          && other.gridPosition[2] === block.gridPosition[2]
+          && other.gridPosition[1] > block.gridPosition[1]))
+        .sort((left, right) => left.gridPosition[2] - right.gridPosition[2]
+          || right.gridPosition[1] - left.gridPosition[1]);
+      if (groundFront && topDonors.length >= 4) {
+        for (let index = 0; index < 4; index++) {
+          relocatedDonors.push({ block: topDonors[index], gridPosition: [...topDonors[index].gridPosition] });
+          topDonors[index].gridPosition = [groundFront.gridPosition[0], 0, frontZ + index + 1];
+        }
+      }
+    }
+    const occupied = new Set(assembly.blocks.map((block) => block.gridPosition.join(',')));
+    const candidates = assembly.blocks.filter((block) => block.gridPosition[1] <= 1
+      && !occupied.has([block.gridPosition[0], block.gridPosition[1] + 1, block.gridPosition[2]].join(',')))
+      .sort((left, right) => right.gridPosition[2] - left.gridPosition[2]
+        || right.gridPosition[1] - left.gridPosition[1]
+        || Math.abs(left.gridPosition[0]) - Math.abs(right.gridPosition[0]));
+    let replacement = null;
+    const baseScale = clamp(Number(bar.scaleFactor ?? 1), PART_LIMITS.barSpinner[0], PART_LIMITS.barSpinner[1]);
+    const scaleOptions = [...new Set([baseScale, Math.max(PART_LIMITS.barSpinner[0], baseScale * 0.88), PART_LIMITS.barSpinner[0]])];
+    for (const target of candidates) {
+      const box = blockLocalAABB(target);
+      const point = box.getCenter(new THREE.Vector3());
+      point.y = box.max.y;
+      for (const scaleFactor of scaleOptions) {
+        for (const standoff of [0.04, 0.08, 0.12, 0.16, 0.2, 0.24, 0.28, 0.32, 0.34]) {
+          const candidate = cloneData(original);
+          candidate.rotation = [0, Number(original.rotation?.[1] ?? 0), 0];
+          candidate.scaleFactor = scaleFactor;
+          candidate.functionalAxis = 'world-y';
+          candidate.expectedPlane = 'horizontal';
+          candidate.directWeaponMount = true;
+          setRecordSurfaceMount(candidate, point, Y_AXIS, target.id);
+          candidate.mount.standoff = standoff;
+          refreshRecordMount(candidate);
+          const validation = validateGaragePart(candidate, candidate.id, assembly);
+          const mountOffset = Math.abs(candidate.position[1] - candidate.mount.point[1]);
+          if (validation.valid && mountOffset <= 0.4 && weaponClearanceBlockIds(candidate, assembly).length === 0) {
+            replacement = candidate;
+            break;
+          }
+        }
+        if (replacement) break;
+      }
+      if (replacement) break;
+    }
+    if (replacement) {
+      Object.assign(bar, replacement);
+      repaired.push({ id: bar.id, type: bar.type, mode: 'legacy-horizontal-bar-low-deck', targetId: bar.mount.targetId, standoff: bar.mount.standoff });
+    } else {
+      for (const donor of relocatedDonors) donor.block.gridPosition = donor.gridPosition;
+    }
   }
 
   const repairedPivotGroups = new Map();
@@ -13331,7 +13626,7 @@ function runWheelNativeScaleQA() {
   };
   const assembly = enrichAssembly({ version: ASSEMBLY_VERSION, weightClass: 'lightweight', blocks: createDefaultBlocks(), parts: [badLegacyWheel] });
   const wheel = assembly.parts.find((part) => part.type === 'wheel');
-  const models = ['wheel_light', 'new_wheel', 'wheel_wide'].map((model) => {
+  const models = ['wheel_light', 'new_wheel', 'wheel_wide', 'wheel_assault'].map((model) => {
     const dimensions = getWheelRuntimeDimensions(1, model, [1, 1, 1]);
     return { model, scaleFactor: 1, axisScale: [1, 1, 1], radius: Number(dimensions.radius.toFixed(4)), halfWidth: Number(dimensions.halfWidth.toFixed(4)) };
   });
@@ -13584,7 +13879,7 @@ function setAssemblyMode(nextMode) {
 function loadEditableRobotPreset(weightClass, type, presetIndex = 0) {
   if (!WEIGHT_CLASSES[weightClass] || !['spinner', 'bar', 'drum', 'puncher'].includes(type)) return false;
   pushUndo();
-  const classIndex = ['lightweight', 'middleweight', 'superheavy', 'healer'].indexOf(weightClass);
+  const classIndex = ['lightweight', 'middleweight', 'superheavy', 'assault', 'healer'].indexOf(weightClass);
   const weaponIndex = ['spinner', 'bar', 'drum', 'puncher'].indexOf(type);
   const generated = createAIAssembly(type, {
     weightClass,
@@ -14180,7 +14475,7 @@ function resetGame(testOnly = mode === 'test', playerAssembly = workingAssembly)
     const addBot = (id, type, team, position, yaw, suffix = '', classOverride = null) => {
       let assembly = null;
       let lastRejectedValidation = null;
-      const weightClassCycle = ['lightweight', 'middleweight', 'superheavy'];
+      const weightClassCycle = ['lightweight', 'middleweight', 'assault', 'superheavy'];
       const requestedWeightClass = type === 'healer' ? 'healer' : (classOverride ?? weightClassCycle[(generatedAIIndex + matchArchetypeOffset) % weightClassCycle.length]);
       const requestedHeightTier = type === 'healer' ? (generatedAIIndex % 2 ? 3 : 2) : heightTierCycle[generatedAIIndex % heightTierCycle.length];
       for (let attempt = 0; attempt < AI_HULL_ARCHETYPES.length; attempt++) {
@@ -14223,26 +14518,40 @@ function resetGame(testOnly = mode === 'test', playerAssembly = workingAssembly)
       });
       if (!spawned) throw new Error(`MATCH SPAWN REJECTED: ${team}/${id}/${name}`);
     };
-    const teamBotSpec = (team, index) => {
-      if (teamSize === 2) {
-        if (team === 'blue') return { type: 'healer', weightClass: 'healer' };
-        return index === 0 ? { type: 'spinner', weightClass: 'lightweight' } : { type: 'bar', weightClass: 'superheavy' };
-      }
-      if (teamSize === 3) {
-        if (index === teamSize - 1) return { type: 'healer', weightClass: 'healer' };
-        return team === 'blue'
-          ? { type: types[index % types.length], weightClass: 'lightweight' }
-          : { type: types[(index + 2) % types.length], weightClass: index === 0 ? 'middleweight' : 'superheavy' };
-      }
-      const healerSlots = teamSize >= 8 ? 2 : 1;
-      if (index >= teamSize - healerSlots) return { type: 'healer', weightClass: 'healer' };
-      const classes = ['lightweight', 'middleweight', 'superheavy'];
-      return { type: types[(index + (team === 'red' ? 3 : 1)) % types.length], weightClass: classes[(index + (team === 'red' ? 1 : 0)) % classes.length] };
+    const weightedClassPick = () => {
+      const roll = Math.random();
+      return roll < 0.25 ? 'lightweight' : roll < 0.55 ? 'middleweight' : roll < 0.81 ? 'assault' : 'superheavy';
     };
+    const weaponForClass = (weightClass, index, team) => {
+      if (weightClass === 'healer') return 'healer';
+      const phase = index + (team === 'red' ? 2 : 0);
+      if (weightClass === 'assault') return ['puncher', 'puncher', 'bar', 'drum', 'spinner'][phase % 5];
+      if (weightClass === 'lightweight') return ['spinner', 'puncher', 'bar', 'drum'][phase % 4];
+      if (weightClass === 'superheavy') return ['drum', 'bar', 'spinner', 'puncher'][phase % 4];
+      return types[phase % types.length];
+    };
+    const buildTeamComposition = (team) => {
+      const healerSlots = teamSize >= 8 ? 2 : teamSize >= 2 ? 1 : 0;
+      const combatSlots = Math.max(0, teamSize - healerSlots);
+      const rareDominant = combatSlots >= 5 && Math.random() < 0.09 ? weightedClassPick() : null;
+      const classes = Array.from({ length: combatSlots }, (_, index) => (rareDominant && index < Math.ceil(combatSlots * 0.62)) ? rareDominant : weightedClassPick());
+      if (combatSlots >= 3 && !classes.includes('assault')) classes[Math.abs(team === 'red' ? 1 : 0) % combatSlots] = 'assault';
+      if (combatSlots >= 5 && !classes.includes('superheavy')) classes[combatSlots - 1] = 'superheavy';
+      if (combatSlots >= 4 && !classes.includes('lightweight')) classes[0] = 'lightweight';
+      for (let index = classes.length - 1; index > 0; index--) {
+        const swap = Math.floor(Math.random() * (index + 1));
+        [classes[index], classes[swap]] = [classes[swap], classes[index]];
+      }
+      classes.push(...Array.from({ length: healerSlots }, () => 'healer'));
+      return classes.map((weightClass, index) => ({ weightClass, type: weaponForClass(weightClass, index, team) }));
+    };
+    const teamCompositions = { blue: buildTeamComposition('blue'), red: buildTeamComposition('red') };
+    const teamBotSpec = (team, index) => teamCompositions[team][index] ?? { type: 'spinner', weightClass: 'middleweight' };
     if (isFreeForAllMode()) {
       const ffaCount = battleMode === 'ffa8' ? 8 : 4;
       const positions = ffaSpawns.slice(1, ffaCount);
-      for (let index = 0; index < positions.length; index++) addBot(index + 1, types[index], `ffa-${index + 1}`, { x: positions[index][0], z: positions[index][1] }, Math.PI + (index - 2) * 0.32);
+      const ffaClasses = ['lightweight', 'middleweight', 'assault', 'superheavy', 'lightweight', 'assault', 'middleweight'];
+      for (let index = 0; index < positions.length; index++) addBot(index + 1, weaponForClass(ffaClasses[index % ffaClasses.length], index, 'ffa'), `ffa-${index + 1}`, { x: positions[index][0], z: positions[index][1] }, Math.PI + (index - 2) * 0.32, '', ffaClasses[index % ffaClasses.length]);
     } else {
       let id = 1;
       for (let index = 1; index < teamSize; index++) {
@@ -15731,7 +16040,7 @@ function updateUIDetailed(refreshTelemetry = false) {
       audioSystem: {
         mixerGroups: ['Master', 'Music', 'Combat SFX', 'Weapon SFX', 'UI', 'Ambient'],
         masterVolume: Number(masterVolume.toFixed(2)), musicVolume: Number(mixerSettings.music.toFixed(2)), effectsVolume: Number(mixerSettings.effects.toFixed(2)),
-        music: { lobby: 'audio/music_main_menu.mp3', battle: 'audio/music_battle.mp3', crossfade: true, heavyHitDucking: true, duckAmount: Number(musicDuck.toFixed(2)) },
+        music: { lobby: 'audio/music_main_menu_assault.mp3', battle: 'audio/music_battle.mp3', crossfade: true, heavyHitDucking: true, duckAmount: Number(musicDuck.toFixed(2)) },
         spatial: { enabled: true, model: 'HRTF-inverse-distance', maxDistance: 58, activeVoices: spatialAudioVoices.length, limit: mobilePerformanceProfile() ? (robots.length >= 12 ? 10 : 12) : (robots.length >= 12 ? 16 : 20) },
         hitSamples: ['audio/impact_new_1.mp3', 'audio/impact_new_2.mp3', 'audio/impact_new_3.mp3', 'audio/impact_hit_1.mp3', 'audio/impact_hit_2.mp3'],
         dashSample: 'audio/dash_boost.mp3', sustainedSawPolicy: 'disabled; one-impact/one-metal-hit-sample only', idleRotaryLoop: false, stats: cloneData(audioStats),
@@ -16152,6 +16461,12 @@ function drawClassMarkerIcon(context, weightClass, x, y, size, color) {
     context.lineTo(-size * 0.1, -size * 0.34);
     context.lineTo(size * 0.48, size * 0.12);
     context.lineTo(size * 0.38, size * 0.34);
+  } else if (weightClass === 'assault') {
+    context.moveTo(0, -size * 0.5);
+    context.lineTo(size * 0.5, size * 0.22);
+    context.lineTo(size * 0.22, size * 0.42);
+    context.lineTo(-size * 0.22, size * 0.42);
+    context.lineTo(-size * 0.5, size * 0.22);
   } else {
     const height = weightClass === 'superheavy' ? size * 0.78 : size * 0.62;
     context.rect(-size * 0.46, -height * 0.48, size * 0.92, height);
@@ -16332,7 +16647,7 @@ function updateGame(dt) {
       const planarSpeed = robot.velocity.clone().setY(0).length();
       const commandIdle = activeDriveState && Math.abs(robot.control.throttle) < 0.08 && planarSpeed < 0.25;
       robot.aiCommandIdleSeconds = commandIdle ? robot.aiCommandIdleSeconds + stepDt : Math.max(0, robot.aiCommandIdleSeconds - stepDt * 2);
-      if (robot.aiCommandIdleSeconds > 0.5) {
+      if (robot.aiCommandIdleSeconds > 0.34) {
         robot.control.brake = false;
         robot.control.throttle = 0.68;
         robot.control.steering = clamp(robot.control.steering || robot.aiPreferredSide * 0.18, -0.36, 0.36);
@@ -17317,10 +17632,21 @@ window.__battlebotAIBehaviorQA = {
       && robot.velocity.clone().setY(0).length() < 0.25
       && robot.aiCommandIdleSeconds > 0.45
       && !['MATCH_ENDED', 'SELF_RIGHT', 'WAIT_FOR_HEAL'].includes(robot.aiState));
+    const classDistribution = Object.fromEntries(Object.keys(WEIGHT_CLASSES).map((classId) => [classId, ai.filter((robot) => robot.weightClass === classId).length]));
+    const assaultBots = ai.filter((robot) => robot.weightClass === 'assault');
     return {
       elapsed: Number(battleElapsed.toFixed(2)), map: selectedMapId, mode: battleMode,
       aiCount: ai.length, spinning: spinning.map((robot) => robot.name), stalled: stalled.map((robot) => robot.name),
       idlingHealers: idlingHealers.map((robot) => robot.name), actionVariety: [...new Set(ai.map((robot) => robot.aiAction))],
+      classDistribution,
+      assaultAudit: {
+        count: assaultBots.length,
+        nonChargeActions: assaultBots.filter((robot) => robot.aiAction !== 'DIRECT_CHARGE').map((robot) => ({ name: robot.name, action: robot.aiAction })),
+        maxReverseSeconds: Number(Math.max(0, ...assaultBots.map((robot) => robot.maxReverseContinuousSeconds ?? 0)).toFixed(3)),
+        averageMomentum: Number((assaultBots.reduce((sum, robot) => sum + (robot.momentumCharge ?? 0), 0) / Math.max(1, assaultBots.length)).toFixed(3)),
+        averagePeakMomentum: Number((assaultBots.reduce((sum, robot) => sum + (robot.peakMomentumCharge ?? 0), 0) / Math.max(1, assaultBots.length)).toFixed(3)),
+        dashUses: assaultBots.reduce((sum, robot) => sum + robot.stats.dashUses, 0),
+      },
       targetSwitches: ai.reduce((sum, robot) => sum + robot.stats.targetSwitches, 0),
       obstacleDetections: ai.reduce((sum, robot) => sum + robot.stats.obstacleDetections, 0),
       obstacleAvoidances: ai.reduce((sum, robot) => sum + robot.stats.obstacleAvoidances, 0),
@@ -17331,7 +17657,24 @@ window.__battlebotAIBehaviorQA = {
       healerDashAttacks: ai.reduce((sum, robot) => sum + robot.stats.healerDashAttacks, 0),
       idleDriveNudges: ai.reduce((sum, robot) => sum + robot.stats.idleDriveNudges, 0),
       healerPulses: conquestState.healerTicks,
-      robots: ai.map((robot) => ({ name: robot.name, state: robot.aiState, action: robot.aiAction, speed: Number(robot.velocity.clone().setY(0).length().toFixed(2)), obstacleBlocked: Boolean(robot.aiObstacleScan?.blocked), target: robot.aiTargetId })),
+      robots: ai.map((robot) => ({
+        name: robot.name,
+        class: robot.weightClass,
+        classRole: robot.classRole,
+        weapon: robot.type,
+        weaponRole: robot.weaponRole,
+        objectiveRole: robot.objectiveRole,
+        state: robot.aiState,
+        assaultCycle: robot.weightClass === 'assault' ? robot.assaultCycle : null,
+        momentum: robot.weightClass === 'assault' ? Number(robot.momentumCharge.toFixed(3)) : null,
+        reverseSeconds: Number((robot.reverseContinuousSeconds ?? 0).toFixed(3)),
+        maxReverseSeconds: Number((robot.maxReverseContinuousSeconds ?? 0).toFixed(3)),
+        dashUses: robot.stats.dashUses,
+        action: robot.aiAction,
+        speed: Number(robot.velocity.clone().setY(0).length().toFixed(2)),
+        obstacleBlocked: Boolean(robot.aiObstacleScan?.blocked),
+        target: robot.aiTargetId,
+      })),
     };
   },
 };
@@ -17761,7 +18104,7 @@ if (new URLSearchParams(location.search).get('aiVisualQA') === '1') {
     for (let index = 0; index < requiredExtras; index++) {
       const extraIndex = AI_HULL_ARCHETYPES.findIndex((archetype) => !existing.has(archetype));
       const type = extraTypes[index % extraTypes.length];
-      const classCycle = ['lightweight', 'middleweight', 'superheavy', 'healer'];
+      const classCycle = ['lightweight', 'middleweight', 'superheavy', 'assault', 'healer'];
       let assembly = null;
       for (let attempt = 0; attempt < 32; attempt++) {
         const candidate = createAIAssembly(type, { designSeed: 0.137 + index * 0.173 + attempt * 0.021, archetypeIndex: extraIndex < 0 ? index + attempt : extraIndex + attempt, weightClass: classCycle[index % classCycle.length], heightTier: 2 + ((index + attempt) % 4) });
@@ -18799,7 +19142,7 @@ function conquestQASnapshot() {
       floatingExterior: aiDesigns.reduce((sum, design) => sum + (design?.validation?.floatingExterior ?? 0), 0),
       validationFailures: aiDesigns.filter((design) => !design?.validation?.passed).map((design) => ({ archetype: design?.archetype, failures: design?.validation?.failures })),
       initialInstallationAudit,
-      weightClasses: Object.fromEntries(['lightweight', 'middleweight', 'superheavy', 'healer'].map((weightClass) => [weightClass, aiRobots.filter((robot) => robot.weightClass === weightClass).length])),
+      weightClasses: Object.fromEntries(['lightweight', 'middleweight', 'superheavy', 'assault', 'healer'].map((weightClass) => [weightClass, aiRobots.filter((robot) => robot.weightClass === weightClass).length])),
       classIcons: {
         total: document.querySelectorAll('.conquest-icons .unit-icon').length,
         lightweight: document.querySelectorAll('.conquest-icons .unit-icon.lightweight').length,
@@ -18964,8 +19307,14 @@ function runWeaponRoleMatrix20() {
   const results = [];
   const originalWorldTime = worldTime;
   for (const scenario of scenarios) {
-    const attacker = robots.find((robot) => !robot.dead && robot.rotaryWeapons.some((weapon) => weapon.kind === scenario.kind));
-    const spinner = attacker?.rotaryWeapons.find((weapon) => weapon.kind === scenario.kind);
+    // Random class/weapon rosters are allowed, so a given 10v10 may contain no
+    // BAR (or no DRUM). The QA must still exercise every real weapon profile.
+    // Prefer an actual matching assembly; otherwise use an existing live rotary
+    // collider and temporarily switch only its runtime kind through the same
+    // checkRotaryHit path. This avoids silently skipping a required weapon.
+    const attacker = robots.find((robot) => !robot.dead && robot.rotaryWeapons.some((weapon) => weapon.kind === scenario.kind))
+      ?? robots.find((robot) => !robot.dead && robot.rotaryWeapons.length);
+    const spinner = attacker?.rotaryWeapons.find((weapon) => weapon.kind === scenario.kind) ?? attacker?.rotaryWeapons[0];
     const target = attacker && game.targetsFor(attacker).find((candidate) => !candidate.dead);
     if (!attacker || !spinner || !target) {
       results.push({ scenario: scenario.id, Passed: false, reason: `${scenario.kind} attacker/target unavailable`, trials: [] });
@@ -18975,7 +19324,7 @@ function runWeaponRoleMatrix20() {
       attackerPosition: attacker.root.position.clone(), attackerVelocity: attacker.velocity.clone(), attackerYaw: attacker.yaw,
       targetPosition: target.root.position.clone(), targetVelocity: target.velocity.clone(), targetGrounded: target.grounded,
       applyImpactAtPoint: target.applyImpactAtPoint, reactionWear: attacker.applyWeaponReactionWear,
-      rpm: spinner.rpm, dashHitWindow: attacker.dashHitWindow, dashActiveTimer: attacker.dashActiveTimer,
+      rpm: spinner.rpm, kind: spinner.kind, dashHitWindow: attacker.dashHitWindow, dashActiveTimer: attacker.dashActiveTimer,
     };
     let captured = null;
     target.applyImpactAtPoint = (impulse, point, damage, source, sourceRobot, options) => {
@@ -18996,6 +19345,7 @@ function runWeaponRoleMatrix20() {
       attacker.velocity.copy(forwardFor(attacker.yaw)).multiplyScalar(scenario.speed);
       attacker.dashHitWindow = scenario.dash ? 0.25 : 0;
       attacker.dashActiveTimer = scenario.dash ? 0.25 : 0;
+      spinner.kind = scenario.kind;
       spinner.rpm = spinner.maxRpm * scenario.rpmRatio;
       spinner.hitCooldown.delete(target);
       spinner.contactHistory?.delete(target);
@@ -19019,21 +19369,90 @@ function runWeaponRoleMatrix20() {
     attacker.applyWeaponReactionWear = saved.reactionWear;
     attacker.root.position.copy(saved.attackerPosition); attacker.velocity.copy(saved.attackerVelocity); attacker.yaw = saved.attackerYaw;
     target.root.position.copy(saved.targetPosition); target.velocity.copy(saved.targetVelocity); target.grounded = saved.targetGrounded;
-    spinner.rpm = saved.rpm; attacker.dashHitWindow = saved.dashHitWindow; attacker.dashActiveTimer = saved.dashActiveTimer;
+    spinner.rpm = saved.rpm; spinner.kind = saved.kind; attacker.dashHitWindow = saved.dashHitWindow; attacker.dashActiveTimer = saved.dashActiveTimer;
     const mean = (key) => trials.reduce((sum, trial) => sum + trial[key], 0) / Math.max(1, trials.length);
     results.push({
       scenario: scenario.id, Passed: trials.length === 20 && trials.every((trial) => trial.hit), trials,
       averages: { damage: Number(mean('damage').toFixed(2)), impulse: Number(mean('impulse').toFixed(2)), knockbackDistance: Number(mean('knockbackDistance').toFixed(3)), airtime: Number(mean('airtime').toFixed(3)), angularRotation: Number(mean('angularRotation').toFixed(2)), rpmLoss: Number(mean('rpmLoss').toFixed(3)) },
     });
   }
+  const puncherScenarios = [
+    { id: 'puncher-normal', dash: false, speed: 8, assault: false },
+    { id: 'puncher-assault-dash', dash: true, speed: 20, assault: true },
+  ];
+  for (const scenario of puncherScenarios) {
+    const attacker = robots.find((robot) => !robot.dead && robot.type === 'puncher' && robot.weapons.puncher);
+    const puncher = attacker?.weapons.puncher;
+    const target = attacker && game.targetsFor(attacker).find((candidate) => !candidate.dead);
+    if (!attacker || !puncher || !target) {
+      results.push({ scenario: scenario.id, Passed: false, reason: 'puncher attacker/target unavailable', trials: [] });
+      continue;
+    }
+    const saved = {
+      attackerPosition: attacker.root.position.clone(), attackerVelocity: attacker.velocity.clone(), attackerYaw: attacker.yaw,
+      targetPosition: target.root.position.clone(), targetVelocity: target.velocity.clone(), targetGrounded: target.grounded,
+      applyImpactAtPoint: target.applyImpactAtPoint, weightClass: attacker.weightClass,
+      momentumCharge: attacker.momentumCharge, dashMomentumAtStart: attacker.dashMomentumAtStart,
+      dashHitWindow: attacker.dashHitWindow, dashActiveTimer: attacker.dashActiveTimer,
+    };
+    let captured = null;
+    target.applyImpactAtPoint = (impulse, point, damage, source, sourceRobot, options) => {
+      captured = { impulse: impulse.clone(), point: point.clone(), damage, source, options };
+      return { tier: damage > 70 ? 'veryStrong' : damage > 34 ? 'strong' : 'medium', intensityScore: damage * 2, sparkCount: 20 };
+    };
+    const trials = [];
+    for (let trial = 0; trial < 20; trial++) {
+      captured = null;
+      attacker.weightClass = scenario.assault ? 'assault' : 'middleweight';
+      attacker.momentumCharge = scenario.assault ? 0.9 : 0;
+      attacker.dashMomentumAtStart = scenario.assault ? 0.9 : 0;
+      attacker.dashHitWindow = scenario.dash ? 0.25 : 0;
+      attacker.dashActiveTimer = scenario.dash ? 0.25 : 0;
+      const point = puncher.tipAnchor.getWorldPosition(new THREE.Vector3());
+      const forward = new THREE.Vector3(0, 0, 1).applyQuaternion(puncher.root.getWorldQuaternion(new THREE.Quaternion())).normalize();
+      const side = new THREE.Vector3(forward.z, 0, -forward.x);
+      target.root.position.copy(point)
+        .addScaledVector(forward, Math.max(0.55, target.radius * 0.58))
+        .addScaledVector(side, ((trial % 5) - 2) * 0.035);
+      target.placeOnMeasuredGround();
+      target.root.updateMatrixWorld(true);
+      target.velocity.set(0, 0, 0);
+      target.grounded = true;
+      attacker.velocity.copy(forward).multiplyScalar(scenario.speed);
+      worldTime += 0.61;
+      const hits = game.checkPuncherHit(attacker, puncher);
+      const motion = captured ? simulateWeaponImpulseForQA(captured.impulse, target, captured.point) : null;
+      trials.push({
+        trial: trial + 1, WeaponType: 'puncher', RPM: 0, DASH: scenario.dash,
+        attackerMass: Number(attacker.mass.toFixed(1)), victimMass: Number(target.mass.toFixed(1)),
+        hitAngle: captured ? 0 : null, damage: captured ? Number(captured.damage.toFixed(2)) : 0,
+        impulse: captured ? Number(captured.impulse.length().toFixed(2)) : 0,
+        knockbackDistance: motion?.knockbackDistance ?? 0, airtime: motion?.airtime ?? 0,
+        angularRotation: motion?.angularRotation ?? 0, rpmLoss: 0, hit: hits === 1 && Boolean(captured),
+      });
+    }
+    target.applyImpactAtPoint = saved.applyImpactAtPoint;
+    attacker.root.position.copy(saved.attackerPosition); attacker.velocity.copy(saved.attackerVelocity); attacker.yaw = saved.attackerYaw;
+    attacker.weightClass = saved.weightClass; attacker.momentumCharge = saved.momentumCharge; attacker.dashMomentumAtStart = saved.dashMomentumAtStart;
+    attacker.dashHitWindow = saved.dashHitWindow; attacker.dashActiveTimer = saved.dashActiveTimer;
+    target.root.position.copy(saved.targetPosition); target.velocity.copy(saved.targetVelocity); target.grounded = saved.targetGrounded;
+    const mean = (key) => trials.reduce((sum, trial) => sum + trial[key], 0) / Math.max(1, trials.length);
+    results.push({
+      scenario: scenario.id, Passed: trials.length === 20 && trials.every((trial) => trial.hit), trials,
+      averages: { damage: Number(mean('damage').toFixed(2)), impulse: Number(mean('impulse').toFixed(2)), knockbackDistance: Number(mean('knockbackDistance').toFixed(3)), airtime: Number(mean('airtime').toFixed(3)), angularRotation: Number(mean('angularRotation').toFixed(2)), rpmLoss: 0 },
+    });
+  }
   worldTime = originalWorldTime;
   const byId = Object.fromEntries(results.map((result) => [result.scenario, result]));
   const rolesDiffer = Boolean(byId['saw-normal']?.Passed && byId['bar-high-rpm']?.Passed && byId['drum-normal']?.Passed
+    && byId['puncher-normal']?.Passed && byId['puncher-assault-dash']?.Passed
     && byId['bar-high-rpm'].averages.knockbackDistance > byId['bar-low-rpm'].averages.knockbackDistance
     && byId['bar-dash-high-rpm'].averages.knockbackDistance > byId['bar-high-rpm'].averages.knockbackDistance
     && byId['drum-normal'].averages.airtime > byId['bar-high-rpm'].averages.airtime
+    && byId['puncher-normal'].averages.airtime < byId['drum-normal'].averages.airtime
+    && byId['puncher-assault-dash'].averages.knockbackDistance > byId['puncher-normal'].averages.knockbackDistance
     && byId['saw-dash'].averages.knockbackDistance > byId['saw-normal'].averages.knockbackDistance);
-  return { Passed: results.every((result) => result.Passed) && rolesDiffer, requiredTrials: 140, completedTrials: results.reduce((sum, result) => sum + result.trials.length, 0), rolesDiffer, scenarios: results };
+  return { Passed: results.every((result) => result.Passed) && rolesDiffer, requiredTrials: 180, completedTrials: results.reduce((sum, result) => sum + result.trials.length, 0), rolesDiffer, scenarios: results };
 }
 
 function runStraightLineAIQA10() {
@@ -19834,7 +20253,58 @@ try {
     ui.qaState.dataset.qaPayload = JSON.stringify(floorQAResult);
   } else if (initialParams.get('conquestQA') === '1') {
     window.__battlebotConquestQA.start();
-    if (initialParams.get('qa') === 'isolated') installConquestQAPanel();
+    if (initialParams.get('qa') === 'isolated') {
+      installConquestQAPanel();
+      // Query-driven QA is intentionally published in the DOM so the same
+      // user-facing browser session can be inspected without privileged page
+      // globals or a synthetic duplicate physics implementation.
+      if (initialParams.get('weaponRoleQA') === '1') {
+        window.setTimeout(() => {
+          const output = document.querySelector('#conquest-qa-output');
+          try {
+            const result = runWeaponRoleMatrix20();
+            output.textContent = JSON.stringify(result);
+            output.dataset.qaResult = result.Passed ? 'pass' : 'fail';
+          } catch (error) {
+            output.textContent = JSON.stringify({ Passed: false, error: error.message, stack: error.stack });
+            output.dataset.qaResult = 'fail';
+          }
+        }, 650);
+      }
+      if (initialParams.get('assaultAIQA') === '1') {
+        window.setTimeout(async () => {
+          const output = document.querySelector('#spawn-ai-survival-qa-output');
+          try {
+            for (let chunk = 0; chunk < 3; chunk++) {
+              window.__battlebotQAStep(10);
+              await new Promise((resolve) => window.setTimeout(resolve, 0));
+            }
+            const snapshot = window.__battlebotAIBehaviorQA.snapshot();
+            const result = {
+              Passed: snapshot.spinning.length === 0 && snapshot.stalled.length === 0
+                && snapshot.idlingHealers.length === 0
+                && snapshot.assaultAudit.count > 0
+                && snapshot.assaultAudit.nonChargeActions.length === 0
+                && snapshot.assaultAudit.maxReverseSeconds <= 2
+                && snapshot.assaultAudit.averagePeakMomentum >= 0.12
+                && snapshot.assaultAudit.dashUses > 0,
+              elapsed: snapshot.elapsed,
+              spinning: snapshot.spinning,
+              stalled: snapshot.stalled,
+              idlingHealers: snapshot.idlingHealers,
+              classDistribution: snapshot.classDistribution,
+              assaultAudit: snapshot.assaultAudit,
+              robots: snapshot.robots.filter((robot) => robot.class === 'assault'),
+            };
+            output.textContent = JSON.stringify(result);
+            output.dataset.qaResult = result.Passed ? 'pass' : 'fail';
+          } catch (error) {
+            output.textContent = JSON.stringify({ Passed: false, error: error.message, stack: error.stack });
+            output.dataset.qaResult = 'fail';
+          }
+        }, 650);
+      }
+    }
   } else if (initialParams.get('autoQA') === '1') {
     startBattle(true);
     startSelfTest();
