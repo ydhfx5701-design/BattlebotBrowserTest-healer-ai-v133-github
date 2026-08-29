@@ -5,7 +5,7 @@
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover, user-scalable=no" />
     <title>Battlebot Workshop & Arena</title>
     <link rel="icon" href="data:," />
-    <link rel="stylesheet" href="./styles.css?v=20260827-complete-systems-139" />
+    <link rel="stylesheet" href="./styles.css?v=20260829-mobile-fps-153e" />
     <script type="importmap">
       {
         "imports": {
@@ -79,8 +79,9 @@
         <h1 id="screen-title">작업장</h1>
       </div>
         <div class="player-readout">
-        <div class="meter-label"><span>BLOCK STRUCTURE</span><strong id="player-health-text">100%</strong></div>
-        <div class="meter"><i id="player-health"></i></div>
+        <div class="meter-label"><span>ROBOT SURVIVAL</span><strong id="player-class">중량급</strong></div>
+        <div class="meter survival-meter health-meter"><i id="player-health"></i><strong id="player-health-text">650 / 650</strong></div>
+        <div class="meter survival-meter armor-meter"><i id="player-armor"></i><strong id="player-armor-text">350 / 350</strong></div>
         <div class="substatus"><span id="player-core">CORE 100%</span><span id="player-blocks">BLOCKS 1/1</span><span id="player-weapon">무기 없음</span><span id="player-mobility">이동장치 없음</span></div>
       </div>
       <div class="speed"><strong id="speed">0.0</strong><span>km/h</span></div>
@@ -99,6 +100,7 @@
     </aside>
     <canvas id="team-marker-layer" class="team-marker-layer" aria-label="전투 로봇 BLUE RED 피아식별 표시" aria-hidden="true"></canvas>
 
+    <output id="mobile-fps-meter" class="mobile-fps-meter" aria-label="실시간 프레임 속도">FPS -- · -- ms</output>
     <button id="pause-toggle" class="pause-toggle" type="button" aria-label="일시정지 및 설정" aria-pressed="false">Ⅱ</button>
     <section id="pause-panel" class="pause-panel glass" hidden aria-label="일시정지 설정">
       <header><strong>일시정지</strong><small>오디오 · 그래픽 · 조작</small></header>
@@ -334,6 +336,6 @@
         type: 'rejection', message: String(event.reason?.stack || event.reason || 'unknown rejection'),
       }));
     </script>
-  <script type="module" src="./app.js?v=20260828-audio-performance-151a"></script>
+  <script type="module" src="./app.js?v=20260829-mobile-fps-153e"></script>
   </body>
 </html>

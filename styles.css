@@ -168,6 +168,11 @@ h1 { margin: 0; font-size: clamp(20px, 2.3vw, 30px); letter-spacing: -.03em; }
 .meter-label strong { color: #f7f9fc; font-size: 11px; }
 .meter { height: 8px; margin: 7px 0 6px; overflow: hidden; border-radius: 99px; background: rgba(255,255,255,.09); }
 .meter i { display: block; width: 100%; height: 100%; border-radius: inherit; background: linear-gradient(90deg,#35d27d,#b4df4b); box-shadow: 0 0 14px rgba(53,210,125,.45); transition: width .18s ease; }
+.survival-meter { position: relative; height: 12px; margin: 4px 0; border: 1px solid rgba(255,255,255,.08); }
+.survival-meter > strong { position: absolute; inset: 0; display: grid; place-items: center; color: #fff; font: 900 9px/1 ui-monospace, monospace; letter-spacing: .02em; text-shadow: 0 1px 2px #000, 0 0 3px #000; }
+.armor-meter i { background: linear-gradient(90deg,#2387e8,#54c3ff); box-shadow: 0 0 13px rgba(42,157,255,.48); }
+.armor-meter.armor-broken { animation: armor-break-flash .18s ease 3; }
+@keyframes armor-break-flash { 50% { border-color:#75d6ff; box-shadow:0 0 12px rgba(82,198,255,.8); } }
 .substatus { display: grid; grid-template-columns: repeat(4, auto); justify-content: space-between; gap: 8px; color: #9ca8b6; font-size: 9px; }
 .substatus .bad { color: #ff7b67; }
 .speed { display: flex; min-width: 128px; justify-content: flex-end; align-items: baseline; gap: 7px; color: #aab5c3; }
@@ -209,6 +214,7 @@ h1 { margin: 0; font-size: clamp(20px, 2.3vw, 30px); letter-spacing: -.03em; }
 .audio-control .quality-control { justify-self:end; }
 
 .pause-toggle { position:fixed; z-index:31; top:max(10px,env(safe-area-inset-top)); right:max(12px,env(safe-area-inset-right)); width:40px; height:38px; border:1px solid rgba(255,255,255,.32); border-radius:8px; color:#fff; background:rgba(16,23,30,.88); font:900 15px/1 ui-monospace,monospace; pointer-events:auto; }
+.mobile-fps-meter { display:none; }
 .pause-panel { z-index:45; top:50%; left:50%; width:min(520px,calc(100vw - 28px)); padding:18px; border-radius:14px; transform:translate(-50%,-50%); pointer-events:auto; }
 .pause-panel[hidden] { display:none; }
 .pause-panel header { display:flex; justify-content:space-between; align-items:end; margin-bottom:14px; }
@@ -1336,15 +1342,36 @@ button#attack.active { filter:brightness(1.28); box-shadow:0 0 24px rgba(255,152
   button, select, input { touch-action:manipulation; }
   #game,.joystick,.knob { touch-action:none; }
   body.mobile-scale-mode { touch-action:none; }
+  body:not(.lobby-mode):not(.garage-mode) .mobile-fps-meter {
+    position:fixed; z-index:31; top:max(7px,env(safe-area-inset-top));
+    right:max(62px,calc(env(safe-area-inset-right) + 54px));
+    display:flex; align-items:center; justify-content:center;
+    min-width:88px; height:29px; padding:0 7px;
+    border:1px solid rgba(116,215,255,.46); border-radius:7px;
+    color:#c9f2ff; background:rgba(9,18,25,.88);
+    box-shadow:inset 0 1px rgba(255,255,255,.08),0 4px 14px rgba(0,0,0,.25);
+    font:900 9px/1 ui-monospace,monospace; letter-spacing:.02em;
+    pointer-events:none;
+  }
+  body:not(.lobby-mode):not(.garage-mode) .mobile-fps-meter[data-level="warn"] { color:#ffe28c; border-color:rgba(255,197,73,.58); }
+  body:not(.lobby-mode):not(.garage-mode) .mobile-fps-meter[data-level="bad"] { color:#ff968a; border-color:rgba(255,88,72,.62); }
   .hud { top:max(6px,env(safe-area-inset-top)); left:max(7px,env(safe-area-inset-left)); right:max(7px,env(safe-area-inset-right)); min-height:49px; height:49px; padding:6px 9px; border-radius:9px; }
   .brand { min-width:100px; }
   .eyebrow { display:none; }
   h1 { font-size:14px; }
 
-  body:not(.lobby-mode):not(.garage-mode) .hud { left:max(8px,env(safe-area-inset-left)); bottom:max(7px,env(safe-area-inset-bottom)); width:232px; min-height:47px; padding:5px 8px; }
-  body:not(.lobby-mode):not(.garage-mode) .player-readout { width:100%; }
+  body:not(.lobby-mode):not(.garage-mode) .hud {
+    left:max(8px,env(safe-area-inset-left)); bottom:max(7px,env(safe-area-inset-bottom));
+    width:232px; height:auto; min-height:68px; padding:6px 8px;
+    background:rgba(24,34,44,.91); backdrop-filter:none;
+  }
+  /* The max-height mobile rule hid the player readout but left its empty HUD
+     shell behind. Battle survival data must be present for FFA and every team
+     size on Arena01/BattleZone01/Red Canyon. */
+  body:not(.lobby-mode):not(.garage-mode) .player-readout { display:block; width:100%; }
   .meter-label { font-size:7px; }
-  .meter { height:5px; margin:3px 0; }
+  body:not(.lobby-mode):not(.garage-mode) .survival-meter { height:10px; margin:3px 0; }
+  body:not(.lobby-mode):not(.garage-mode) .survival-meter > strong { font-size:7px; }
   .substatus { grid-template-columns:repeat(2,auto); gap:2px 6px; font-size:6px; }
 
   .conquest-hud { top:max(5px,env(safe-area-inset-top)); width:min(430px,calc(100vw - 106px)); height:43px; grid-template-columns:1fr 74px 1fr; gap:2px; padding:3px 5px; border-radius:7px; pointer-events:auto; }

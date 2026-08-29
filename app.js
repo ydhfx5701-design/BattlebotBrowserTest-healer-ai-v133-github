@@ -17,6 +17,9 @@ const ui = {
   redTeamList: document.querySelector('#red-team-list'),
   playerHealth: document.querySelector('#player-health'),
   playerHealthText: document.querySelector('#player-health-text'),
+  playerArmor: document.querySelector('#player-armor'),
+  playerArmorText: document.querySelector('#player-armor-text'),
+  playerClass: document.querySelector('#player-class'),
   playerCore: document.querySelector('#player-core'),
   playerBlocks: document.querySelector('#player-blocks'),
   playerWeapon: document.querySelector('#player-weapon'),
@@ -61,6 +64,7 @@ const ui = {
   qualityPreset: document.querySelector('#quality-preset'),
   dashKey: document.querySelector('#dash-key'),
   pauseToggle: document.querySelector('#pause-toggle'),
+  mobileFpsMeter: document.querySelector('#mobile-fps-meter'),
   pausePanel: document.querySelector('#pause-panel'),
   pauseResume: document.querySelector('#pause-resume'),
   pauseLobby: document.querySelector('#pause-lobby'),
@@ -242,10 +246,10 @@ const WEAPON_TYPES = new Set(['spinner', 'barSpinner', 'drumSpinner', 'puncher']
 const EXTERIOR_TYPES = new Set(['armorCurved', 'armorFlat', 'hornCurved', 'hornStraight', 'exhaustTriple', 'exhaustVertical']);
 const ASSEMBLY_VERSION = 12;
 const WEIGHT_CLASSES = Object.freeze({
-  lightweight: { label: '경량급', minBlocks: 12, maxBlocks: 44, aiBlockTarget: 24, aiLayerCount: 3, maxWeight: 540, allowedWheels: ['wheel_light'], heightRange: [1, 3], wheelModel: 'wheel_light', acceleration: 1.32, topSpeed: 19.5, massScale: 0.74, hpScale: 0.78, knockbackResistance: 0.72, traction: 0.9, steering: 1.18, dashDelta: 8.4, dashCooldown: 2.65, dashDuration: 0.4, dashPrimeRatio: 1.6, dashPeakRatio: 2.75, dashSteering: 0.34, dashChassisLengths: 5.1 },
-  middleweight: { label: '중량급', minBlocks: 25, maxBlocks: 65, aiBlockTarget: 45, aiLayerCount: 4, maxWeight: 960, allowedWheels: ['new_wheel'], heightRange: [2, 4], wheelModel: 'new_wheel', acceleration: 1, topSpeed: 16.5, massScale: 1, hpScale: 1, knockbackResistance: 1, traction: 1, steering: 1, dashDelta: 7.1, dashCooldown: 3.05, dashDuration: 0.35, dashPrimeRatio: 1.45, dashPeakRatio: 2.25, dashSteering: 0.2, dashChassisLengths: 4.05 },
-  superheavy: { label: '초중량급', minBlocks: 46, maxBlocks: 90, aiBlockTarget: 70, aiLayerCount: 5, maxWeight: 1830, allowedWheels: ['wheel_wide'], heightRange: [3, 5], wheelModel: 'wheel_wide', acceleration: 0.72, topSpeed: 12.4, massScale: 1.45, hpScale: 1.35, knockbackResistance: 1.42, traction: 1.34, steering: 0.76, dashDelta: 5.7, dashCooldown: 3.65, dashDuration: 0.39, dashPrimeRatio: 1.3, dashPeakRatio: 1.92, dashSteering: 0.08, dashChassisLengths: 3.05 },
-  healer: { label: '힐러', minBlocks: 20, maxBlocks: 60, aiBlockTarget: 40, aiLayerCount: 4, maxWeight: 800, allowedWheels: ['wheel_light', 'new_wheel'], heightRange: [2, 4], wheelModel: 'new_wheel', acceleration: 1.08, topSpeed: 17.2, massScale: 0.94, hpScale: 0.96, knockbackResistance: 0.92, traction: 1.04, steering: 1.08, dashDelta: 6.6, dashCooldown: 3.2, dashDuration: 0.34, dashPrimeRatio: 1.38, dashPeakRatio: 2.05, dashSteering: 0.24, dashChassisLengths: 3.8 },
+  lightweight: { label: '경량급', maxHp: 500, maxArmor: 250, minBlocks: 12, maxBlocks: 44, aiBlockTarget: 24, aiLayerCount: 3, maxWeight: 540, allowedWheels: ['wheel_light'], heightRange: [1, 3], wheelModel: 'wheel_light', acceleration: 1.32, topSpeed: 19.5, massScale: 0.74, hpScale: 0.78, knockbackResistance: 0.72, traction: 0.9, steering: 1.18, dashDelta: 8.4, dashCooldown: 2.65, dashDuration: 0.4, dashPrimeRatio: 1.6, dashPeakRatio: 2.75, dashSteering: 0.66, dashChassisLengths: 5.1 },
+  middleweight: { label: '중량급', maxHp: 650, maxArmor: 350, minBlocks: 25, maxBlocks: 65, aiBlockTarget: 45, aiLayerCount: 4, maxWeight: 960, allowedWheels: ['new_wheel'], heightRange: [2, 4], wheelModel: 'new_wheel', acceleration: 1, topSpeed: 16.5, massScale: 1, hpScale: 1, knockbackResistance: 1, traction: 1, steering: 1, dashDelta: 7.1, dashCooldown: 3.05, dashDuration: 0.35, dashPrimeRatio: 1.45, dashPeakRatio: 2.25, dashSteering: 0.56, dashChassisLengths: 4.05 },
+  superheavy: { label: '초중량급', maxHp: 800, maxArmor: 450, minBlocks: 46, maxBlocks: 90, aiBlockTarget: 70, aiLayerCount: 5, maxWeight: 1830, allowedWheels: ['wheel_wide'], heightRange: [3, 5], wheelModel: 'wheel_wide', acceleration: 0.72, topSpeed: 12.4, massScale: 1.45, hpScale: 1.35, knockbackResistance: 1.42, traction: 1.34, steering: 0.76, dashDelta: 5.7, dashCooldown: 3.65, dashDuration: 0.39, dashPrimeRatio: 1.3, dashPeakRatio: 1.92, dashSteering: 0.44, dashChassisLengths: 3.05 },
+  healer: { label: '힐러', maxHp: 575, maxArmor: 300, minBlocks: 20, maxBlocks: 60, aiBlockTarget: 40, aiLayerCount: 4, maxWeight: 800, allowedWheels: ['wheel_light', 'new_wheel'], heightRange: [2, 4], wheelModel: 'new_wheel', acceleration: 1.08, topSpeed: 17.2, massScale: 0.94, hpScale: 0.96, knockbackResistance: 0.92, traction: 1.04, steering: 1.08, dashDelta: 6.6, dashCooldown: 3.2, dashDuration: 0.34, dashPrimeRatio: 1.38, dashPeakRatio: 2.05, dashSteering: 0.6, dashChassisLengths: 3.8 },
 });
 const GRID_UNIT = 0.36;
 const BLOCK_SIZE = GRID_UNIT;
@@ -953,8 +957,10 @@ const renderer = new THREE.WebGLRenderer({
 const startupQuery = new URLSearchParams(location.search);
 const EXTENDED_PHYSICS_TELEMETRY = ['systemsQA', 'physicsQA', 'autoQA', 'blockCombatQA'].some((key) => startupQuery.get(key) === '1');
 function mobileRenderScale() {
-  const mobile = matchMedia('(pointer: coarse)').matches || innerWidth <= 900;
-  return mobile ? 0.82 : 1;
+  // Quality presets own the render scale. Applying a second, unconditional
+  // mobile multiplier here made MEDIUM render below CSS resolution before the
+  // population/adaptive budgets even ran (0.82 * 0.88 * 0.72 * 0.78).
+  return 1;
 }
 // Both workshop and combat share this renderer. Cap the physical pixel ratio
 // before the per-mode budget runs so high-DPI phones never allocate a 2x/3x
@@ -966,14 +972,14 @@ renderer.outputColorSpace = THREE.SRGBColorSpace;
 renderer.toneMapping = THREE.ACESFilmicToneMapping;
 renderer.toneMappingExposure = 0.94;
 
-const QUALITY_STORAGE_KEY = 'battlebot-quality-preset-v1';
+const QUALITY_STORAGE_KEY = 'battlebot-quality-preset-v2';
 const DASH_KEY_STORAGE_KEY = 'battlebot-dash-key-v1';
-const FRAME_RATE_STORAGE_KEY = 'battlebot-frame-rate-v1';
+const FRAME_RATE_STORAGE_KEY = 'battlebot-frame-rate-v2';
 const DASH_KEYS = new Set(['ControlLeft', 'AltLeft', 'KeyF']);
 const QUALITY_PRESETS = Object.freeze({
-  low: { label: '낮음', pixelRatio: 1, shadows: false, sparkScale: 0.48, sparkLimit: 180, fragmentScale: 0.48, fragmentBursts: 10, debrisLimit: 60, uiHz: 6 },
-  medium: { label: '중간', pixelRatio: 1.25, shadows: false, sparkScale: 0.74, sparkLimit: 290, fragmentScale: 0.72, fragmentBursts: 16, debrisLimit: 96, uiHz: 8 },
-  high: { label: '높음', pixelRatio: 1.5, shadows: true, sparkScale: 1, sparkLimit: 420, fragmentScale: 1, fragmentBursts: 24, debrisLimit: 140, uiHz: 10 },
+  low: { label: '낮음', pixelRatio: 1.2, renderScale: 0.82, minimumAdaptiveScale: 0.9, anisotropy: 2, shadows: false, sparkScale: 0.42, sparkLimit: 150, fragmentScale: 0.42, fragmentBursts: 8, debrisLimit: 52, uiHz: 6 },
+  medium: { label: '중간', pixelRatio: 1.55, renderScale: 0.9, minimumAdaptiveScale: 0.92, anisotropy: 6, shadows: false, sparkScale: 0.68, sparkLimit: 250, fragmentScale: 0.64, fragmentBursts: 14, debrisLimit: 82, uiHz: 8 },
+  high: { label: '높음', pixelRatio: 1.85, renderScale: 1, minimumAdaptiveScale: 0.95, anisotropy: 8, shadows: true, sparkScale: 0.9, sparkLimit: 360, fragmentScale: 0.86, fragmentBursts: 20, debrisLimit: 112, uiHz: 10 },
 });
 
 function loadQualityPreset() {
@@ -994,7 +1000,7 @@ let dashKey = DASH_KEYS.has(localStorage.getItem(DASH_KEY_STORAGE_KEY)) ? localS
 const storedFrameRate = Number(localStorage.getItem(FRAME_RATE_STORAGE_KEY));
 let frameRateLimit = [30, 45, 60].includes(storedFrameRate)
   ? storedFrameRate
-  : ((matchMedia('(pointer: coarse)').matches || innerWidth <= 900) ? 30 : 60);
+  : 60;
 
 function populationBudgetScale() {
   const count = robots.length || 1;
@@ -1026,6 +1032,7 @@ function physicsSolverHz() {
   // rendered 30 Hz frame. One 30 Hz large-battle step keeps the same visible
   // cadence while removing the duplicate support/collider pass that caused
   // multi-hundred-millisecond stalls on mobile-class hardware.
+  if (mobilePerformanceProfile()) return qualityPreset === 'high' ? 30 : 24;
   return qualityPreset === 'high' ? 45 : 30;
 }
 
@@ -1040,6 +1047,92 @@ const robots = [];
 const aliveRobots = [];
 const damageTargetCache = new Map();
 let robotInstanceSequence = 0;
+let matchSequence = 0;
+let currentMatchId = 'none';
+let currentMatchRoster = [];
+const combatSpawnRegistry = new Map();
+const combatSpawnAudit = {
+  spawnRequests: 0, accepted: 0, rejectedDuplicate: 0, rejectedUnassigned: 0,
+  respawnReplacements: 0, cleanupCount: 0, audits: [], last: null,
+};
+
+function beginMatchSpawnRegistry(participants) {
+  currentMatchId = `match-${++matchSequence}`;
+  currentMatchRoster = participants.map((participant, index) => ({
+    ...participant,
+    participantId: String(participant.participantId),
+    spawnSlot: Number(participant.spawnSlot ?? index),
+  }));
+  combatSpawnRegistry.clear();
+}
+
+function spawnCombatRobot(options) {
+  combatSpawnAudit.spawnRequests++;
+  const participantId = String(options.participantId ?? '');
+  const rosterEntry = currentMatchRoster.find((entry) => entry.participantId === participantId);
+  const teamId = String(options.teamId ?? options.team ?? '');
+  if (!participantId || !rosterEntry || !teamId || rosterEntry.teamId !== teamId) {
+    combatSpawnAudit.rejectedUnassigned++;
+    console.error('[INVALID_COMBAT_ROBOT] rejected unassigned spawn', {
+      robotId: options.robotId ?? options.id, participantId, teamId,
+      spawnSource: options.spawnSource, matchId: currentMatchId,
+    });
+    return null;
+  }
+  const existing = combatSpawnRegistry.get(participantId);
+  if (existing && !existing.dead && existing.root?.parent) {
+    combatSpawnAudit.rejectedDuplicate++;
+    console.error('[INVALID_COMBAT_ROBOT] rejected duplicate participant', {
+      participantId, existingRobotId: existing.robotId, requestedRobotId: options.robotId ?? options.id,
+      spawnSource: options.spawnSource, matchId: currentMatchId,
+    });
+    return null;
+  }
+  const robot = new Robot({
+    ...options,
+    combatEntity: true,
+    matchId: currentMatchId,
+    participantId,
+    teamId,
+    robotId: String(options.robotId ?? `${teamId}-${options.id}`),
+    spawnSlot: Number(options.spawnSlot ?? rosterEntry.spawnSlot),
+    robotPresetId: String(options.robotPresetId ?? options.assembly?.aiDesign?.signature ?? options.assembly?.name ?? 'custom'),
+    spawnSource: String(options.spawnSource ?? 'MatchSpawnManager'),
+  });
+  combatSpawnRegistry.set(participantId, robot);
+  robots.push(robot);
+  combatSpawnAudit.accepted++;
+  return robot;
+}
+
+function auditCombatSpawnRegistry(stage = 'runtime') {
+  const expected = currentMatchRoster.length;
+  const active = robots.filter((robot) => robot.combatEntity);
+  const byParticipant = new Map();
+  for (const robot of active) {
+    const list = byParticipant.get(robot.participantId) ?? [];
+    list.push(robot);
+    byParticipant.set(robot.participantId, list);
+  }
+  const duplicateParticipantIds = [...byParticipant].filter(([, list]) => list.length > 1).map(([id]) => id);
+  const unassigned = active.filter((robot) => !robot.participantId || !robot.teamId || !currentMatchRoster.some((entry) => entry.participantId === robot.participantId && entry.teamId === robot.teamId));
+  const blue = active.filter((robot) => robot.teamId === 'blue').length;
+  const red = active.filter((robot) => robot.teamId === 'red').length;
+  const sceneCombatRoots = scene.children.filter((object) => object.userData?.combatEntity);
+  const extraSceneRoots = sceneCombatRoots.filter((root) => !active.some((robot) => robot.root === root));
+  const record = {
+    stage, matchId: currentMatchId, expectedParticipants: expected,
+    actualCombatRobots: active.length, aliveCombatRobots: active.filter((robot) => !robot.dead).length, blue, red,
+    unassigned: unassigned.length, duplicateParticipant: duplicateParticipantIds.length,
+    duplicateParticipantIds, extraSceneRoots: extraSceneRoots.length,
+    passed: active.length === expected && unassigned.length === 0 && duplicateParticipantIds.length === 0 && extraSceneRoots.length === 0,
+  };
+  combatSpawnAudit.last = record;
+  combatSpawnAudit.audits.push(record);
+  if (combatSpawnAudit.audits.length > 80) combatSpawnAudit.audits.shift();
+  if (!record.passed) console.error('[COMBAT_SPAWN_AUDIT_FAIL]', record);
+  return record;
+}
 
 function rebuildCombatCaches() {
   aliveRobots.length = 0;
@@ -1075,11 +1168,11 @@ const blockFragmentStats = {
   weak: 0, medium: 0, strong: 0, veryStrong: 0, critical: 0,
   sequence: 'colored-fragments-before-block-detach',
 };
-const RESPAWN_REASONS = new Set(['CORE_DESTROYED', 'BLOCKS_LE_5', 'PLAYER_REQUEST', 'AI_DISABLED', 'OUT_OF_BOUNDS']);
+const RESPAWN_REASONS = new Set(['CORE_DESTROYED', 'BLOCKS_LE_5', 'HP_DEPLETED', 'PLAYER_REQUEST', 'AI_DISABLED', 'OUT_OF_BOUNDS']);
 const respawnStats = {
   deaths: 0, respawns: 0, aiRespawns: 0, playerRespawns: 0, protectionBlocks: 0,
   rejectedUnknown: 0,
-  reasonCounts: { CORE_DESTROYED: 0, BLOCKS_LE_5: 0, PLAYER_REQUEST: 0, AI_DISABLED: 0, OUT_OF_BOUNDS: 0 },
+  reasonCounts: { CORE_DESTROYED: 0, BLOCKS_LE_5: 0, HP_DEPLETED: 0, PLAYER_REQUEST: 0, AI_DISABLED: 0, OUT_OF_BOUNDS: 0 },
   log: [],
 };
 const RESPAWN_DELAY_SECONDS = 10;
@@ -1422,16 +1515,26 @@ for (let index = 0; index < sparkStreakPositions.count; index++) {
 }
 sparkStreakGeometry.setAttribute('color', new THREE.BufferAttribute(sparkStreakGradient, 3));
 const textureLoader = new THREE.TextureLoader();
+const qualityManagedTextures = new Set();
+function registerQualityTexture(texture) {
+  if (!texture?.isTexture) return;
+  texture.generateMipmaps = true;
+  texture.minFilter = THREE.LinearMipmapLinearFilter;
+  texture.magFilter = THREE.LinearFilter;
+  qualityManagedTextures.add(texture);
+}
 const floorTexture = textureLoader.load('./assets_v3/arena_floor_tile.png?v=team-arena-6');
 floorTexture.colorSpace = THREE.SRGBColorSpace;
 floorTexture.wrapS = floorTexture.wrapT = THREE.RepeatWrapping;
 floorTexture.repeat.set(14, 10);
 floorTexture.anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy());
+registerQualityTexture(floorTexture);
 const industrialFloorTexture = textureLoader.load('./assets_v6/industrial_floor_tile.png?v=industrial-92');
 industrialFloorTexture.colorSpace = THREE.SRGBColorSpace;
 industrialFloorTexture.wrapS = industrialFloorTexture.wrapT = THREE.RepeatWrapping;
 industrialFloorTexture.repeat.set(...INDUSTRIAL_LAYOUT.visualTiles);
 industrialFloorTexture.anisotropy = Math.min(8, renderer.capabilities.getMaxAnisotropy());
+registerQualityTexture(industrialFloorTexture);
 const dustMaterial = new THREE.MeshBasicMaterial({ color: 0x77716b, transparent: true, opacity: 0.34, depthWrite: false });
 const sparkTailMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff, vertexColors: true, transparent: true, opacity: 1, blending: THREE.AdditiveBlending, depthWrite: false, depthTest: true, toneMapped: false });
 const sparkCoreMaterial = new THREE.MeshBasicMaterial({ color: 0xffffff, vertexColors: true, transparent: true, opacity: 1, blending: THREE.AdditiveBlending, depthWrite: false, depthTest: true, toneMapped: false });
@@ -1519,6 +1622,7 @@ let worldTime = 0;
 let cameraShake = 0;
 let cameraDashFov = 0;
 let joystickPointer = null;
+let dashPointer = null;
 let joystickAxis = { x: 0, y: 0 };
 let brakeHeld = false;
 let messageTimer = 0;
@@ -1650,6 +1754,7 @@ const desertStats = {
 const desertTopViewOutlines = [];
 let conquestMinimapStaticCanvas = null;
 let conquestMinimapStaticBuilds = 0;
+let conquestMinimapLastUpdate = -Infinity;
 const conquestState = {
   enabled: false,
   activePoint: 'A',
@@ -1801,6 +1906,7 @@ const performanceFrameSamples = new Float32Array(PERFORMANCE_SAMPLE_COUNT);
 const performanceFrameSpikeLog = [];
 const performanceProfile = {
   sampleIndex: 0, sampleCount: 0,
+  frameStart: 0,
   updateMs: 0, renderMs: 0, aiMs: 0, physicsMs: 0, collisionMs: 0, effectsMs: 0, uiMs: 0,
   aiThinkCalls: 0, aiThinkSkips: 0, targetSearches: 0, pathReplans: 0,
   pathRequests: 0, pathCacheHits: 0, aStarCalls: 0, pathTimeMs: 0,
@@ -1814,6 +1920,7 @@ function resetPerformanceProfile() {
   performanceFrameSpikeLog.length = 0;
   Object.assign(performanceProfile, {
     sampleIndex: 0, sampleCount: 0,
+    frameStart: renderPerformanceStats.frames,
     updateMs: 0, renderMs: 0, aiMs: 0, physicsMs: 0, collisionMs: 0, effectsMs: 0, uiMs: 0,
     aiThinkCalls: 0, aiThinkSkips: 0, targetSearches: 0, pathReplans: 0,
     pathRequests: 0, pathCacheHits: 0, aStarCalls: 0, pathTimeMs: 0,
@@ -1850,7 +1957,12 @@ function updateAdaptiveQualityFromFrame(frameMs) {
   adaptiveFrameMsEMA = lerp(adaptiveFrameMsEMA, frameMs, 0.045);
   adaptiveQualityCooldown = Math.max(0, adaptiveQualityCooldown - 1);
   if (adaptiveQualityCooldown > 0) return;
-  if (adaptiveFrameMsEMA > 34 && adaptiveDegradeStage < 4) {
+  const targetFrameMs = 1000 / Math.max(30, frameRateLimit);
+  const preset = QUALITY_PRESETS[qualityPreset] ?? QUALITY_PRESETS.medium;
+  // A deliberate 30 FPS cap produces ~33.3 ms rendered frames. The old fixed
+  // 25/34 ms thresholds treated that expected cadence as overload and drove
+  // the framebuffer down to 0.507 DPR. Compare against the selected cap.
+  if (adaptiveFrameMsEMA > targetFrameMs * 1.28 && adaptiveDegradeStage < 4) {
     adaptiveDegradeStage++;
     adaptiveRecoveryFrames = 0;
     adaptiveQualityCooldown = 90;
@@ -1859,7 +1971,7 @@ function updateAdaptiveQualityFromFrame(frameMs) {
     if (renderedCanvasWidth > 0 && renderedCanvasHeight > 0) renderer.setSize(renderedCanvasWidth, renderedCanvasHeight, false);
     return;
   }
-  if (adaptiveFrameMsEMA < 27.5 && adaptiveDegradeStage > 0) {
+  if (adaptiveFrameMsEMA < targetFrameMs * 1.06 && adaptiveDegradeStage > 0) {
     adaptiveRecoveryFrames++;
     if (adaptiveRecoveryFrames >= 360) {
       adaptiveDegradeStage--;
@@ -1870,8 +1982,8 @@ function updateAdaptiveQualityFromFrame(frameMs) {
     }
   } else adaptiveRecoveryFrames = 0;
   let next = adaptiveQualityScale;
-  if (adaptiveFrameMsEMA > 25) next = Math.max(0.72, adaptiveQualityScale - 0.08);
-  else if (adaptiveFrameMsEMA < 18.2) next = Math.min(1, adaptiveQualityScale + 0.04);
+  if (adaptiveFrameMsEMA > targetFrameMs * 1.16) next = Math.max(preset.minimumAdaptiveScale, adaptiveQualityScale - 0.04);
+  else if (adaptiveFrameMsEMA < targetFrameMs * 1.02) next = Math.min(1, adaptiveQualityScale + 0.025);
   if (Math.abs(next - adaptiveQualityScale) < 0.001) return;
   adaptiveQualityScale = next;
   adaptiveQualityCooldown = 45;
@@ -1885,7 +1997,7 @@ function performanceProfileSnapshot() {
   const samples = Array.from(performanceFrameSamples.slice(0, count)).sort((a, b) => a - b);
   const p99FrameMs = count ? samples[Math.min(count - 1, Math.floor(count * 0.99))] : 0;
   const medianFrameMs = count ? samples[Math.floor(count * 0.5)] : 0;
-  const measuredFrames = Math.max(1, renderPerformanceStats.frames);
+  const measuredFrames = Math.max(1, renderPerformanceStats.frames - performanceProfile.frameStart);
   return {
     qualityPreset,
     targetFps: frameRateLimit,
@@ -1919,7 +2031,7 @@ function performanceProfileSnapshot() {
       rigidbodies: robots.filter((robot) => !robot.dead).length + debris.length,
     },
     memory: performance.memory ? { usedJSHeapMB: Number((performance.memory.usedJSHeapSize / 1048576).toFixed(1)), totalJSHeapMB: Number((performance.memory.totalJSHeapSize / 1048576).toFixed(1)) } : { usedJSHeapMB: null, note: 'performance.memory unavailable' },
-    adaptive: { scale: Number(adaptiveQualityScale.toFixed(2)), stage: adaptiveDegradeStage, order: ['particles', 'shadows', 'render-scale', 'far-lod'], frameMsEMA: Number(adaptiveFrameMsEMA.toFixed(2)), adjustments: renderPerformanceStats.adaptiveAdjustments },
+    adaptive: { scale: Number(adaptiveQualityScale.toFixed(2)), stage: adaptiveDegradeStage, order: ['particles', 'shadows', 'far-lod', 'render-scale'], frameMsEMA: Number(adaptiveFrameMsEMA.toFixed(2)), adjustments: renderPerformanceStats.adaptiveAdjustments },
     frameSpikesOver100ms: performanceFrameSpikeLog.map((entry) => ({ ...entry })),
     budget: currentPerformanceBudget(),
   };
@@ -2429,17 +2541,105 @@ function concreteBoundaryPlacements(halfWidth, halfLength, preferredLength = 6.5
   return { horizontal, vertical, horizontalLength, verticalLength };
 }
 
+let mobileConcreteBoundaryMaterials = null;
+function getMobileConcreteBoundaryMaterials() {
+  if (mobileConcreteBoundaryMaterials) return mobileConcreteBoundaryMaterials;
+  const stripeCanvas = document.createElement('canvas');
+  stripeCanvas.width = 128;
+  stripeCanvas.height = 16;
+  const context = stripeCanvas.getContext('2d');
+  context.fillStyle = '#17191a';
+  context.fillRect(0, 0, 128, 16);
+  context.fillStyle = '#d6a62a';
+  for (let x = -16; x < 144; x += 32) {
+    context.beginPath();
+    context.moveTo(x, 16);
+    context.lineTo(x + 12, 16);
+    context.lineTo(x + 28, 0);
+    context.lineTo(x + 16, 0);
+    context.closePath();
+    context.fill();
+  }
+  const stripeTexture = new THREE.CanvasTexture(stripeCanvas);
+  stripeTexture.wrapS = THREE.RepeatWrapping;
+  stripeTexture.wrapT = THREE.RepeatWrapping;
+  stripeTexture.repeat.set(4.8, 1);
+  registerQualityTexture(stripeTexture);
+  mobileConcreteBoundaryMaterials = {
+    concrete: new THREE.MeshStandardMaterial({ color: 0x8f8b82, metalness: 0.03, roughness: 0.93 }),
+    stripe: new THREE.MeshStandardMaterial({ map: stripeTexture, color: 0xffffff, metalness: 0.04, roughness: 0.82 }),
+  };
+  return mobileConcreteBoundaryMaterials;
+}
+
+function addMobileConcreteBoundarySet(placements, targetLength, name, mapId) {
+  const { size } = getArenaAssetMetrics('arena_concrete_boundary');
+  const uniformScale = targetLength / Math.max(0.001, size.x);
+  const height = Math.max(0.78, size.y * uniformScale);
+  const depth = Math.max(0.52, size.z * uniformScale);
+  const materials = getMobileConcreteBoundaryMaterials();
+  const base = new THREE.InstancedMesh(
+    new THREE.BoxGeometry(targetLength, height, depth), materials.concrete, placements.length,
+  );
+  const stripe = new THREE.InstancedMesh(
+    new THREE.BoxGeometry(targetLength * 0.985, Math.min(0.2, height * 0.2), depth * 1.025), materials.stripe, placements.length,
+  );
+  base.name = `${name}_MobileConcreteBase`;
+  stripe.name = `${name}_MobileHazardBand`;
+  base.castShadow = false;
+  stripe.castShadow = false;
+  base.receiveShadow = true;
+  stripe.receiveShadow = true;
+  const quaternion = new THREE.Quaternion();
+  const baseMatrix = new THREE.Matrix4();
+  const stripeMatrix = new THREE.Matrix4();
+  placements.forEach((placement, index) => {
+    quaternion.setFromAxisAngle(Y_AXIS, placement.rotationY ?? 0);
+    baseMatrix.compose(
+      new THREE.Vector3(placement.x, height / 2 - 0.004, placement.z), quaternion, new THREE.Vector3(1, 1, 1),
+    );
+    stripeMatrix.compose(
+      new THREE.Vector3(placement.x, Math.min(height - 0.12, height * 0.68), placement.z), quaternion, new THREE.Vector3(1, 1, 1),
+    );
+    base.setMatrixAt(index, baseMatrix);
+    stripe.setMatrixAt(index, stripeMatrix);
+    const obstacle = {
+      kind: 'box', obstacleType: 'concrete-boundary', x: placement.x, z: placement.z,
+      rotationY: placement.rotationY ?? 0, halfX: targetLength / 2 - 0.012,
+      halfZ: depth / 2 - 0.012, radius: Math.hypot(targetLength / 2, depth / 2),
+      colliderHeight: height - 0.012, colliderBottom: PHYSICS_FLOOR_TOP - 0.004,
+      groundGap: -0.004, colliderInset: 0.012, mesh: base, static: true,
+    };
+    obstacles.push(obstacle);
+    addEnvironmentColliderDebug({
+      name: `${name}_MobileCollider`, mapId, x: obstacle.x,
+      y: obstacle.colliderBottom + obstacle.colliderHeight / 2, z: obstacle.z,
+      width: obstacle.halfX * 2, height: obstacle.colliderHeight, depth: obstacle.halfZ * 2,
+      rotationY: obstacle.rotationY, color: 0xffd45a,
+    });
+  });
+  base.instanceMatrix.needsUpdate = true;
+  stripe.instanceMatrix.needsUpdate = true;
+  base.userData = {
+    sourceAsset: 'procedural-mobile-concrete-boundary', uniformScale, moduleLength: targetLength,
+    groundGap: -0.004, groundEmbed: 0.004, scaledSize: { x: targetLength, y: height, z: depth },
+    mobileOptimized: true, sourceTrianglesPerModule: 12, sharedMaterials: true,
+  };
+  stripe.userData = { mobileOptimized: true, sharedHazardMaterial: true };
+  scene.add(base, stripe);
+  return base;
+}
+
 function addConcreteArenaBoundary(mapId, halfWidth, halfLength) {
   const layout = concreteBoundaryPlacements(halfWidth, halfLength);
   const appearance = { tint: 0xc8c3b7, metalness: 0.03, roughness: 0.93, groundEmbed: 0.004 };
-  const horizontal = addIndustrialObstacleSet(
-    'arena_concrete_boundary', layout.horizontal, layout.horizontalLength,
-    `${mapId}_ConcreteBoundaryNorthSouth`, appearance, 'concrete-boundary', mapId,
-  );
-  const vertical = addIndustrialObstacleSet(
-    'arena_concrete_boundary', layout.vertical, layout.verticalLength,
-    `${mapId}_ConcreteBoundaryEastWest`, appearance, 'concrete-boundary', mapId,
-  );
+  const addBoundarySet = mobilePerformanceProfile()
+    ? (placements, targetLength, name) => addMobileConcreteBoundarySet(placements, targetLength, name, mapId)
+    : (placements, targetLength, name) => addIndustrialObstacleSet(
+      'arena_concrete_boundary', placements, targetLength, name, appearance, 'concrete-boundary', mapId,
+    );
+  const horizontal = addBoundarySet(layout.horizontal, layout.horizontalLength, `${mapId}_ConcreteBoundaryNorthSouth`);
+  const vertical = addBoundarySet(layout.vertical, layout.verticalLength, `${mapId}_ConcreteBoundaryEastWest`);
   return {
     horizontal,
     vertical,
@@ -3456,6 +3656,80 @@ function segmentBlockedByMapObstacle(from, to, margin = 2.4) {
     if (pointInsideMapObstacle(point, margin)) return true;
   }
   return false;
+}
+
+function pathInsideArena(point, margin = 0) {
+  return Math.abs(point.x) <= activeHalfWidth() - margin && Math.abs(point.z) <= activeHalfLength() - margin;
+}
+
+function robotSweptPathBlocked(robot, direction, distance, extraMargin = 0.35) {
+  const forward = direction.clone().setY(0).normalize();
+  if (forward.lengthSq() < 0.001) return true;
+  const right = new THREE.Vector3(forward.z, 0, -forward.x);
+  const clearance = robotNavigationClearance(robot);
+  const lateral = clamp(clearance * 0.52, 1.4, 3.8);
+  const probeMargin = clamp(clearance * 0.25 + extraMargin, 0.85, 2.25);
+  const end = robot.root.position.clone().addScaledVector(forward, distance);
+  if (!pathInsideArena(end, clearance * 0.72)) return true;
+  for (const offset of [-lateral, 0, lateral]) {
+    const from = robot.root.position.clone().addScaledVector(right, offset);
+    const to = end.clone().addScaledVector(right, offset);
+    if (segmentBlockedByMapObstacle(from, to, probeMargin)) return true;
+  }
+  return false;
+}
+
+function scanRobotForwardObstacles(robot, desiredDirection = null, requestedDistance = null) {
+  const speed = robot.velocity.clone().setY(0).length();
+  const forward = (desiredDirection?.clone() ?? forwardFor(robot.yaw)).setY(0).normalize();
+  const distance = requestedDistance ?? clamp(7 + speed * 0.85 + robotNavigationClearance(robot) * 0.55, 9, 24);
+  const cached = robot.aiObstacleScan;
+  const interval = robot.aiSimulationLOD <= 0 ? 1 / 15 : robot.aiSimulationLOD === 1 ? 0.1 : 0.16;
+  if (cached && worldTime - cached.time < interval
+    && cached.direction?.dot(forward) > 0.94
+    && Math.abs(cached.distance - distance) < 2.5) return cached;
+  const test = (degrees) => {
+    const direction = forward.clone().applyAxisAngle(Y_AXIS, THREE.MathUtils.degToRad(degrees));
+    return { degrees, direction, blocked: robotSweptPathBlocked(robot, direction, distance), distance };
+  };
+  const centre = test(0);
+  const left = test(34);
+  const right = test(-34);
+  const farLeft = test(62);
+  const farRight = test(-62);
+  const scan = { centre, left, right, farLeft, farRight, blocked: centre.blocked, distance, direction: forward.clone(), time: worldTime };
+  robot.aiObstacleScan = scan;
+  return scan;
+}
+
+function chooseObstacleAvoidance(robot, desiredDirection, distance) {
+  const scan = scanRobotForwardObstacles(robot, desiredDirection, distance);
+  if (!scan.blocked) return { scan, direction: desiredDirection, reversing: false, side: 0 };
+  if (worldTime - (robot.aiLastObstacleDetectionAt ?? -Infinity) > 0.32) {
+    robot.aiLastObstacleDetectionAt = worldTime;
+    robot.stats.obstacleDetections++;
+  }
+  const failedSide = worldTime < robot.aiRecentFailedAvoidUntil ? robot.aiRecentFailedAvoidSide : 0;
+  const candidates = [scan.left, scan.right, scan.farLeft, scan.farRight]
+    .filter((candidate) => !candidate.blocked)
+    .map((candidate) => ({
+      ...candidate,
+      side: candidate.degrees > 0 ? 1 : -1,
+      score: Math.abs(candidate.degrees) + (candidate.degrees > 0 ? -robot.aiPreferredSide : robot.aiPreferredSide) * 2
+        + (failedSide && Math.sign(candidate.degrees) === failedSide ? 55 : 0),
+    }))
+    .sort((a, b) => a.score - b.score);
+  if (!candidates.length) return { scan, direction: desiredDirection, reversing: true, side: -robot.aiAvoidSide };
+  const choice = candidates[0];
+  robot.aiAvoidSide = choice.side;
+  robot.stats.obstacleAvoidances++;
+  if (choice.side > 0) robot.stats.obstacleLeftAvoidances++;
+  else robot.stats.obstacleRightAvoidances++;
+  return { scan, direction: choice.direction, reversing: false, side: choice.side };
+}
+
+function dashPathClear(robot, direction, distance) {
+  return !robotSweptPathBlocked(robot, direction, distance, 0.65);
 }
 
 function buildIndustrialNavigation() {
@@ -5780,6 +6054,14 @@ function createColoredBlockQAAssembly(color = '#ffd23f', type = 'bar') {
 class Robot {
   constructor(options) {
     Object.assign(this, options);
+    this.combatEntity = Boolean(options.combatEntity);
+    this.matchId = options.matchId ?? null;
+    this.participantId = options.participantId ?? null;
+    this.teamId = options.teamId ?? options.team ?? null;
+    this.robotId = options.robotId ?? null;
+    this.spawnSlot = options.spawnSlot ?? null;
+    this.robotPresetId = options.robotPresetId ?? null;
+    this.spawnSource = options.spawnSource ?? (this.combatEntity ? 'unknown' : 'non-combat-preview');
     this.paintPalette = normalizedPaintPalette(options.assembly?.paintPalette);
     this.instanceUid = `${options.team}:${options.id}:respawn:${Number(options.respawnCount ?? 0)}:instance:${++robotInstanceSequence}`;
     this.spawnPosition = { x: options.position.x, z: options.position.z };
@@ -5800,15 +6082,37 @@ class Robot {
       ambushPreference: clamp(traitPersonality[2] + (Math.random() - 0.5) * 0.12, 0, 1),
       distancePreference: clamp(traitPersonality[3] + (Math.random() - 0.5) * 0.12, 0, 1),
       retreatThreshold: clamp(traitPersonality[4] + (Math.random() - 0.5) * 0.08, 0.1, 0.58),
+      reactionDelay: 0.07 + (traitIndex % 5) * 0.035,
+      dashFrequency: clamp(0.45 + traitPersonality[0] * 0.48 + (traitIndex % 3) * 0.05, 0.35, 1),
+      predictionAccuracy: clamp(0.48 + (traitIndex % 4) * 0.12 + traitPersonality[0] * 0.2, 0.45, 0.96),
+      riskTolerance: clamp(0.25 + traitPersonality[0] * 0.65 - traitPersonality[1] * 0.18, 0.12, 0.96),
+      reverseFrequency: clamp(0.22 + traitPersonality[2] * 0.38 + (traitIndex % 2) * 0.12, 0.18, 0.78),
+      turnSensitivity: clamp(0.82 + (traitIndex % 4) * 0.1 - traitPersonality[3] * 0.08, 0.72, 1.22),
     };
     this.aiState = this.isPlayer ? 'PLAYER' : 'SEARCH';
     this.aiStateTime = 0;
     this.aiTargetId = null;
+    this.aiTargetLockedUntil = 0;
+    this.aiTargetSelectedAt = -Infinity;
+    this.aiAction = 'APPROACH';
+    this.aiActionUntil = 0;
+    this.aiActionSerial = 0;
+    this.aiLastDecisionAt = -Infinity;
+    this.aiRecentFailedAvoidSide = 0;
+    this.aiRecentFailedAvoidUntil = 0;
+    this.aiObstacleScan = null;
+    this.aiObstacleBlockedSeconds = 0;
+    this.aiHealerAttackUntil = 0;
+    this.aiHealerDisengageUntil = 0;
+    this.aiHealTargetLockedUntil = 0;
+    this.lastDamageTakenAt = -Infinity;
+    this.lastDamageTakenAmount = 0;
     this.classRole = options.type === 'healer' ? 'healer' : 'assault';
     this.aiRetreatUntil = 0;
     this.aiLastAttackTime = -Infinity;
     this.aiDecisionOffset = ((Number(options.id ?? 0) * 37) % 17) / 17;
     this.aiThinkAccumulator = ((Number(options.id ?? 0) * 29) % 11) * 0.017;
+    this.aiStuckDetectorAccumulator = this.aiDecisionOffset * 0.1;
     this.aiSimulationLOD = 0;
     this.aiThinkInterval = 0.2;
     this.postureRecovery = null;
@@ -5828,6 +6132,17 @@ class Robot {
     this.criticalDestructionAt = Infinity;
     this.root = new THREE.Group();
     this.root.name = this.name;
+    this.root.userData = {
+      ...this.root.userData,
+      combatEntity: this.combatEntity,
+      matchId: this.matchId,
+      participantId: this.participantId,
+      teamId: this.teamId,
+      robotId: this.robotId,
+      spawnSlot: this.spawnSlot,
+      robotPresetId: this.robotPresetId,
+      spawnSource: this.spawnSource,
+    };
     this.root.position.set(options.position.x, GROUND_Y, options.position.z);
     scene.add(this.root);
     this.velocity = new THREE.Vector3();
@@ -5907,6 +6222,7 @@ class Robot {
     this.aiNoProgressSeconds = 0;
     this.aiMeaninglessStationarySeconds = 0;
     this.aiMaximumMeaninglessStationarySeconds = 0;
+    this.aiCommandIdleSeconds = 0;
     this.aiRespawnDecisionSeconds = 0;
     this.aiRouteVariant = Math.abs(Number(options.id ?? 0)) % 3;
     this.aiObjectiveRouteCursorKey = null;
@@ -5946,6 +6262,9 @@ class Robot {
       objectiveVisits: 0, objectiveDefenceResponses: 0, healerSeeks: 0, reverseRecoveries: 0,
       attacksAttempted: 0, damageDealt: 0, enemyContacts: 0, weaponContacts: 0,
       enemyDetections: 0, combatEngagements: 0, attackOpportunities: 0, attackOpportunityTimeouts: 0,
+      obstacleDetections: 0, obstacleAvoidances: 0, obstacleLeftAvoidances: 0, obstacleRightAvoidances: 0,
+      dashCancelledByObstacle: 0, stuckRecoveries: 0, failedAvoidanceFlips: 0,
+      healerDashAttacks: 0, healerReturnsToSupport: 0, targetSwitches: 0, idleDriveNudges: 0,
     };
     this.centerOfMassLocal = new THREE.Vector3(0, -0.2, 0);
     this.unstableRestTime = 0;
@@ -6008,6 +6327,14 @@ class Robot {
     this.solverIterations = 12;
     this.solverVelocityIterations = 6;
     this.build();
+    this.maxHp = Number(this.driveProfile.maxHp);
+    this.hp = this.maxHp;
+    this.maxArmor = Number(this.driveProfile.maxArmor);
+    this.armor = this.maxArmor;
+    this.displayHp = this.hp;
+    this.displayArmor = this.armor;
+    this.armorBroken = false;
+    this.armorBreakFlashUntil = 0;
     this.alignDrivingWheelsToGround();
     this.refreshTeamMarkerBounds();
     this.aiDesign = cloneData(this.assembly.aiDesign ?? { archetype: 'player-built', colorMode: 'custom', weaponLayout: 'custom', blockCount: this.assembly.blocks.length });
@@ -6100,7 +6427,9 @@ class Robot {
       const mesh = new THREE.InstancedMesh(getBlockGeometry(parts[0].record), material, parts.length);
       mesh.name = `${this.name}_BlockBatch_${parts[0].record.type}`;
       mesh.instanceMatrix.setUsage(THREE.DynamicDrawUsage);
-      mesh.castShadow = true;
+      // One block batch may contain 24-70 cells. Do not submit that whole
+      // instanced hull again to the shadow pass on mobile/large battles.
+      mesh.castShadow = false;
       mesh.receiveShadow = true;
       mesh.frustumCulled = false;
       for (let index = 0; index < parts.length; index++) {
@@ -6692,7 +7021,7 @@ class Robot {
     // meshes, high-poly wheels and high-poly weapons.
     for (const mesh of this.blockRenderBatches ?? []) {
       mesh.visible = !this.dead;
-      mesh.castShadow = nextLevel === 0 && renderer.shadowMap.enabled;
+      mesh.castShadow = false;
     }
     if (this.nativeArmorBatch) {
       this.nativeArmorBatch.visible = !this.dead && nextLevel < 2;
@@ -6825,9 +7154,15 @@ class Robot {
   requestDash(reason = 'player') {
     if (this.dead || this.dashCooldown > 0 || this.postureRecovery) return false;
     const support = this.lastSupportInfo ?? this.getGroundSupportInfo();
-    const upright = support.wheelContact && support.upDot > 0.58
-      && this.root.position.y <= support.height + 0.11;
-    if (!upright || this.wheels.filter((wheel) => !wheel.part.detached).length === 0) return false;
+    const activeWheels = this.wheels.filter((wheel) => !wheel.part.detached).length;
+    const driveContactAllowance = (support.wheelSuspensionTravel ?? 0.12) + 0.065;
+    // Use the same suspension-aware grounded rule as normal driving. The old
+    // fixed +0.11 m gate rejected DASH while a moving wheel suspension was
+    // extended even though the robot was fully driveable.
+    const driveReady = support.wheelContact && support.upDot > 0.55
+      && this.root.position.y <= support.height + driveContactAllowance
+      && Math.abs(normalizeAngle(this.pitch)) < 1.05 && Math.abs(normalizeAngle(this.roll)) < 1.05;
+    if (!driveReady || activeWheels < 2) return false;
     const forward = forwardFor(this.yaw);
     const profile = this.driveProfile ?? WEIGHT_CLASSES.middleweight;
     const planarSpeed = this.velocity.clone().setY(0).dot(forward);
@@ -6877,7 +7212,15 @@ class Robot {
       // The isolated visual proof drives contacts on an exact cadence below.
       // Suppressing the normal per-robot collision loop there prevents several
       // nominally separate hits from being stacked into one radial starburst.
-      if (rotary.rpm > 720 && qa?.phase !== 'sparkProof') game.checkRotaryHit(this, rotary);
+      // Visual rotation remains smooth every simulation step, but the expensive
+      // target/contact test runs on a bounded cadence and slows down for far AI.
+      rotary.contactScanAccumulator = (rotary.contactScanAccumulator ?? this.aiDecisionOffset * 0.035) + dt;
+      const contactScanInterval = this.isPlayer || this.aiSimulationLOD === 0 ? 1 / 30
+        : this.aiSimulationLOD === 1 ? 1 / 22 : this.aiSimulationLOD === 2 ? 1 / 15 : 0.1;
+      if (rotary.rpm > 720 && qa?.phase !== 'sparkProof' && rotary.contactScanAccumulator >= contactScanInterval) {
+        rotary.contactScanAccumulator %= contactScanInterval;
+        game.checkRotaryHit(this, rotary);
+      }
     }
 
     const hammer = this.weapons.hammer;
@@ -7255,14 +7598,16 @@ class Robot {
     // Evaluate the real transform over a meaningful window. The previous
     // 0.72 s / 18 degree threshold classified ordinary launch congestion as
     // stuck and made whole teams enter recovery instead of driving to A.
-    const earlyCircle = this.aiStuckWindow >= 1.2 && this.aiStuckYawTravel >= THREE.MathUtils.degToRad(100);
-    if (this.aiStuckWindow < 1.8 && !earlyCircle && !routeLooping) return false;
+    const obstacleAhead = Boolean(this.aiObstacleScan?.blocked && worldTime - this.aiObstacleScan.time < 0.45);
+    const earlyCircle = this.aiStuckWindow >= 0.92 && this.aiStuckYawTravel >= THREE.MathUtils.degToRad(82);
+    const stuckWindowThreshold = obstacleAhead ? 0.78 : 1.2;
+    if (this.aiStuckWindow < stuckWindowThreshold && !earlyCircle && !routeLooping) return false;
     const displacement = this.root.position.clone().sub(this.aiStuckAnchor).setY(0).length();
     const yawTravel = this.aiStuckYawTravel;
     const tryingToMove = Math.abs(this.control.throttle) > 0.22;
     const goalStillFar = !this.aiNavGoal || this.root.position.distanceTo(this.aiNavGoal) > 8;
     const spinningInPlace = displacement < 0.9 && this.aiStuckYawTravel >= THREE.MathUtils.degToRad(100) && goalStillFar;
-    const physicallyBlocked = displacement < 0.42 && tryingToMove && goalStillFar;
+    const physicallyBlocked = displacement < (obstacleAhead ? 0.32 : 0.42) && tryingToMove && goalStillFar;
     const meaningless = spinningInPlace || physicallyBlocked || routeLooping;
     this.aiMeaninglessStationarySeconds = meaningless ? this.aiMeaninglessStationarySeconds + this.aiStuckWindow : Math.max(0, this.aiMeaninglessStationarySeconds - this.aiStuckWindow * 1.6);
     this.aiMaximumMeaninglessStationarySeconds = Math.max(this.aiMaximumMeaninglessStationarySeconds, this.aiMeaninglessStationarySeconds);
@@ -7280,8 +7625,15 @@ class Robot {
     this.aiPreviousObjectiveState = this.aiState;
     const stuckReason = routeLooping ? 'route-loop-without-objective-progress' : spinningInPlace ? 'yaw-without-travel' : 'drive-without-travel';
     this.transitionAIState('STUCK_RECOVERY', stuckReason);
-    this.aiRecoverStuckTime = 1.8;
+    this.aiRecoverStuckTime = 1.65;
+    this.stats.stuckRecoveries++;
+    const previousSide = this.aiAvoidSide;
     this.aiAvoidSide *= -1;
+    if (repeatedHere) {
+      this.aiRecentFailedAvoidSide = previousSide;
+      this.aiRecentFailedAvoidUntil = worldTime + 5;
+      this.stats.failedAvoidanceFlips++;
+    }
     this.aiRecoverTurnSign = this.aiAvoidSide;
     // Change lanes only after a measured physical blockage. Ordinary goal
     // changes, healing and capture transitions must not randomly rotate the
@@ -7368,16 +7720,15 @@ class Robot {
   updateAIStuckRecovery(dt) {
     if (this.aiState !== 'STUCK_RECOVERY') return false;
     this.aiRecoverStuckTime = Math.max(0, this.aiRecoverStuckTime - dt);
-    const elapsed = 1.8 - this.aiRecoverStuckTime;
-    if (elapsed < 0.55) {
+    const elapsed = 1.65 - this.aiRecoverStuckTime;
+    if (elapsed < 0.5) {
       this.control = { throttle: -1, steering: 0, brake: false };
       this.stats.reverseRecoveries++;
     }
-    else if (elapsed < 1.0) this.control = { throttle: -0.92, steering: this.aiRecoverTurnSign * 0.42, brake: false };
+    else if (elapsed < 0.95) this.control = { throttle: -0.92, steering: this.aiRecoverTurnSign * 0.5, brake: false };
     else {
       this.control = { throttle: 1, steering: -this.aiRecoverTurnSign * 0.38, brake: false };
-      const dashProbe = this.root.position.clone().addScaledVector(forwardFor(this.yaw), 7);
-      if (this.dashCooldown <= 0 && !segmentBlockedByMapObstacle(this.root.position, dashProbe, robotNavigationClearance(this)) && this.requestDash('ai-stuck-exit')) this.aiDashIntent = 'stuck-exit';
+      if (this.dashCooldown <= 0 && dashPathClear(this, forwardFor(this.yaw), 8) && this.requestDash('ai-stuck-exit')) this.aiDashIntent = 'stuck-exit';
     }
     if (this.aiRecoverStuckTime <= 0) {
       this.transitionAIState('REPOSITION', 'stuck-recovery-finished');
@@ -7482,7 +7833,12 @@ class Robot {
       return;
     }
     this.aiThinkAccumulator += dt;
-    if (this.updateAIStuckDetector(dt)) return;
+    this.aiStuckDetectorAccumulator += dt;
+    if (this.aiStuckDetectorAccumulator >= 0.1) {
+      const stuckDetectorDt = this.aiStuckDetectorAccumulator;
+      this.aiStuckDetectorAccumulator = 0;
+      if (this.updateAIStuckDetector(stuckDetectorDt)) return;
+    }
     const playerDistance = player && player !== this
       ? Math.hypot(player.root.position.x - this.root.position.x, player.root.position.z - this.root.position.z)
       : 0;
@@ -7517,7 +7873,7 @@ class Robot {
     const weakAlly = robots
       .filter((robot) => robot !== this && !robot.dead && robot.team === this.team)
       .sort((a, b) => a.durability() - b.durability())[0] ?? null;
-    const target = candidates.reduce((best, candidate) => {
+    const scoredTargets = candidates.map((candidate) => {
       const distance = candidate.root.position.distanceTo(this.root.position);
       const durability = candidate.durability();
       const engaged = robots.some((robot) => robot !== this && robot !== candidate && !robot.dead && robot.team !== candidate.team && robot.root.position.distanceTo(candidate.root.position) < 7.5);
@@ -7532,9 +7888,14 @@ class Robot {
       if (weakAlly?.durability() < 0.45 && candidate.root.position.distanceTo(weakAlly.root.position) < 10) score -= 9;
       const alliesEngaging = robots.filter((robot) => robot !== this && !robot.dead && robot.team === this.team && robot.root.position.distanceTo(candidate.root.position) < 8).length;
       score -= alliesEngaging * (this.aiTrait === 'berserker' ? 1.2 : 3.4);
-      if (candidate.id === this.aiTargetId) score -= 2.5;
-      return !best || score < best.score ? { robot: candidate, score } : best;
-    }, null)?.robot ?? null;
+      if (candidate.id === this.aiTargetId) score -= 8.5;
+      return { robot: candidate, score };
+    }).sort((a, b) => a.score - b.score);
+    const currentTarget = candidates.find((candidate) => candidate.id === this.aiTargetId) ?? null;
+    const bestTarget = scoredTargets[0] ?? null;
+    const currentScore = currentTarget ? scoredTargets.find((entry) => entry.robot === currentTarget)?.score ?? Infinity : Infinity;
+    const urgentSwitch = bestTarget && bestTarget.robot !== currentTarget && bestTarget.score < currentScore - 14;
+    const target = currentTarget && worldTime < this.aiTargetLockedUntil && !urgentSwitch ? currentTarget : bestTarget?.robot ?? null;
     if (!target) {
       this.transitionAIState(selectedMapId === 'desert01' ? 'MOVE_TO_OBJECTIVE' : 'SEARCH', 'target-lost');
       const searchPoint = new THREE.Vector3(
@@ -7542,14 +7903,15 @@ class Robot {
         0,
         Math.cos(worldTime * 0.11 + this.id * 1.19) * (activeHalfLength() * 0.62),
       );
-      const navigationPoint = navigationPointForRobot(this, searchPoint, dt);
-      const desired = navigationPoint.sub(this.root.position);
-      const desiredYaw = normalizeAngle(Math.atan2(desired.x, desired.z));
-      const angleError = normalizeAngle(desiredYaw - this.yaw);
-      this.control = { throttle: 0.62, steering: clamp(angleError * 1.35, -1, 1), brake: false };
+      driveRobotTowardPoint(this, searchPoint, dt, 0.82);
       return;
     }
-    this.aiTargetId = target.id;
+    if (this.aiTargetId !== target.id) {
+      this.aiTargetId = target.id;
+      this.aiTargetSelectedAt = worldTime;
+      this.aiTargetLockedUntil = worldTime + 2.2 + (Math.abs(this.id) % 5) * 0.34;
+      this.stats.targetSwitches++;
+    }
     const toTarget = target.root.position.clone().sub(this.root.position);
     toTarget.y = 0;
     const distance = toTarget.length();
@@ -7561,6 +7923,22 @@ class Robot {
     const weaponOperational = this.weaponAvailable(this.type);
     const retreatThreshold = this.aiPersonality.retreatThreshold;
     const targetEngaged = robots.some((robot) => robot !== this && robot !== target && !robot.dead && robot.team !== target.team && robot.root.position.distanceTo(target.root.position) < 7.5);
+    if (worldTime >= this.aiActionUntil) {
+      const actions = [
+        { key: 'DIRECT_CHARGE', weight: 2.8 + this.aiPersonality.aggression * 3.4 },
+        { key: 'SHORT_FLANK', weight: 1.1 + this.aiPersonality.ambushPreference * 2.2 },
+        { key: 'REVERSE_STRIKE', weight: 0.45 + this.aiPersonality.reverseFrequency * 1.8 },
+        { key: 'REAR_AMBUSH', weight: targetEngaged ? 0.8 + this.aiPersonality.ambushPreference * 2.4 : 0.15 },
+        { key: 'FEINT_RETREAT', weight: this.type === 'bar' ? 2.4 : 0.5 + this.aiPersonality.fear },
+      ];
+      if (this.type === 'drum' || this.type === 'puncher') actions.find((entry) => entry.key === 'DIRECT_CHARGE').weight += 2.3;
+      if (this.type === 'spinner') actions.find((entry) => entry.key === 'SHORT_FLANK').weight += 1.4;
+      const total = actions.reduce((sum, entry) => sum + entry.weight, 0);
+      let pick = ((Math.sin(this.id * 17.17 + this.aiActionSerial * 9.31 + worldTime * 0.07) + 1) * 0.5) * total;
+      this.aiAction = actions.find((entry) => ((pick -= entry.weight) <= 0))?.key ?? 'DIRECT_CHARGE';
+      this.aiActionSerial++;
+      this.aiActionUntil = worldTime + 0.75 + this.aiPersonality.reactionDelay * 4 + (this.aiActionSerial % 4) * 0.16;
+    }
     const wasRetreating = this.aiState === 'RETREAT';
     const wasReentering = this.aiState === 'REENTRY';
     const severeDamageRetreat = this.aiTrait !== 'berserker' && (activeWheelRatio <= 0.5 || (!weaponOperational && health < 0.58));
@@ -7593,10 +7971,10 @@ class Robot {
         desiredPoint.copy(coverCentre).addScaledVector(coverAway, Math.max(cover.halfX ?? 2, cover.halfZ ?? 2) + 6);
       }
     } else if (this.aiState === 'AMBUSH') {
-      const targetRear = forwardFor(target.yaw).multiplyScalar(-8.5);
-      desiredPoint.add(targetRear).addScaledVector(side, this.aiOrbit * 5.5);
+      const targetRear = forwardFor(target.yaw).multiplyScalar(-5.2);
+      desiredPoint.add(targetRear).addScaledVector(side, this.aiPreferredSide * 2.4);
     } else if (this.aiState === 'FLANK') {
-      desiredPoint.addScaledVector(side, this.aiOrbit * clamp(distance * 0.42, 4.2, 10.5));
+      desiredPoint.addScaledVector(side, this.aiPreferredSide * clamp(distance * 0.2, 1.8, 4.2));
     } else {
       if (this.type === 'spinner') desiredPoint.addScaledVector(side, this.aiOrbit * clamp(distance * 0.12, 0.35, 1.1));
       if (this.type === 'bar') {
@@ -7606,6 +7984,10 @@ class Robot {
       }
       if (this.type === 'drum') desiredPoint.addScaledVector(side, this.aiOrbit * clamp(distance * 0.08, 0.2, 0.75));
     }
+    if (this.aiAction === 'SHORT_FLANK') desiredPoint.addScaledVector(side, this.aiPreferredSide * clamp(distance * 0.14, 1.1, 3.1));
+    else if (this.aiAction === 'REAR_AMBUSH' && targetEngaged) desiredPoint.add(forwardFor(target.yaw).multiplyScalar(-4.2)).addScaledVector(side, this.aiPreferredSide * 1.5);
+    else if (this.aiAction === 'FEINT_RETREAT' && distance < 9.5) desiredPoint.copy(this.root.position).addScaledVector(playerDirection, -5.8);
+    else if (this.aiAction === 'REVERSE_STRIKE' && distance < 7.5) desiredPoint.copy(this.root.position).addScaledVector(playerDirection, -3.5);
     desiredPoint.x = clamp(desiredPoint.x, -activeHalfWidth() + 8, activeHalfWidth() - 8);
     desiredPoint.z = clamp(desiredPoint.z, -activeHalfLength() + 8, activeHalfLength() - 8);
     for (const ally of robots.filter((robot) => robot !== this && !robot.dead && robot.team === this.team)) {
@@ -7614,35 +7996,18 @@ class Robot {
       if (separation > 0.01 && separation < 5.2) desiredPoint.addScaledVector(away.normalize(), (5.2 - separation) * 0.65);
     }
 
-    const navigationPoint = navigationPointForRobot(this, desiredPoint.clone(), dt);
-    const desired = navigationPoint.sub(this.root.position);
-    // The corrected hammer head attacks from the rear external side of its
-    // chassis, so hammer AI deliberately presents that side and reverses into range.
-    const weaponForwardOffset = this.weaponForwardYawOffset();
-    const desiredYaw = normalizeAngle(Math.atan2(desired.x, desired.z) - weaponForwardOffset);
-    let angleError = normalizeAngle(desiredYaw - this.yaw);
-    const nearWall = Math.abs(this.root.position.x) > activeHalfWidth() - 5 || Math.abs(this.root.position.z) > activeHalfLength() - 5;
-    if (nearWall) {
-      const centreYaw = normalizeAngle(Math.atan2(-this.root.position.x, -this.root.position.z) - weaponForwardOffset);
-      angleError = normalizeAngle(centreYaw - this.yaw);
-    }
-
-    const moved = this.root.position.distanceTo(this.lastPosition);
-    this.lastPosition.copy(this.root.position);
-    if (moved < 0.015 && Math.abs(this.control.throttle) > 0.6) this.stuckTime += dt;
-    else this.stuckTime = Math.max(0, this.stuckTime - dt * 2);
-    if (this.stuckTime > 1.15) { this.reverseTime = 0.7; this.stuckTime = 0; }
-    this.reverseTime = Math.max(0, this.reverseTime - dt);
-
-    const attackDrive = 1;
-    this.control.steering = clamp(angleError * 1.45 * attackDrive, -1, 1);
+    const drive = driveRobotTowardPoint(this, desiredPoint, dt, this.aiState === 'RETREAT' ? 1.12 : 1.24, { directWhenClear: true });
+    let angleError = drive.angleError;
     const preferredDistance = this.type === 'spinner' ? 1.75 : this.type === 'bar' ? 3.8 : this.type === 'drum' ? 2.15
       : this.type === 'puncher' ? Math.max(2.8, this.radius + target.radius - 0.45) : 2.8;
-    const stateThrottle = this.aiState === 'RETREAT' ? 1 : distance > preferredDistance ? lerp(0.82, 1, this.aiPersonality.aggression) : this.aiState === 'ATTACK' ? lerp(0.38, 0.62, this.aiPersonality.aggression) : 0.72;
     const healthDriveScale = health < 0.15 ? 0.7 : health < 0.3 ? 0.8 : health < 0.5 ? 0.91 : 1;
     const damageDriveScale = clamp((0.38 + activeWheelRatio * 0.62) * healthDriveScale, 0.34, 1);
-    this.control.throttle = (this.reverseTime > 0 ? -attackDrive * 0.85 : attackDrive * stateThrottle) * damageDriveScale;
-    this.control.brake = false;
+    this.control.throttle *= damageDriveScale;
+    this.control.steering = clamp(this.control.steering * this.aiPersonality.turnSensitivity, -1, 1);
+    if (this.aiAction === 'REVERSE_STRIKE' && distance < 7.5 && !this.aiObstacleScan?.blocked) {
+      this.control.throttle = -0.78 * damageDriveScale;
+      this.control.steering = clamp(-angleError * 0.72, -0.58, 0.58);
+    }
     if (this.isFlipped()) this.control.throttle = 0;
 
     const facing = Math.abs(angleError) < (this.type === 'hammer' ? 0.72 : 0.55);
@@ -7664,9 +8029,17 @@ class Robot {
     const dashEscape = this.aiState === 'RETREAT' && facing && distance < 13;
     const dashPersonality = this.aiTrait === 'berserker' || this.aiTrait === 'chaser' ? 0.92
       : this.aiTrait === 'cautious' || this.aiTrait === 'survivor' ? 0.46 : 0.68;
-    if ((dashApproach || dashEscape) && this.dashCooldown <= 0
-      && Math.random() < clamp(dt * (0.7 + dashPersonality), 0.08, 0.5) && this.requestDash(dashEscape ? 'ai-retreat' : 'ai-attack')) {
-      this.transitionAIState(dashEscape ? 'DASH_ESCAPE' : 'DASH_ATTACK', dashEscape ? 'dash-retreat' : 'dash-attack');
+    if ((dashApproach || dashEscape) && this.dashCooldown <= 0) {
+      const predictionTime = clamp(distance / Math.max(8, this.driveProfile.topSpeed + this.driveProfile.dashDelta), 0.18, 0.8);
+      const predicted = target.root.position.clone().addScaledVector(target.velocity, predictionTime * this.aiPersonality.predictionAccuracy);
+      const dashDirection = predicted.sub(this.root.position).setY(0).normalize();
+      const dashDistance = Math.min(distance + 2, this.weightClass === 'lightweight' ? 18 : 15);
+      if (!dashPathClear(this, dashDirection, dashDistance)) this.stats.dashCancelledByObstacle++;
+      else if (Math.random() < clamp(dt * (0.75 + dashPersonality) * this.aiPersonality.dashFrequency, 0.1, 0.62)
+        && this.requestDash(dashEscape ? 'ai-retreat' : 'ai-predicted-attack')) {
+        this.dashDirection.copy(dashEscape ? forwardFor(this.yaw) : dashDirection);
+        this.transitionAIState(dashEscape ? 'DASH_ESCAPE' : 'DASH_ATTACK', dashEscape ? 'dash-retreat' : 'predicted-dash-attack');
+      }
     }
     if (this.aiState === 'ATTACK' && distance < preferredDistance + 1.3 && ['flanker', 'ambusher', 'defensive', 'cautious'].includes(this.aiTrait)) {
       this.aiRetreatUntil = Math.max(this.aiRetreatUntil, worldTime + (['flanker', 'ambusher'].includes(this.aiTrait) ? 1.25 : 1.8));
@@ -8196,6 +8569,11 @@ class Robot {
         if (Math.abs(imbalanceYawDelta) > 1e-6) this.recordAngularDelta('wheel-traction-imbalance', 0, imbalanceYawDelta, 0, 'Robot.updatePhysics');
       }
       if (this.dashActiveTimer > 0) {
+        // Steering stays available during boost. Rotate the sustained impulse
+        // toward the vehicle's current forward axis instead of locking it to
+        // the first touch direction for the entire dash.
+        const dashTurnBlend = clamp(dt * lerp(4.8, 8.5, profile.dashSteering), 0, 1);
+        this.dashDirection.lerp(forward, dashTurnBlend).setY(0).normalize();
         const dashForwardSpeed = this.velocity.dot(this.dashDirection);
         const firstBurst = this.dashActiveTimer > profile.dashDuration - 0.05;
         const dashAcceleration = (this.dashPeakSpeed - dashForwardSpeed) * (firstBurst ? 31 : 15);
@@ -8849,6 +9227,7 @@ class Robot {
     }
 
     let blockDamageResult = null;
+    let survivalDamageResult = null;
     if (!impactOptions.suppressDamage) {
       const part = this.chooseHitPart(point, sourceType);
       impactedPart = part;
@@ -8861,6 +9240,9 @@ class Robot {
       const tunedDamage = Math.max(damage * damageScale, targetStructureDamage);
       if (part?.type === 'block') blockDamageResult = this.applyBlockDamageAtImpact(part, tunedDamage, scaledImpulse, point, attacker, tier, intensityScore, true, targetStructureDamage);
       else this.damagePart(part, damage * damageScale, scaledImpulse, point, attacker, tier);
+      const survivalTierScale = { weak: 0.72, medium: 0.92, strong: 1.12, veryStrong: 1.34, critical: 1.62 }[tier] ?? 1;
+      const survivalDamage = clamp(damage * survivalTierScale + intensityScore * 0.035, 0.5, tier === 'critical' ? 96 : 68);
+      survivalDamageResult = this.applySurvivalDamage(survivalDamage, tier);
     }
     const sparkRanges = { weak: [2, 5], medium: [6, 15], strong: [20, 40], veryStrong: [35, 60], critical: [50, 90] };
     const [sparkMin, sparkMax] = sparkRanges[tier];
@@ -8903,6 +9285,7 @@ class Robot {
       }
       if (!this.corePart || this.corePart.hp <= 0) this.destroyRobot(attacker, 'CORE_DESTROYED');
       else if (remainingMainBlocks === 0) this.destroyRobot(attacker, 'BLOCKS_LE_5');
+      else if (this.hp <= 0) this.destroyRobot(attacker, 'HP_DEPLETED');
     }
     const hpAfterImpact = this.parts.reduce((sum, part) => sum + Math.max(0, Number(part.hp ?? 0)), 0);
     const actualDamage = Math.max(0, hpBeforeImpact - hpAfterImpact);
@@ -8911,7 +9294,7 @@ class Robot {
       if (['spinner', 'bar', 'drum', 'puncher'].includes(sourceType)) attacker.stats.weaponContacts = (attacker.stats.weaponContacts ?? 0) + 1;
       attacker.stats.damageDealt = (attacker.stats.damageDealt ?? 0) + actualDamage;
     }
-    return { tier, intensityScore, criticalChance, critical, sparkCount, actualDamage, scaledImpulse: scaledImpulse.clone(), torque: torque.clone(), underbodyFactor, hitBlockId: impactedPart?.type === 'block' ? impactedPart.assemblyId : null };
+    return { tier, intensityScore, criticalChance, critical, sparkCount, actualDamage, survivalDamage: survivalDamageResult, scaledImpulse: scaledImpulse.clone(), torque: torque.clone(), underbodyFactor, hitBlockId: impactedPart?.type === 'block' ? impactedPart.assemblyId : null };
   }
 
   weaponMountsForPart(part) {
@@ -9026,6 +9409,10 @@ class Robot {
       return false;
     }
     this.dead = true;
+    // A destroyed chassis is no longer a Combat Robot. Individual detached
+    // debris may remain, but the unmarked complete body is hidden immediately
+    // so it cannot be mistaken for an unassigned/ghost participant.
+    this.root.visible = false;
     this.lastRespawnReason = reason;
     this.respawnAt = mode === 'battle' && BATTLE_RESPAWNS_ENABLED ? worldTime + RESPAWN_DELAY_SECONDS : Infinity;
     respawnStats.deaths++;
@@ -9041,8 +9428,33 @@ class Robot {
     return true;
   }
 
+  applySurvivalDamage(amount, tier = 'weak') {
+    const incoming = Math.max(0, Number(amount) || 0);
+    if (incoming <= 0 || this.dead) return { incoming: 0, hpDamage: 0, armorDamage: 0 };
+    const armorRatio = this.maxArmor > 0 ? clamp(this.armor / this.maxArmor, 0, 1) : 0;
+    // Armour always leaks a small amount into HP. As armour is stripped the HP
+    // share rises smoothly, so late combat becomes more lethal without using a
+    // second all-or-nothing health gate.
+    const hpShare = lerp(0.2, 0.92, 1 - armorRatio);
+    const hpDamage = Math.min(this.hp, incoming * hpShare);
+    const armorDamage = Math.min(this.armor, incoming * lerp(1.08, 0.34, hpShare));
+    this.hp = Math.max(0, this.hp - hpDamage);
+    this.armor = Math.max(0, this.armor - armorDamage);
+    this.lastDamageTakenAt = worldTime;
+    this.lastDamageTakenAmount = hpDamage + armorDamage;
+    if (!this.armorBroken && this.armor <= 0.001) {
+      this.armorBroken = true;
+      this.armorBreakFlashUntil = worldTime + 0.55;
+      if (this.isPlayer) showMessage('ARMOR BREAK — HP 피해 증가', 0.8);
+      spawnMetalSparks(this.root.position.clone().add(new THREE.Vector3(0, 0.45, 0)), new THREE.Vector3(0, 45, 0), tier === 'critical' ? 16 : 8, 'medium', null, 'impact', Y_AXIS);
+    }
+    return { incoming, hpDamage, armorDamage, hp: this.hp, armor: this.armor };
+  }
+
   durability() {
-    return this.blockStructureRatio() * 0.78 + this.coreHealthRatio() * 0.22;
+    const hpRatio = this.maxHp > 0 ? this.hp / this.maxHp : 0;
+    const armorRatio = this.maxArmor > 0 ? this.armor / this.maxArmor : 0;
+    return clamp(hpRatio * 0.58 + armorRatio * 0.18 + this.blockStructureRatio() * 0.16 + this.coreHealthRatio() * 0.08, 0, 1);
   }
 
   mobilityStatus() {
@@ -9076,6 +9488,7 @@ function isConquestBattle() {
 }
 
 function resetConquestState() {
+  conquestMinimapLastUpdate = -Infinity;
   conquestState.enabled = selectedMapId === 'desert01' && battleMode === '10v10';
   conquestState.activePoint = 'A';
   conquestState.contested = false;
@@ -9182,6 +9595,9 @@ function driveRobotTowardPoint(robot, goal, dt, urgency = 1, options = {}) {
     robot.control = { throttle: 0, steering: 0, brake: true };
     return { distance, angleError: 0, reversing: false };
   }
+  const desiredDirection = desired.clone().normalize();
+  const avoidance = chooseObstacleAvoidance(robot, desiredDirection, clamp(distance, 9, 22));
+  if (avoidance.scan.blocked && !avoidance.reversing) desired.copy(avoidance.direction).multiplyScalar(distance);
   const desiredYaw = normalizeAngle(Math.atan2(desired.x, desired.z));
   const angleError = normalizeAngle(desiredYaw - robot.yaw);
   const absoluteHeadingError = Math.abs(angleError);
@@ -9196,8 +9612,9 @@ function driveRobotTowardPoint(robot, goal, dt, urgency = 1, options = {}) {
     robot.aiObjectiveReverseUntil = worldTime + 1.25;
   }
   if (absoluteHeadingError < 0.44) robot.aiObjectiveReverseUntil = 0;
-  const reversing = !options.forceForward && (absoluteHeadingError > 2.02
+  let reversing = !options.forceForward && (absoluteHeadingError > 2.02
     || (worldTime < robot.aiObjectiveReverseUntil && absoluteHeadingError > 0.5));
+  if (avoidance.reversing) reversing = true;
   const steeringGain = robot.aiSteeringGain ?? 1.4;
   const yawRateDamping = robot.wheels.length >= 6 ? 1.05 : 0.78;
   // In reverse, steer against the rear-axis heading error. Negating the
@@ -9218,6 +9635,9 @@ function driveRobotTowardPoint(robot, goal, dt, urgency = 1, options = {}) {
   if (planarSpeed < 2.5 && Math.abs(steering) > lowSpeedSteerCap) steering = Math.sign(steering) * lowSpeedSteerCap;
   else if (planarSpeed < 6 && Math.abs(steering) > 0.46) steering = Math.sign(steering) * 0.46;
   if (Math.abs(angleError) < (robot.aiSteeringDeadzone ?? 0.085)) steering = 0;
+  if (avoidance.scan.blocked && !avoidance.reversing && avoidance.side) {
+    steering = avoidance.side * Math.max(0.34, Math.abs(steering));
+  }
   const steeringSignChanged = Math.sign(steering) !== Math.sign(robot.aiHeldSteering)
     && Math.abs(steering) > 0.2 && Math.abs(robot.aiHeldSteering) > 0.2;
   // Hold an avoidance choice long enough to complete the turn. This is a
@@ -9231,6 +9651,7 @@ function driveRobotTowardPoint(robot, goal, dt, urgency = 1, options = {}) {
   if (Math.abs(steering) <= 0.12) robot.aiHeldSteering = 0;
   const accelerationPreference = robot.aiAccelerationPreference ?? 1;
   let throttle = reversing ? -0.82 : absoluteHeadingError > 1.28 ? 0.58 : clamp((0.78 + urgency * 0.18) * accelerationPreference, 0.72, 1);
+  if (avoidance.scan.blocked) throttle = avoidance.reversing ? -0.96 : Math.min(throttle, 0.62);
   // Intermediate canyon nodes are small, real drive targets. Full throttle at
   // 15-20 m/s let vehicles jump across the node between AI ticks and circle
   // back repeatedly. Slow only for the final metres of an intermediate node;
@@ -9272,7 +9693,7 @@ function driveRobotTowardPoint(robot, goal, dt, urgency = 1, options = {}) {
   // moves or teleports the transform.
   if (objectiveTransit && distance > 36 && !reversing && Math.abs(angleError) < 0.46
     && robot.dashCooldown <= 0 && worldTime >= dashReadyAt
-    && !segmentBlockedByMapObstacle(robot.root.position, straightProbe, robotNavigationClearance(robot))) {
+    && dashPathClear(robot, forwardFor(robot.yaw), 12)) {
     if (robot.requestDash('objective-transit')) robot.aiNextObjectiveDashAt = worldTime + 3.1 + (Math.abs(robot.id) % 5) * 0.18;
   }
   return { distance, angleError, reversing };
@@ -9383,9 +9804,17 @@ function updateDesertObjectiveAI(robot, dt) {
     };
     return score(left) - score(right);
   });
-  const objectiveCombatTarget = targetPool.length
+  const preferredObjectiveTarget = targetPool.length
     ? (contactCommitment ? targetPool[0] : targetPool[Math.abs(Number(robot.id ?? 0)) % targetPool.length])
     : null;
+  const lockedObjectiveTarget = targetPool.find((candidate) => candidate.id === robot.aiTargetId) ?? null;
+  // Hold a viable target for a short human-readable engagement window.  The
+  // former per-think reselection made an AI twitch between several opponents
+  // at the point and could look like stationary spinning even though every
+  // individual steering command was valid.
+  const objectiveCombatTarget = lockedObjectiveTarget && worldTime < robot.aiTargetLockedUntil
+    ? lockedObjectiveTarget
+    : preferredObjectiveTarget;
   const encounterRadius = contactCommitment ? 32 : 19;
   const encounterTarget = availableEnemies
     .filter((candidate) => candidate.root.position.distanceToSquared(robot.root.position) <= encounterRadius ** 2
@@ -9410,7 +9839,12 @@ function updateDesertObjectiveAI(robot, dt) {
       robot.stats.combatEngagements++;
       robot.aiCombatEngagementStartedAt = worldTime;
     }
-    robot.aiTargetId = combatTarget.id;
+    if (robot.aiTargetId !== combatTarget.id) {
+      robot.aiTargetId = combatTarget.id;
+      robot.aiTargetSelectedAt = worldTime;
+      robot.aiTargetLockedUntil = worldTime + 2.4 + (Math.abs(Number(robot.id ?? 0)) % 4) * 0.36;
+      robot.stats.targetSwitches++;
+    }
     const objectivePuncherDistance = Math.max(7.2, robot.radius + combatTarget.radius + 3.6);
     const puncherFireDistance = objectivePuncherDistance + 5;
     robot.transitionAIState(combatDistance < (robot.type === 'puncher' ? objectivePuncherDistance : 5.4) ? 'ATTACK' : 'CHASE', routeEncounter ? 'ENEMY_DETECTED' : 'enemy-threatening-active-point');
@@ -9429,6 +9863,10 @@ function updateDesertObjectiveAI(robot, dt) {
       else combatGoal.addScaledVector(targetSide, robot.aiPreferredSide * 1.8);
     }
     if (hasRealWeaponContact && robot.type === 'drum') combatGoal.addScaledVector(targetDirection, 0.55);
+    robot.aiAction = robot.type === 'bar' ? 'FEINT_RETREAT'
+      : robot.type === 'spinner' ? 'SHORT_FLANK'
+        : robot.type === 'puncher' || robot.type === 'drum' ? 'DIRECT_CHARGE'
+          : 'OBJECTIVE_INTERCEPT';
     driveRobotTowardPoint(robot, combatGoal, dt, contactCommitment ? 1.34 : 1.25, { directWhenClear: true, forceForward: contactCommitment });
     for (const key of ['spinner', 'bar', 'drum']) if (robot.weapons[key]) robot.weapons[key].active = robot.weaponAvailable(key);
     for (const rotary of robot.rotaryWeapons) rotary.active = robot.rotaryAvailable(rotary);
@@ -9488,7 +9926,28 @@ function updateDesertObjectiveAI(robot, dt) {
   // Generic arena target search is intentionally not entered in conquest.
   // Every conquest decision retains A/B as its world goal; combat is handled
   // above only when an enemy actually threatens that objective.
-  driveRobotTowardPoint(robot, objective.point, dt, objective.urgent ? 1.2 : 1);
+  let movementGoal = objective.point;
+  if (insideObjective && !enemiesClose.length) {
+    const reachedPatrolPoint = robot.aiObjectivePatrolPoint
+      && robot.root.position.distanceToSquared(robot.aiObjectivePatrolPoint) < 3.2 ** 2;
+    if (!robot.aiObjectivePatrolPoint || reachedPatrolPoint || worldTime >= (robot.aiObjectivePatrolUntil ?? 0)) {
+      robot.aiObjectivePatrolSign = -(robot.aiObjectivePatrolSign || (Math.abs(Number(robot.id ?? 0)) % 2 ? 1 : -1));
+      const lane = Math.abs(Number(robot.id ?? 0)) % 4;
+      const axes = [new THREE.Vector3(1, 0, 0), new THREE.Vector3(0, 0, 1), new THREE.Vector3(0.78, 0, 0.62), new THREE.Vector3(-0.68, 0, 0.74)];
+      const axis = axes[lane].normalize();
+      const lateral = new THREE.Vector3(axis.z, 0, -axis.x).multiplyScalar(((Math.abs(Number(robot.id ?? 0)) % 3) - 1) * 1.7);
+      robot.aiObjectivePatrolPoint = active.centre.clone()
+        .addScaledVector(axis, active.radius * 0.52 * robot.aiObjectivePatrolSign)
+        .add(lateral);
+      robot.aiObjectivePatrolUntil = worldTime + 2.2 + lane * 0.22;
+    }
+    movementGoal = robot.aiObjectivePatrolPoint;
+    robot.aiAction = 'OBJECTIVE_PATROL';
+  } else {
+    robot.aiObjectivePatrolPoint = null;
+    robot.aiAction = objective.urgent ? 'OBJECTIVE_INTERCEPT' : 'OBJECTIVE_ROUTE';
+  }
+  driveRobotTowardPoint(robot, movementGoal, dt, objective.urgent ? 1.2 : 1);
   return true;
 }
 
@@ -9563,7 +10022,8 @@ function spawnHealingBeam(from, to, pulseIndex = 0, target = null) {
 }
 
 function robotNeedsRepair(robot) {
-  return !robot.dead && (robot.activeBlockParts().length < robot.blockParts.size
+  return !robot.dead && (robot.hp < robot.maxHp - 0.5 || robot.armor < robot.maxArmor - 0.5
+    || robot.activeBlockParts().length < robot.blockParts.size
     || [...robot.blockParts.values()].some((part) => part.hp < part.maxHp - 0.5)
     || robot.parts.some((part) => part.type !== 'block' && (part.detached || part.hp < part.maxHp - 0.5)));
 }
@@ -9596,6 +10056,15 @@ function carryRobotMatchTelemetry(source, target, preserveControlState = false) 
 }
 
 function restoreNextBlock(robot, source = 'repair-zone') {
+  if (robot.hp < robot.maxHp - 0.5 || robot.armor < robot.maxArmor - 0.5) {
+    const healerSource = source === 'healer';
+    const hpGain = healerSource ? 18 : 42;
+    const armorGain = healerSource ? 22 : 52;
+    robot.hp = Math.min(robot.maxHp, robot.hp + hpGain);
+    robot.armor = Math.min(robot.maxArmor, robot.armor + armorGain);
+    if (robot.armor > 0) robot.armorBroken = false;
+    return { type: 'survival', hpGain, armorGain };
+  }
   const damaged = [...robot.blockParts.values()].filter((part) => !part.detached && part.hp < part.maxHp - 0.5).sort((a, b) => a.hp / a.maxHp - b.hp / b.maxHp)[0];
   if (damaged) {
     damaged.hp = Math.min(damaged.maxHp, damaged.hp + Math.max(24, damaged.maxHp * 0.28));
@@ -9626,7 +10095,15 @@ function restoreNextBlock(robot, source = 'repair-zone') {
   const missingFunctional = robot.parts.some((part) => part.type !== 'block' && part.detached);
   if (missingFunctional) {
     const index = robots.indexOf(robot);
-    const replacement = new Robot({ id: robot.id, name: robot.name, type: robot.type, isPlayer: robot.isPlayer, team: robot.team, tint: robot.tint, aiTrait: robot.aiTrait, assembly: cloneData(robot.originalBuildData), position: { x: robot.root.position.x, z: robot.root.position.z }, yaw: robot.yaw, respawnCount: robot.respawnCount });
+    if (robot.combatEntity) combatSpawnRegistry.delete(robot.participantId);
+    const replacementOptions = {
+      id: robot.id, name: robot.name, type: robot.type, isPlayer: robot.isPlayer, team: robot.team, tint: robot.tint, aiTrait: robot.aiTrait,
+      assembly: cloneData(robot.originalBuildData), position: { x: robot.root.position.x, z: robot.root.position.z }, yaw: robot.yaw, respawnCount: robot.respawnCount,
+      participantId: robot.participantId, teamId: robot.teamId, robotId: robot.robotId,
+      spawnSlot: robot.spawnSlot, robotPresetId: robot.robotPresetId, spawnSource: 'MatchSpawnManager.functional-repair',
+    };
+    const replacement = robot.combatEntity ? spawnCombatRobot(replacementOptions) : new Robot(replacementOptions);
+    if (!replacement) return null;
     replacement.spawnPosition = { ...robot.spawnPosition };
     replacement.spawnYaw = robot.spawnYaw;
     replacement.spawnProtectionUntil = worldTime + 0.7;
@@ -9634,11 +10111,19 @@ function restoreNextBlock(robot, source = 'repair-zone') {
     // respawn. Preserve deployment and movement telemetry so a repaired robot
     // cannot be misclassified as having sat inside spawn for minutes.
     carryRobotMatchTelemetry(robot, replacement, true);
+    replacement.hp = robot.hp;
+    replacement.armor = robot.armor;
+    replacement.displayHp = robot.displayHp;
+    replacement.displayArmor = robot.displayArmor;
+    replacement.armorBroken = robot.armorBroken;
     scene.remove(robot.root);
     disposeRuntimeObjectResources(robot.root);
+    const appendedIndex = robots.indexOf(replacement);
+    if (appendedIndex >= 0) robots.splice(appendedIndex, 1);
     robots[index] = replacement;
     if (robot.isPlayer) player = replacement;
     buildEnemyUI();
+    if (robot.combatEntity) auditCombatSpawnRegistry('post-functional-repair');
     return { type: 'functional-restored', id: replacement.id };
   }
   return null;
@@ -9659,14 +10144,52 @@ function healRobotStep(healer, target, applyRepair = true) {
 }
 
 function updateHealerAI(robot, dt) {
-  if (robot.durability() < 0.48 && robotNeedsRepair(robot) && conquestState.enabled) {
+  if ((robot.hp / robot.maxHp < 0.28 || robot.durability() < 0.34) && robotNeedsRepair(robot) && conquestState.enabled) {
     return driveAIToRepairZone(robot, dt, 'HEALER_SELF_REPAIR');
   }
   const allies = robots.filter((candidate) => candidate !== robot && !candidate.dead && candidate.team === robot.team && robotNeedsRepair(candidate));
-  const target = allies.sort((a, b) => {
-    const score = (candidate) => (1 - candidate.durability()) * 40 + (candidate.weaponStatus() === '무기 파괴' ? 18 : 0) + (candidate.mobilityStatus() !== '주행 정상' ? 22 : 0) - robot.root.position.distanceTo(candidate.root.position) * 0.18;
-    return score(b) - score(a);
-  })[0] ?? null;
+  const enemies = game.targetsFor(robot);
+  const priority = (candidate) => {
+    const hpNeed = 1 - candidate.hp / Math.max(1, candidate.maxHp);
+    const armorNeed = 1 - candidate.armor / Math.max(1, candidate.maxArmor);
+    const structureNeed = 1 - candidate.blockStructureRatio();
+    const recentDamage = worldTime - candidate.lastDamageTakenAt < 2.4 ? 18 + candidate.lastDamageTakenAmount * 0.22 : 0;
+    const threats = enemies.filter((enemy) => enemy.root.position.distanceToSquared(candidate.root.position) < 15 ** 2).length;
+    const distance = robot.root.position.distanceTo(candidate.root.position);
+    return hpNeed * 74 + armorNeed * 28 + structureNeed * 30 + recentDamage + threats * 8
+      + (candidate.weaponStatus() === '무기 파괴' ? 12 : 0) + (candidate.mobilityStatus() !== '주행 정상' ? 18 : 0) - distance * 0.16;
+  };
+  const ranked = allies.map((candidate) => ({ candidate, score: priority(candidate) })).sort((a, b) => b.score - a.score);
+  const lockedTarget = allies.find((candidate) => candidate.id === robot.healTargetId) ?? null;
+  const best = ranked[0] ?? null;
+  const target = lockedTarget && worldTime < robot.aiHealTargetLockedUntil
+    && (!best || best.candidate === lockedTarget || best.score < priority(lockedTarget) + 24)
+    ? lockedTarget : best?.candidate ?? null;
+  if (target && target !== lockedTarget) robot.aiHealTargetLockedUntil = worldTime + 2.4;
+
+  const nearestEnemy = enemies.slice().sort((a, b) => a.root.position.distanceToSquared(robot.root.position) - b.root.position.distanceToSquared(robot.root.position))[0] ?? null;
+  const enemyDistance = nearestEnemy ? robot.root.position.distanceTo(nearestEnemy.root.position) : Infinity;
+  const urgentPatient = target && target.hp / target.maxHp < 0.3;
+  const enemyInterrupting = nearestEnemy && (enemyDistance < 7.5 || (target && nearestEnemy.root.position.distanceToSquared(target.root.position) < 8.5 ** 2));
+  const lowEnemy = nearestEnemy && nearestEnemy.hp / nearestEnemy.maxHp < 0.24 && enemyDistance < 13;
+  if (nearestEnemy && !urgentPatient && worldTime >= robot.aiHealerDisengageUntil
+    && (enemyInterrupting || lowEnemy || worldTime < robot.aiHealerAttackUntil)) {
+    robot.aiHealerAttackUntil = Math.max(robot.aiHealerAttackUntil, worldTime + 0.8);
+    robot.transitionAIState('HEALER_DASH_STRIKE', enemyInterrupting ? 'enemy-interrupting-heal' : 'low-enemy-opportunity');
+    const prediction = nearestEnemy.root.position.clone().addScaledVector(nearestEnemy.velocity, clamp(enemyDistance / 18, 0.15, 0.55) * robot.aiPersonality.predictionAccuracy);
+    const drive = driveRobotTowardPoint(robot, prediction, dt, 1.3, { directWhenClear: true });
+    if (enemyDistance > 4.5 && enemyDistance < 13 && Math.abs(drive.angleError) < 0.48 && robot.dashCooldown <= 0) {
+      const direction = prediction.clone().sub(robot.root.position).setY(0).normalize();
+      if (dashPathClear(robot, direction, Math.min(13, enemyDistance + 1.5)) && robot.requestDash('healer-intercept')) {
+        robot.dashDirection.copy(direction);
+        robot.stats.healerDashAttacks++;
+        robot.aiHealerAttackUntil = worldTime + 0.55;
+        robot.aiHealerDisengageUntil = worldTime + 2.1;
+      }
+    }
+    return true;
+  }
+  if (worldTime >= robot.aiHealerAttackUntil && robot.aiState === 'HEALER_DASH_STRIKE') robot.stats.healerReturnsToSupport++;
   if (!target) {
     robot.healTargetId = null;
     robot.healerPartnerUid = null;
@@ -9689,12 +10212,27 @@ function updateHealerAI(robot, dt) {
       const insideSupportZone = robot.root.position.distanceToSquared(active.centre) <= (active.radius * 0.84) ** 2;
       robot.transitionAIState(insideSupportZone ? 'ESCORT' : 'MOVE_TO_OBJECTIVE', insideSupportZone ? 'support-active-point' : 'healer-objective-priority');
       robot.aiTargetId = null;
-      if (insideSupportZone) robot.control = { throttle: 0, steering: 0, brake: true };
-      else driveRobotTowardPoint(robot, goal, dt, 1.08);
+      if (insideSupportZone && (!robot.aiObjectivePatrolPoint
+        || robot.root.position.distanceToSquared(robot.aiObjectivePatrolPoint) < 3.2 ** 2
+        || worldTime >= (robot.aiObjectivePatrolUntil ?? 0))) {
+        robot.aiObjectivePatrolSign = -(robot.aiObjectivePatrolSign || (Math.abs(Number(robot.id ?? 0)) % 2 ? 1 : -1));
+        const lane = Math.abs(Number(robot.id ?? 0)) % 4;
+        const axes = [new THREE.Vector3(1, 0, 0), new THREE.Vector3(0, 0, 1), new THREE.Vector3(0.78, 0, 0.62), new THREE.Vector3(-0.68, 0, 0.74)];
+        const axis = axes[lane].normalize();
+        robot.aiObjectivePatrolPoint = active.centre.clone().addScaledVector(axis, active.radius * 0.48 * robot.aiObjectivePatrolSign);
+        robot.aiObjectivePatrolUntil = worldTime + 2.1 + lane * 0.2;
+      }
+      const mobileGoal = insideSupportZone ? robot.aiObjectivePatrolPoint : goal;
+      robot.aiAction = insideSupportZone ? 'SUPPORT_SWEEP' : 'OBJECTIVE_ROUTE';
+      driveRobotTowardPoint(robot, mobileGoal, dt, insideSupportZone ? 0.72 : 1.08);
       return true;
     }
-    robot.control = { throttle: 0, steering: 0, brake: true };
-    robot.transitionAIState('ESCORT', 'no-living-ally');
+    const livingAllies = robots.filter((candidate) => candidate !== robot && !candidate.dead && candidate.team === robot.team);
+    const escort = livingAllies.sort((a, b) => a.root.position.distanceToSquared(robot.root.position) - b.root.position.distanceToSquared(robot.root.position))[0] ?? null;
+    const roam = escort?.root.position.clone().add(new THREE.Vector3(Math.sin(worldTime * 0.4 + robot.id) * 5, 0, Math.cos(worldTime * 0.37 + robot.id) * 5))
+      ?? new THREE.Vector3(Math.sin(worldTime * 0.17 + robot.id) * activeHalfWidth() * 0.45, 0, Math.cos(worldTime * 0.13 + robot.id) * activeHalfLength() * 0.45);
+    driveRobotTowardPoint(robot, roam, dt, 0.86);
+    robot.transitionAIState('ESCORT', 'mobile-support-patrol');
     return true;
   }
   robot.transitionAIState('HEAL_ALLY', 'priority-injured-ally');
@@ -9703,7 +10241,7 @@ function updateHealerAI(robot, dt) {
   target.healerPartnerUid = robot.instanceUid;
   const delta = target.root.position.clone().sub(robot.root.position).setY(0);
   const distance = delta.length();
-  if (distance > 7.2) {
+  if (distance > 8.2) {
     const drive = driveRobotTowardPoint(robot, target.root.position, dt, 1.08);
     // Never let a healer spend a think cycle rotating on one spot. It must
     // translate toward the patient, with a gentler driven arc when nearly
@@ -9714,17 +10252,34 @@ function updateHealerAI(robot, dt) {
       robot.control.steering = clamp(robot.control.steering, -0.46, 0.46);
       robot.yawVelocity *= 0.72;
     }
+  } else if (distance < 4.1) {
+    const away = robot.root.position.clone().sub(target.root.position).setY(0).normalize();
+    driveRobotTowardPoint(robot, robot.root.position.clone().addScaledVector(away, 5), dt, 0.78);
+  } else {
+    const targetForward = forwardFor(target.yaw);
+    const targetSide = new THREE.Vector3(targetForward.z, 0, -targetForward.x);
+    const followPoint = target.root.position.clone().addScaledVector(targetSide, robot.aiPreferredSide * 5.4).addScaledVector(targetForward, -2.6);
+    driveRobotTowardPoint(robot, followPoint, dt, 0.74);
   }
-  else robot.control = { throttle: 0, steering: 0, brake: true };
+  if (Math.abs(robot.control.throttle) < 0.08 && robot.velocity.clone().setY(0).length() < 0.32) {
+    // Reaching the exact follow offset is not a licence to idle. Flip to the
+    // opposite escort lane and keep translating while the healing stream is
+    // active. This is a short linear cross, never an in-place or circular
+    // orbit around the patient.
+    robot.aiPreferredSide *= -1;
+    const patientForward = forwardFor(target.yaw);
+    const patientSide = new THREE.Vector3(patientForward.z, 0, -patientForward.x);
+    const escortGoal = target.root.position.clone().addScaledVector(patientSide, robot.aiPreferredSide * 5.2).addScaledVector(patientForward, -2.2);
+    driveRobotTowardPoint(robot, escortGoal, dt, 0.76);
+  }
   if (distance <= 18 && !segmentBlockedByMapObstacle(robot.root.position, target.root.position, 0.4)) {
     robot.healAccumulator += dt;
-    while (robot.healAccumulator >= 0.12) {
-      robot.healAccumulator -= 0.12;
-      const applyRepair = robot.healPulseIndex % 2 === 0;
-      healRobotStep(robot, target, applyRepair);
+    while (robot.healAccumulator >= 0.1) {
+      robot.healAccumulator -= 0.1;
+      healRobotStep(robot, target, true);
     }
   } else {
-    robot.healAccumulator = Math.min(robot.healAccumulator, 0.12);
+    robot.healAccumulator = Math.min(robot.healAccumulator, 0.1);
   }
   return true;
 }
@@ -9892,6 +10447,9 @@ function updateConquestHUD() {
 
 function updateConquestMinimap() {
   if (!conquestState.enabled || !ui.minimapCanvas || !player) return;
+  const minimapHz = mobilePerformanceProfile() || robots.length >= 12 ? 5 : 8;
+  if (worldTime - conquestMinimapLastUpdate < 1 / minimapHz) return;
+  conquestMinimapLastUpdate = worldTime;
   const canvas = ui.minimapCanvas;
   const context = canvas.getContext('2d');
   const width = canvas.width;
@@ -12867,8 +13425,10 @@ function runWheelNativeScaleQA() {
 
 function sampleRuntimeFrames(seconds = 5) {
   const duration = clamp(Number(seconds) || 5, 2, 12) * 1000;
+  resetPerformanceProfile();
   return new Promise((resolve) => {
     const samples = [];
+    const renderedFramesAtStart = renderPerformanceStats.frames;
     let first = 0;
     let previous = 0;
     const tick = (now) => {
@@ -12879,11 +13439,21 @@ function sampleRuntimeFrames(seconds = 5) {
       const sorted = [...samples].sort((a, b) => a - b);
       const average = samples.reduce((sum, value) => sum + value, 0) / Math.max(1, samples.length);
       const percentile = (ratio) => sorted[Math.min(sorted.length - 1, Math.floor(sorted.length * ratio))] ?? 0;
+      const elapsedSeconds = Math.max(0.001, (now - first) / 1000);
+      const renderedFrames = Math.max(0, renderPerformanceStats.frames - renderedFramesAtStart);
+      const profile = performanceProfileSnapshot();
+      const topCpuStages = Object.entries(profile.stageTotalsMs)
+        .sort((a, b) => b[1] - a[1]).slice(0, 3)
+        .map(([stage, totalMs]) => ({ stage, totalMs }));
       resolve({
         view: mode, map: selectedMapId, robots: robots.length, seconds: Number(((now - first) / 1000).toFixed(2)), frames: samples.length,
-        averageFps: Number((1000 / average).toFixed(1)), medianFrameMs: Number(percentile(0.5).toFixed(2)),
+        displayRefreshFps: Number((1000 / average).toFixed(1)), renderedFrames,
+        actualRenderedFps: Number((renderedFrames / elapsedSeconds).toFixed(1)), medianFrameMs: Number(percentile(0.5).toFixed(2)),
         p95FrameMs: Number(percentile(0.95).toFixed(2)), onePercentLowFps: Number((1000 / Math.max(0.001, percentile(0.99))).toFixed(1)),
         pixelRatio: Number(renderer.getPixelRatio().toFixed(3)), shadows: renderer.shadowMap.enabled,
+        targetFps: frameRateLimit, qualityPreset, averageUpdateCpuMs: profile.averageUpdateCpuMs,
+        averageRenderCpuMs: profile.averageRenderCpuMs, cpuStageTotalsMs: profile.stageTotalsMs,
+        topCpuStages, renderer: profile.renderer, active: profile.active,
       });
     };
     requestAnimationFrame(tick);
@@ -13430,10 +14000,17 @@ function enterLobby() {
 }
 
 function clearCombatants() {
-  for (const robot of robots) {
-    scene.remove(robot.root);
-    disposeRuntimeObjectResources(robot.root);
+  const roots = new Set(robots.map((robot) => robot.root));
+  for (const object of scene.children) if (object.userData?.combatEntity) roots.add(object);
+  for (const root of roots) {
+    const robot = robots.find((candidate) => candidate.root === root);
+    if (robot) robot.root.visible = false;
+    scene.remove(root);
+    disposeRuntimeObjectResources(root);
   }
+  combatSpawnAudit.cleanupCount += roots.size;
+  combatSpawnRegistry.clear();
+  currentMatchRoster = [];
   robots.length = 0;
   for (const item of debris) {
     scene.remove(item.object);
@@ -13456,12 +14033,16 @@ function respawnRobot(robot) {
   const index = robots.indexOf(robot);
   if (index < 0 || !robot.dead || mode !== 'battle') return null;
   scene.remove(robot.root);
-  const replacement = new Robot({
+  combatSpawnRegistry.delete(robot.participantId);
+  const replacement = spawnCombatRobot({
     id: robot.id, name: robot.name, type: robot.type, isPlayer: robot.isPlayer,
     team: robot.team, tint: robot.tint, aiTrait: robot.aiTrait,
     assembly: cloneData(robot.respawnBlueprint), position: { ...robot.spawnPosition }, yaw: robot.spawnYaw,
     respawnCount: robot.respawnCount + 1,
+    participantId: robot.participantId, teamId: robot.teamId, robotId: robot.robotId,
+    spawnSlot: robot.spawnSlot, robotPresetId: robot.robotPresetId, spawnSource: 'MatchSpawnManager.respawn',
   });
+  if (!replacement) return null;
   replacement.spawnProtectionUntil = worldTime + SPAWN_PROTECTION_SECONDS;
   replacement.lastRespawnReason = robot.lastRespawnReason;
   carryRobotMatchTelemetry(robot, replacement, false);
@@ -13471,6 +14052,8 @@ function respawnRobot(robot) {
   replacement.placeOnMeasuredGround();
   replacement.lastPosition.copy(replacement.root.position);
   disposeRuntimeObjectResources(robot.root);
+  const appendedIndex = robots.indexOf(replacement);
+  if (appendedIndex >= 0) robots.splice(appendedIndex, 1);
   robots[index] = replacement;
   if (robot.isPlayer) player = replacement;
   if (colliderDebugEnabled) replacement.setColliderDebug(true);
@@ -13481,6 +14064,8 @@ function respawnRobot(robot) {
   if (respawnStats.log.length > 120) respawnStats.log.shift();
   buildEnemyUI();
   if (!isFreeForAllMode()) buildConquestHUD();
+  combatSpawnAudit.respawnReplacements++;
+  auditCombatSpawnRegistry('post-respawn');
   showMessage(`${replacement.name} 시작 지점 완전 복구 · ${SPAWN_PROTECTION_SECONDS.toFixed(1)}초 보호`, 1.5);
   return replacement;
 }
@@ -13510,15 +14095,27 @@ function freeForAllSpawnPoints() {
 function applyBattleRenderBudget(teamSize) {
   const budget = currentPerformanceBudget();
   const largeBattle = ['industrial01', 'desert01'].includes(selectedMapId) && robots.length >= 8;
-  const populationPixelScale = robots.length >= 12 ? 0.88 : robots.length >= 8 ? 0.94 : 1;
-  const stageRenderScale = adaptiveDegradeStage >= 3 ? 0.78 : 1;
-  renderer.setPixelRatio(Math.min(devicePixelRatio, budget.pixelRatio * populationPixelScale * adaptiveQualityScale) * mobileRenderScale() * stageRenderScale);
+  const populationPixelScale = robots.length >= 12
+    ? (qualityPreset === 'high' ? 0.98 : qualityPreset === 'medium' ? 0.96 : 0.92)
+    : robots.length >= 8 ? (qualityPreset === 'low' ? 0.96 : 0.98) : 1;
+  // Resolution is the last degradation step. Earlier stages reduce VFX,
+  // realtime shadows and far-detail before touching image clarity.
+  const stageRenderScale = adaptiveDegradeStage >= 4 ? 0.94 : 1;
+  const adaptiveScale = Math.max(budget.minimumAdaptiveScale, adaptiveQualityScale);
+  const requestedPixelRatio = Math.min(devicePixelRatio, budget.pixelRatio)
+    * budget.renderScale * populationPixelScale * adaptiveScale * stageRenderScale;
+  renderer.setPixelRatio(Math.max(0.8, requestedPixelRatio) * mobileRenderScale());
   renderer.shadowMap.enabled = budget.shadows && !mobilePerformanceProfile() && adaptiveDegradeStage < 2;
   for (const robot of robots) {
     const nearPlayer = robot.isPlayer || !player || robot.root.position.distanceToSquared(player.root.position) < (robots.length >= 12 ? 900 : 1764);
     robot.root.traverse((node) => {
-      if (node.isMesh) node.castShadow = renderer.shadowMap.enabled && nearPlayer && (!largeBattle || robot.isPlayer || robots.length <= 8);
+      if (node.isMesh) node.castShadow = !node.isInstancedMesh && renderer.shadowMap.enabled && nearPlayer && (!largeBattle || robot.isPlayer || robots.length <= 8);
     });
+  }
+  const maximumAnisotropy = renderer.capabilities.getMaxAnisotropy();
+  for (const texture of qualityManagedTextures) {
+    texture.anisotropy = Math.min(budget.anisotropy, maximumAnisotropy);
+    texture.needsUpdate = true;
   }
   industrialStats.performance.activePixelRatio = renderer.getPixelRatio();
   industrialStats.performance.largeBattleBudget = largeBattle;
@@ -13606,7 +14203,7 @@ function resetGame(testOnly = mode === 'test', playerAssembly = workingAssembly)
   Object.assign(blockFragmentStats, { bursts: 0, fragments: 0, maximumBurst: 0, colorMatches: 0, weak: 0, medium: 0, strong: 0, veryStrong: 0, critical: 0, sequence: 'colored-fragments-before-block-detach' });
   Object.assign(respawnStats, {
     deaths: 0, respawns: 0, aiRespawns: 0, playerRespawns: 0, protectionBlocks: 0, rejectedUnknown: 0,
-    reasonCounts: { CORE_DESTROYED: 0, BLOCKS_LE_5: 0, PLAYER_REQUEST: 0, AI_DISABLED: 0, OUT_OF_BOUNDS: 0 },
+    reasonCounts: { CORE_DESTROYED: 0, BLOCKS_LE_5: 0, HP_DEPLETED: 0, PLAYER_REQUEST: 0, AI_DISABLED: 0, OUT_OF_BOUNDS: 0 },
     log: [],
   });
   sawContactTimer = 0;
@@ -13623,13 +14220,32 @@ function resetGame(testOnly = mode === 'test', playerAssembly = workingAssembly)
   const redSpawns = teamSpawnPoints('red', teamSize);
   const ffaSpawns = freeForAllSpawnPoints();
   const playerSpawn = isFreeForAllMode() && !testOnly ? { x: ffaSpawns[0][0], z: ffaSpawns[0][1] } : blueSpawns[0];
+  const roster = [];
+  if (testOnly) {
+    roster.push({ participantId: 'test-player', teamId: 'ffa-0', robotNumericId: 0, spawnSlot: 0, isPlayer: true });
+  } else if (isFreeForAllMode()) {
+    const ffaCount = battleMode === 'ffa8' ? 8 : 4;
+    for (let index = 0; index < ffaCount; index++) roster.push({ participantId: `ffa-${index}`, teamId: `ffa-${index}`, robotNumericId: index, spawnSlot: index, isPlayer: index === 0 });
+  } else {
+    roster.push({ participantId: 'blue-0', teamId: 'blue', robotNumericId: 0, spawnSlot: 0, isPlayer: true });
+    let rosterRobotId = 1;
+    for (let index = 1; index < teamSize; index++) roster.push({ participantId: `blue-${index}`, teamId: 'blue', robotNumericId: rosterRobotId++, spawnSlot: index, isPlayer: false });
+    for (let index = 0; index < teamSize; index++) roster.push({ participantId: `red-${index}`, teamId: 'red', robotNumericId: rosterRobotId++, spawnSlot: index, isPlayer: false });
+  }
+  beginMatchSpawnRegistry(roster);
   // Never replace the player's saved construction with a generated AI body.
   // Validation is reported separately; test drive, battle and respawn all use
   // the exact same saved block/part payload.
   const effectivePlayerAssembly = enrichAssembly(playerAssembly);
   repairAssemblyBuildFloor(effectivePlayerAssembly, testOnly ? 'player-test-drive' : 'player-battle');
-  player = new Robot({ id: 0, name: 'PLAYER', type: 'player', isPlayer: true, team: testOnly || isFreeForAllMode() ? 'ffa-0' : 'blue', tint: testOnly || isFreeForAllMode() ? teamTint.ffa : teamTint.blue, assembly: effectivePlayerAssembly, position: playerSpawn, yaw: 0 });
-  robots.push(player);
+  const playerRoster = roster.find((entry) => entry.isPlayer);
+  player = spawnCombatRobot({
+    id: 0, name: 'PLAYER', type: 'player', isPlayer: true,
+    team: playerRoster.teamId, teamId: playerRoster.teamId, participantId: playerRoster.participantId,
+    robotId: 'player-0', spawnSlot: playerRoster.spawnSlot, spawnSource: 'MatchSpawnManager.player',
+    tint: testOnly || isFreeForAllMode() ? teamTint.ffa : teamTint.blue,
+    assembly: effectivePlayerAssembly, position: playerSpawn, yaw: 0,
+  });
   if (!testOnly) {
     const types = ['spinner', 'drum', 'bar', 'puncher', 'spinner', 'drum', 'bar', 'puncher'];
     const matchArchetypeOffset = Math.floor(Math.random() * AI_HULL_ARCHETYPES.length);
@@ -13674,7 +14290,14 @@ function resetGame(testOnly = mode === 'test', playerAssembly = workingAssembly)
       usedGeometrySignatures.add(assembly.aiDesign.geometrySignature);
       generatedAIIndex++;
       const name = `${assembly.aiDesign.displayName}${suffix}`;
-      robots.push(new Robot({ id, name, type, team, tint: team === 'blue' ? teamTint.blue : team === 'red' ? teamTint.red : [0xff8c7c, 0xb8d3ff, 0xffd771, 0x9be3c4, 0xf2b4ff][id % 5], assembly, position, yaw }));
+      const participant = roster.find((entry) => entry.robotNumericId === id && entry.teamId === team);
+      const spawned = spawnCombatRobot({
+        id, name, type, team, teamId: team, participantId: participant?.participantId,
+        robotId: `${team}-${id}`, spawnSlot: participant?.spawnSlot, spawnSource: 'MatchSpawnManager.ai',
+        tint: team === 'blue' ? teamTint.blue : team === 'red' ? teamTint.red : [0xff8c7c, 0xb8d3ff, 0xffd771, 0x9be3c4, 0xf2b4ff][id % 5],
+        assembly, position, yaw,
+      });
+      if (!spawned) throw new Error(`MATCH SPAWN REJECTED: ${team}/${id}/${name}`);
     };
     const teamBotSpec = (team, index) => {
       if (teamSize === 2) {
@@ -13708,6 +14331,7 @@ function resetGame(testOnly = mode === 'test', playerAssembly = workingAssembly)
       }
     }
   }
+  auditCombatSpawnRegistry('post-match-spawn');
   resetConquestState();
   const runtimeParts = robots.flatMap((robot) => (robot.runtimeAssetSources ?? []).map((part) => ({ robot: robot.name, team: robot.team, ...part })));
   const oldRuntimeParts = runtimeParts.filter((entry) => LEGACY_COMBAT_PATH_PATTERN.test(entry.source ?? ''));
@@ -14991,11 +15615,19 @@ function updateUIDetailed(refreshTelemetry = false) {
   stabilityStats.maxAbnormalVerticalConcurrent = Math.max(stabilityStats.maxAbnormalVerticalConcurrent, abnormalVerticalCurrent);
   stabilityStats.maxVerticalStandersConcurrent = Math.max(stabilityStats.maxVerticalStandersConcurrent, verticalStandersCurrent);
   const speed = player.velocity.clone().setY(0).length() * 3.6;
+  const budget = currentPerformanceBudget();
   ui.speed.textContent = speed.toFixed(1);
-  const health = clamp(player.durability(), 0, 1);
+  player.displayHp = lerp(player.displayHp ?? player.hp, player.hp, clamp(0.16 * budget.uiHz, 0.18, 1));
+  player.displayArmor = lerp(player.displayArmor ?? player.armor, player.armor, clamp(0.16 * budget.uiHz, 0.18, 1));
+  const health = clamp(player.displayHp / Math.max(1, player.maxHp), 0, 1);
+  const armor = clamp(player.displayArmor / Math.max(1, player.maxArmor), 0, 1);
   ui.playerHealth.style.width = `${health * 100}%`;
   ui.playerHealth.style.background = health < 0.3 ? 'linear-gradient(90deg,#e43d31,#ff7b3f)' : 'linear-gradient(90deg,#35d27d,#b4df4b)';
-  ui.playerHealthText.textContent = `${Math.round(health * 100)}%`;
+  ui.playerHealthText.textContent = `${Math.round(player.hp)} / ${player.maxHp}`;
+  if (ui.playerArmor) ui.playerArmor.style.width = `${armor * 100}%`;
+  if (ui.playerArmorText) ui.playerArmorText.textContent = `${Math.round(player.armor)} / ${player.maxArmor}`;
+  if (ui.playerClass) ui.playerClass.textContent = player.driveProfile?.label ?? player.weightClass;
+  ui.playerArmor?.parentElement?.classList.toggle('armor-broken', worldTime < player.armorBreakFlashUntil);
   const activeBlocks = player.activeBlockParts().length;
   ui.playerCore.textContent = `CORE ${Math.round(player.coreHealthRatio() * 100)}%`;
   ui.playerCore.classList.toggle('bad', player.coreHealthRatio() < 0.35);
@@ -15517,7 +16149,14 @@ function updateBattleRenderLOD(dt) {
   renderLODAccumulator += dt;
   if (renderLODAccumulator < 0.2) return;
   renderLODAccumulator = 0;
-  const distances = qualityPreset === 'low' ? [22, 52, 105] : qualityPreset === 'high' ? [46, 105, 210] : [32, 78, 160];
+  const mobileCrowd = mobilePerformanceProfile() && robots.length >= 12;
+  // Preserve the player's full mesh and nearby combat readability, but do not
+  // submit 15 remote high-detail wheel/weapon/armour GLBs. On a phone those
+  // robots occupy only a few dozen pixels, so the real block hull plus the
+  // lightweight wheel/weapon silhouette is visually equivalent at distance.
+  const distances = mobileCrowd
+    ? (qualityPreset === 'low' ? [8, 16, 44] : qualityPreset === 'high' ? [16, 34, 88] : [11, 23, 62])
+    : (qualityPreset === 'low' ? [22, 52, 105] : qualityPreset === 'high' ? [46, 105, 210] : [32, 78, 160]);
   const adaptiveDistanceScale = lerp(0.78, 1, adaptiveQualityScale) * (adaptiveDegradeStage >= 4 ? 0.72 : 1);
   const nearDistance = distances[0] * adaptiveDistanceScale;
   const midDistance = distances[1] * adaptiveDistanceScale;
@@ -15760,6 +16399,22 @@ function updateGame(dt) {
     const staticWorldSafePositions = robots.map((robot) => robot.root.position.clone());
     let stageStarted = performance.now();
     if (!qa && !aiVisualShowcaseActive) for (const robot of robots) robot.updateAI(stepDt);
+    if (!qa && mode === 'battle') for (const robot of robots) {
+      if (robot.isPlayer || robot.dead || robot.postureRecovery
+        || robot.driveEnabled === false || robot.motorEnabled === false || robot.controlsEnabled === false) continue;
+      const activeDriveState = ['MOVE_TO_OBJECTIVE', 'FORCED_DEPLOY', 'REPOSITION', 'FLANK', 'DEFEND', 'CONTEST', 'CAPTURE', 'HEAL_ALLY', 'ESCORT', 'SEARCH', 'CHASE', 'REENTRY'].includes(robot.aiState);
+      const planarSpeed = robot.velocity.clone().setY(0).length();
+      const commandIdle = activeDriveState && Math.abs(robot.control.throttle) < 0.08 && planarSpeed < 0.25;
+      robot.aiCommandIdleSeconds = commandIdle ? robot.aiCommandIdleSeconds + stepDt : Math.max(0, robot.aiCommandIdleSeconds - stepDt * 2);
+      if (robot.aiCommandIdleSeconds > 0.5) {
+        robot.control.brake = false;
+        robot.control.throttle = 0.68;
+        robot.control.steering = clamp(robot.control.steering || robot.aiPreferredSide * 0.18, -0.36, 0.36);
+        robot.wakePhysicsFromControl('ai-idle-drive-nudge');
+        robot.stats.idleDriveNudges++;
+        robot.aiCommandIdleSeconds = 0;
+      }
+    }
     performanceProfile.aiMs += performance.now() - stageStarted;
     stageStarted = performance.now();
     for (const robot of robots) robot.updatePhysics(stepDt, game);
@@ -16377,7 +17032,19 @@ ui.combatRespawn?.addEventListener('click', () => {
   player.destroyRobot(null, 'PLAYER_REQUEST');
   showMessage(`주행 불능 확인 · ${RESPAWN_DELAY_SECONDS}초 후 수리 구역 리스폰`, 2);
 });
-ui.dash?.addEventListener('click', () => { ensureAudio(); player?.requestDash('mobile'); });
+ui.dash?.addEventListener('pointerdown', (event) => {
+  ensureAudio();
+  event.preventDefault();
+  if (dashPointer !== null) return;
+  dashPointer = event.pointerId;
+  ui.dash.setPointerCapture?.(event.pointerId);
+  player?.requestDash('mobile-multitouch');
+});
+const releaseDashPointer = (event) => {
+  if (event.pointerId === dashPointer) dashPointer = null;
+};
+ui.dash?.addEventListener('pointerup', releaseDashPointer);
+ui.dash?.addEventListener('pointercancel', releaseDashPointer);
 const setAttackHeld = (active) => {
   if (!player || player.dead) return;
   player.wakePhysicsFromControl('mobile-attack');
@@ -16436,7 +17103,7 @@ ui.qualityPreset?.addEventListener('change', (event) => {
 });
 ui.frameRateLimit?.addEventListener('change', (event) => {
   const requested = Number(event.currentTarget.value);
-  frameRateLimit = [30, 45, 60].includes(requested) ? requested : 30;
+  frameRateLimit = [30, 45, 60].includes(requested) ? requested : 60;
   localStorage.setItem(FRAME_RATE_STORAGE_KEY, String(frameRateLimit));
   previous = performance.now();
   showMessage(`프레임 제한 ${frameRateLimit} FPS`, 1.2);
@@ -16478,7 +17145,7 @@ window.addEventListener('keydown', (event) => {
   if (['ArrowUp', 'ArrowDown', 'ArrowLeft', 'ArrowRight', dashKey].includes(event.code)) event.preventDefault();
 });
 window.addEventListener('keyup', (event) => keys.delete(event.code));
-window.addEventListener('blur', () => { keys.clear(); brakeHeld = false; });
+window.addEventListener('blur', () => { keys.clear(); brakeHeld = false; dashPointer = null; });
 
 async function loadAssets() {
   THREE.Cache.clear();
@@ -16507,6 +17174,12 @@ async function loadAssets() {
       models[id] = file.scene;
       models[id].userData.assetSource = ASSET_PATHS[id];
       models[id].userData.assetRevision = LOWPOLY_REVISION;
+      models[id].traverse((node) => {
+        if (!node.isMesh || !node.material) return;
+        for (const material of (Array.isArray(node.material) ? node.material : [node.material])) {
+          for (const key of ['map', 'normalMap', 'roughnessMap', 'metalnessMap', 'aoMap', 'emissiveMap']) registerQualityTexture(material?.[key]);
+        }
+      });
     } catch (error) {
       console.warn(`Asset fallback: ${id}`, error);
       models[id] = fallbackModel(id);
@@ -16550,6 +17223,43 @@ async function loadAssets() {
   console.info(`[LOW-POLY AUDIT] old desert obstacle loads: ${oldDesertLoads.length}`);
 }
 
+let mobileFpsMeterActive = false;
+let mobileFpsWindowStart = performance.now();
+let mobileFpsRenderedFrames = 0;
+let mobileFpsEMA = 0;
+
+function updateMobileFpsMeter(now) {
+  if (!ui.mobileFpsMeter) return;
+  const active = mobilePerformanceProfile() && (mode === 'battle' || mode === 'test');
+  if (!active) {
+    mobileFpsMeterActive = false;
+    mobileFpsRenderedFrames = 0;
+    mobileFpsEMA = 0;
+    ui.mobileFpsMeter.textContent = 'FPS -- · -- ms';
+    ui.mobileFpsMeter.removeAttribute('data-level');
+    return;
+  }
+  if (!mobileFpsMeterActive) {
+    mobileFpsMeterActive = true;
+    mobileFpsWindowStart = now;
+    mobileFpsRenderedFrames = 0;
+    return;
+  }
+  mobileFpsRenderedFrames += 1;
+  const elapsed = now - mobileFpsWindowStart;
+  if (elapsed < 500) return;
+  const measuredFps = mobileFpsRenderedFrames * 1000 / Math.max(1, elapsed);
+  mobileFpsEMA = mobileFpsEMA > 0 ? lerp(mobileFpsEMA, measuredFps, 0.45) : measuredFps;
+  const frameMs = 1000 / Math.max(0.1, mobileFpsEMA);
+  const shownFps = Math.round(mobileFpsEMA);
+  ui.mobileFpsMeter.textContent = `FPS ${shownFps} · ${frameMs.toFixed(1)} ms`;
+  ui.mobileFpsMeter.setAttribute('aria-label', `실시간 ${shownFps} FPS, 프레임 시간 ${frameMs.toFixed(1)} 밀리초`);
+  const ratio = mobileFpsEMA / Math.max(1, frameRateLimit);
+  ui.mobileFpsMeter.dataset.level = ratio >= 0.82 ? 'good' : ratio >= 0.55 ? 'warn' : 'bad';
+  mobileFpsWindowStart = now;
+  mobileFpsRenderedFrames = 0;
+}
+
 let previous = performance.now();
 function frame(now) {
   const frameIntervalMs = 1000 / frameRateLimit;
@@ -16585,6 +17295,7 @@ function frame(now) {
     const renderStarted = performance.now();
     renderer.render(scene, camera);
     renderTeamMarkers(rawDt);
+    updateMobileFpsMeter(now);
     recordPerformanceFrame(measuredFrameMs, 0, performance.now() - renderStarted);
     requestAnimationFrame(frame);
     return;
@@ -16595,6 +17306,7 @@ function frame(now) {
   const renderStarted = performance.now();
   renderer.render(scene, camera);
   renderTeamMarkers(rawDt);
+  updateMobileFpsMeter(now);
   const renderCpuMs = performance.now() - renderStarted;
   if (!qa && mode === 'battle' && rawDt > 0 && rawDt < 0.25) recordPerformanceFrame(measuredFrameMs, updateCpuMs, renderCpuMs);
   requestAnimationFrame(frame);
@@ -16622,6 +17334,150 @@ if (new URLSearchParams(location.search).get('qa') === 'isolated') {
   Object.assign(qaAdvanceButton.style, { position: 'fixed', left: '8px', bottom: '8px', zIndex: '40', width: '74px', height: '28px', opacity: '0.7' });
   qaAdvanceButton.addEventListener('click', () => window.__battlebotQAStep(10));
   document.body.append(qaAdvanceButton);
+}
+
+window.__battlebotSpawnQA = {
+  start(mapId = 'arena01', requestedMode = '8v8') {
+    ui.battleMap.value = mapId;
+    ui.lobbyBattleMap.value = mapId;
+    ui.battleMode.value = mapId === 'desert01' ? '10v10' : requestedMode;
+    ui.lobbyBattleMode.value = ui.battleMode.value;
+    setActiveMap(mapId);
+    startBattle(false);
+    return this.snapshot('qa-start');
+  },
+  snapshot(stage = 'qa-snapshot') {
+    return {
+      audit: auditCombatSpawnRegistry(stage),
+      roster: currentMatchRoster.map((entry) => ({ ...entry })),
+      robots: robots.filter((robot) => robot.combatEntity).map((robot) => ({
+        robotId: robot.robotId, participantId: robot.participantId, teamId: robot.teamId,
+        spawnSlot: robot.spawnSlot, presetId: robot.robotPresetId, spawnSource: robot.spawnSource,
+        dead: robot.dead, visible: robot.root.visible,
+      })),
+      registrySize: combatSpawnRegistry.size,
+      counters: { ...combatSpawnAudit },
+    };
+  },
+  respawnFirstAI() {
+    const target = robots.find((robot) => robot.combatEntity && !robot.isPlayer && !robot.dead);
+    if (!target) return this.snapshot('no-ai-to-respawn');
+    target.destroyRobot(player, 'AI_DISABLED');
+    if (typeof window.__battlebotQAStep === 'function') window.__battlebotQAStep(RESPAWN_DELAY_SECONDS + 0.4);
+    return this.snapshot('qa-post-respawn');
+  },
+};
+
+window.__battlebotAIBehaviorQA = {
+  snapshot() {
+    const ai = robots.filter((robot) => robot.combatEntity && !robot.isPlayer && !robot.dead);
+    const spinning = ai.filter((robot) => robot.aiMeaninglessStationarySeconds >= 1.2 && robot.aiStuckYawTravel > THREE.MathUtils.degToRad(70));
+    const stalled = ai.filter((robot) => Math.abs(robot.control.throttle) > 0.3 && robot.velocity.clone().setY(0).length() < 0.25 && robot.aiStateTime > 1.2);
+    const idlingHealers = ai.filter((robot) => robot.type === 'healer'
+      && Math.abs(robot.control.throttle) < 0.08
+      && robot.velocity.clone().setY(0).length() < 0.25
+      && robot.aiCommandIdleSeconds > 0.45
+      && !['MATCH_ENDED', 'SELF_RIGHT', 'WAIT_FOR_HEAL'].includes(robot.aiState));
+    return {
+      elapsed: Number(battleElapsed.toFixed(2)), map: selectedMapId, mode: battleMode,
+      aiCount: ai.length, spinning: spinning.map((robot) => robot.name), stalled: stalled.map((robot) => robot.name),
+      idlingHealers: idlingHealers.map((robot) => robot.name), actionVariety: [...new Set(ai.map((robot) => robot.aiAction))],
+      targetSwitches: ai.reduce((sum, robot) => sum + robot.stats.targetSwitches, 0),
+      obstacleDetections: ai.reduce((sum, robot) => sum + robot.stats.obstacleDetections, 0),
+      obstacleAvoidances: ai.reduce((sum, robot) => sum + robot.stats.obstacleAvoidances, 0),
+      leftAvoidances: ai.reduce((sum, robot) => sum + robot.stats.obstacleLeftAvoidances, 0),
+      rightAvoidances: ai.reduce((sum, robot) => sum + robot.stats.obstacleRightAvoidances, 0),
+      stuckRecoveries: ai.reduce((sum, robot) => sum + robot.stats.stuckRecoveries, 0),
+      dashCancelledByObstacle: ai.reduce((sum, robot) => sum + robot.stats.dashCancelledByObstacle, 0),
+      healerDashAttacks: ai.reduce((sum, robot) => sum + robot.stats.healerDashAttacks, 0),
+      idleDriveNudges: ai.reduce((sum, robot) => sum + robot.stats.idleDriveNudges, 0),
+      healerPulses: conquestState.healerTicks,
+      robots: ai.map((robot) => ({ name: robot.name, state: robot.aiState, action: robot.aiAction, speed: Number(robot.velocity.clone().setY(0).length().toFixed(2)), obstacleBlocked: Boolean(robot.aiObstacleScan?.blocked), target: robot.aiTargetId })),
+    };
+  },
+};
+
+window.__battlebotSurvivalQA = {
+  classConfig() {
+    return Object.fromEntries(Object.entries(WEIGHT_CLASSES).map(([id, value]) => [id, { maxHp: value.maxHp, maxArmor: value.maxArmor }]));
+  },
+  playerSnapshot() {
+    if (!player) return null;
+    return {
+      classId: player.weightClass,
+      hp: Number(player.hp.toFixed(2)), maxHp: player.maxHp,
+      armor: Number(player.armor.toFixed(2)), maxArmor: player.maxArmor,
+      armorBroken: player.armorBroken,
+    };
+  },
+  hit(amount = 100) {
+    if (!player) return null;
+    player.spawnProtectionUntil = 0;
+    player.applySurvivalDamage(Math.max(0, Number(amount) || 0), 'qa');
+    updateUIDetailed();
+    return this.playerSnapshot();
+  },
+};
+
+window.__battlebotHealerQA = {
+  run() {
+    const healer = robots.find((robot) => robot.combatEntity && !robot.dead && !robot.isPlayer && robot.type === 'healer');
+    const patient = healer && robots.find((robot) => robot.combatEntity && !robot.dead && robot !== healer && robot.team === healer.team && robot.type !== 'healer');
+    if (!healer || !patient) return { passed: false, reason: 'healer-or-patient-missing' };
+    const origin = selectedMapId === 'desert01'
+      ? new THREE.Vector3(0, 0, healer.team === 'blue' ? -DESERT_LAYOUT.halfLength * 0.2 : DESERT_LAYOUT.halfLength * 0.2)
+      : new THREE.Vector3(0, 0, healer.team === 'blue' ? -18 : 18);
+    healer.root.position.set(origin.x - 3, healer.getGroundSupportInfo(origin.x - 3, origin.z).height, origin.z);
+    patient.root.position.set(origin.x + 3, patient.getGroundSupportInfo(origin.x + 3, origin.z).height, origin.z);
+    healer.velocity.set(0, 0, 0);
+    patient.velocity.set(0, 0, 0);
+    patient.hp = Math.max(1, patient.maxHp * 0.22);
+    patient.armor = Math.max(0, patient.maxArmor * 0.18);
+    const before = { hp: patient.hp, armor: patient.armor, pulses: conquestState.healerTicks, healerX: healer.root.position.x };
+    healer.healTargetId = patient.id;
+    healer.aiHealTargetLockedUntil = worldTime + 4;
+    healer.aiHealerAttackUntil = 0;
+    healer.aiHealerDisengageUntil = worldTime + 4;
+    window.__battlebotQAStep(2.2);
+    const after = { hp: patient.hp, armor: patient.armor, pulses: conquestState.healerTicks, healerX: healer.root.position.x };
+    return {
+      passed: after.pulses > before.pulses && (after.hp > before.hp || after.armor > before.armor),
+      healer: healer.name, patient: patient.name, before, after,
+      translated: Math.abs(after.healerX - before.healerX) > 0.05,
+      healerState: healer.aiState,
+    };
+  },
+};
+
+if (new URLSearchParams(location.search).get('qa') === 'isolated') {
+  const runtimePanel = document.createElement('section');
+  runtimePanel.id = 'spawn-ai-survival-qa-panel';
+  runtimePanel.setAttribute('aria-label', '스폰 AI 생존력 통합 검증');
+  runtimePanel.style.cssText = 'position:fixed;left:8px;bottom:42px;z-index:120;display:grid;grid-template-columns:repeat(4,92px);gap:4px;padding:6px;background:rgba(4,12,20,.92);border:1px solid #4fc3ff;border-radius:7px;color:#fff;font:10px monospace;max-width:390px';
+  const runtimeOutput = document.createElement('pre');
+  runtimeOutput.id = 'spawn-ai-survival-qa-output';
+  runtimeOutput.style.cssText = 'grid-column:1/-1;max-height:170px;overflow:auto;white-space:pre-wrap;margin:0;font:9px/1.3 monospace';
+  const reportRuntimeQA = (value) => { runtimeOutput.textContent = JSON.stringify(value, null, 2); return value; };
+  const addRuntimeQAButton = (label, action) => {
+    const button = document.createElement('button');
+    button.type = 'button';
+    button.textContent = label;
+    button.style.cssText = 'min-height:26px;font:700 9px sans-serif';
+    button.addEventListener('click', () => reportRuntimeQA(action()));
+    runtimePanel.append(button);
+  };
+  addRuntimeQAButton('ARENA 8v8', () => window.__battlebotSpawnQA.start('arena01', '8v8'));
+  addRuntimeQAButton('INDUSTRIAL 8v8', () => window.__battlebotSpawnQA.start('industrial01', '8v8'));
+  addRuntimeQAButton('DESERT 10v10', () => window.__battlebotSpawnQA.start('desert01', '10v10'));
+  addRuntimeQAButton('RESPAWN AI', () => window.__battlebotSpawnQA.respawnFirstAI());
+  addRuntimeQAButton('STEP 10s', () => { window.__battlebotQAStep(10); return window.__battlebotAIBehaviorQA.snapshot(); });
+  addRuntimeQAButton('SPAWN SNAP', () => window.__battlebotSpawnQA.snapshot('qa-manual'));
+  addRuntimeQAButton('AI SNAP', () => window.__battlebotAIBehaviorQA.snapshot());
+  addRuntimeQAButton('HP/ARMOR', () => ({ config: window.__battlebotSurvivalQA.classConfig(), player: window.__battlebotSurvivalQA.playerSnapshot() }));
+  addRuntimeQAButton('HIT 100', () => window.__battlebotSurvivalQA.hit(100));
+  addRuntimeQAButton('HEALER TEST', () => window.__battlebotHealerQA.run());
+  runtimePanel.append(runtimeOutput);
+  document.body.append(runtimePanel);
 }
 
 if (new URLSearchParams(location.search).get('blockQA') === '1') {
@@ -18670,11 +19526,69 @@ function runBuildFloorQA() {
   return result;
 }
 
+function runMovingDashQA() {
+  if (!player || player.dead) return { passed: false, reason: 'live player unavailable' };
+  const saved = {
+    position: player.root.position.clone(), velocity: player.velocity.clone(), yaw: player.yaw,
+    pitch: player.pitch, roll: player.roll, yawVelocity: player.yawVelocity,
+    pitchVelocity: player.pitchVelocity, rollVelocity: player.rollVelocity,
+    control: { ...player.control }, dashCooldown: player.dashCooldown,
+    dashActiveTimer: player.dashActiveTimer, dashHitWindow: player.dashHitWindow,
+    dashDirection: player.dashDirection.clone(), dashStartPosition: player.dashStartPosition.clone(),
+    lastSupportInfo: player.lastSupportInfo, dashUses: player.stats.dashUses,
+  };
+  player.pitch = 0;
+  player.roll = 0;
+  player.root.rotation.set(0, player.yaw, 0, 'YXZ');
+  player.placeOnMeasuredGround();
+  player.lastSupportInfo = player.getGroundSupportInfo();
+  player.dashCooldown = 0;
+  player.control = { throttle: 1, steering: 0.65, brake: false };
+  const forward = forwardFor(player.yaw);
+  const right = new THREE.Vector3(forward.z, 0, -forward.x);
+  player.velocity.copy(forward).multiplyScalar(6).addScaledVector(right, 1.4);
+  const speedBefore = player.velocity.clone().setY(0).length();
+  const lateralBefore = player.velocity.dot(right);
+  const accepted = player.requestDash('qa-moving-multitouch');
+  const speedAfterRequest = player.velocity.clone().setY(0).length();
+  const lateralAfterRequest = player.velocity.dot(right);
+  const throttleAfterRequest = player.control.throttle;
+  const brakeAfterRequest = player.control.brake;
+  player.updatePhysics(1 / 60, game);
+  const steeringApplied = Math.abs(player.yawVelocity) > 0.0001;
+  const result = {
+    accepted,
+    speedBefore: Number(speedBefore.toFixed(3)),
+    speedAfterRequest: Number(speedAfterRequest.toFixed(3)),
+    lateralBefore: Number(lateralBefore.toFixed(3)),
+    lateralAfterRequest: Number(lateralAfterRequest.toFixed(3)),
+    throttlePreserved: throttleAfterRequest === 1,
+    brakeNotInjected: brakeAfterRequest === false,
+    steeringApplied,
+    mobileBinding: 'independent pointerdown + pointerId capture',
+  };
+  result.passed = accepted && speedAfterRequest > speedBefore
+    && Math.abs(lateralAfterRequest - lateralBefore) < 0.01
+    && result.throttlePreserved && result.brakeNotInjected && steeringApplied;
+  player.root.position.copy(saved.position);
+  player.velocity.copy(saved.velocity);
+  player.yaw = saved.yaw; player.pitch = saved.pitch; player.roll = saved.roll;
+  player.yawVelocity = saved.yawVelocity; player.pitchVelocity = saved.pitchVelocity; player.rollVelocity = saved.rollVelocity;
+  player.control = saved.control; player.dashCooldown = saved.dashCooldown;
+  player.dashActiveTimer = saved.dashActiveTimer; player.dashHitWindow = saved.dashHitWindow;
+  player.dashDirection.copy(saved.dashDirection); player.dashStartPosition.copy(saved.dashStartPosition);
+  player.lastSupportInfo = saved.lastSupportInfo; player.stats.dashUses = saved.dashUses;
+  player.root.rotation.set(player.pitch, player.yaw, player.roll, 'YXZ');
+  return result;
+}
+
 window.__battlebotFatalQA = {
   garageSixFaces: runGarageSixFacePointerQA,
   garageCameraFade: runGarageCameraFadeQA,
   wheelNativeScale: runWheelNativeScaleQA,
   sampleFrames: sampleRuntimeFrames,
+  performanceProfile: performanceProfileSnapshot,
+  movingDash: runMovingDashQA,
 };
 window.__battlebotFloorQA = { runAll: runBuildFloorQA, runDynamic: exerciseDynamicFloorCollisionQA, auditAssemblyBuildFloor, validatePartPlacement };
 
@@ -18831,6 +19745,8 @@ function installConquestQAPanel() {
   addButton('CAMERA FADE', window.__battlebotFatalQA.garageCameraFade, 'qa-garage-camera-fade');
   addButton('WHEEL SCALE', window.__battlebotFatalQA.wheelNativeScale, 'qa-wheel-native-scale');
   addButton('FPS 5s', () => window.__battlebotFatalQA.sampleFrames(5), 'qa-runtime-fps');
+  addButton('PERF SNAP', () => window.__battlebotFatalQA.performanceProfile(), 'qa-runtime-profile');
+  addButton('DASH MOVE', () => window.__battlebotFatalQA.movingDash(), 'qa-runtime-dash-moving');
   addButton('SNAPSHOT', conquestQASnapshot, 'qa-conquest-snapshot');
   addButton('QA +12s', () => { if (typeof window.__battlebotQAStep === 'function') window.__battlebotQAStep(12); return conquestQASnapshot(); }, 'qa-conquest-advance');
   output.textContent = JSON.stringify(conquestQASnapshot());
@@ -18866,9 +19782,39 @@ function installFatalRuntimeQAPanel() {
   addButton('CAMERA FADE', window.__battlebotFatalQA.garageCameraFade, 'fatal-qa-camera-fade');
   addButton('WHEEL SCALE', window.__battlebotFatalQA.wheelNativeScale, 'fatal-qa-wheel-scale');
   addButton('FPS 5s', () => window.__battlebotFatalQA.sampleFrames(5), 'fatal-qa-fps');
-  output.textContent = JSON.stringify({ ready: true, checks: ['six-face-pointer', 'camera-fade', 'wheel-native-scale', 'runtime-fps'] });
+  addButton('PERF SNAP', () => window.__battlebotFatalQA.performanceProfile(), 'fatal-qa-profile');
+  addButton('DASH MOVE', () => window.__battlebotFatalQA.movingDash(), 'fatal-qa-dash-moving');
+  output.textContent = JSON.stringify({ ready: true, checks: ['six-face-pointer', 'camera-fade', 'wheel-native-scale', 'runtime-fps', 'performance-profile', 'moving-dash'] });
   panel.append(output);
   document.body.append(panel);
+
+  // Browser/mobile QA only: wait for an actual combat robot, then publish one
+  // evidence bundle into the DOM. This never runs in a normal player session.
+  if (new URLSearchParams(location.search).get('mobileRuntimeQA') === '1') {
+    const runMobileRuntimeQA = async () => {
+      if (!player || player.dead || robots.filter((robot) => !robot.dead).length < 2) {
+        window.setTimeout(runMobileRuntimeQA, 400);
+        return;
+      }
+      try {
+        const movingDash = runMovingDashQA();
+        const beforeSampleProfile = performanceProfileSnapshot();
+        const frameSample = await sampleRuntimeFrames(5);
+        const result = {
+          passed: Boolean(movingDash.passed && frameSample.actualRenderedFps > 0),
+          movingDash,
+          beforeSampleProfile,
+          frameSample,
+        };
+        output.textContent = JSON.stringify(result);
+        output.dataset.qaResult = result.passed ? 'pass' : 'fail';
+      } catch (error) {
+        output.textContent = JSON.stringify({ passed: false, error: error.message, stack: error.stack });
+        output.dataset.qaResult = 'fail';
+      }
+    };
+    window.setTimeout(runMobileRuntimeQA, 900);
+  }
 }
 
 try {
