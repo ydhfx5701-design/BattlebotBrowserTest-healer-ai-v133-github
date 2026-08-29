@@ -137,12 +137,12 @@ const ui = {
   paintStatus: document.querySelector('#paint-status'),
 };
 
-const LOWPOLY_REVISION = 'remesh-150-horizontal-bar';
+const LOWPOLY_REVISION = 'remesh-154-integrated-environment-damage';
 const ASSETS = [
   'new_wheel', 'wheel_light', 'wheel_wide',
   'new_saw_blade', 'drum_spinner', 'bar_spinner',
   'puncher_housing', 'puncher_tip',
-  'arena_stands', 'arena_concrete_boundary',
+  'arena_stands', 'arena_low_barrier', 'industrial_container', 'industrial_barrier',
   'armor_curved', 'armor_flat', 'horn_curved', 'horn_straight',
   'exhaust_triple', 'exhaust_vertical',
   'desert_cliff_1', 'desert_cliff_2', 'desert_cliff_3', 'desert_cliff_4',
@@ -160,8 +160,10 @@ Object.assign(ASSET_PATHS, {
   bar_spinner: `./assets_lowpoly/bar_spinner.glb?v=${LOWPOLY_REVISION}`,
   puncher_housing: `./assets_lowpoly/puncher_housing.glb?v=${LOWPOLY_REVISION}`,
   puncher_tip: `./assets_lowpoly/puncher_tip.glb?v=${LOWPOLY_REVISION}`,
-  arena_stands: './assets_v5/arena_stands.glb?v=arena01-1',
-  arena_concrete_boundary: './assets_v9/arena_concrete_boundary.glb?v=concrete-boundary-151',
+  arena_stands: `./assets_lowpoly_environment/stands.glb?v=${LOWPOLY_REVISION}`,
+  arena_low_barrier: `./assets_lowpoly_environment/low_steel_barrier.glb?v=${LOWPOLY_REVISION}`,
+  industrial_container: `./assets_lowpoly_environment/container.glb?v=${LOWPOLY_REVISION}`,
+  industrial_barrier: `./assets_lowpoly_environment/concrete_barrier.glb?v=${LOWPOLY_REVISION}`,
   // The supplied remesh pack has no separate curved plate file. Both armour
   // slots deliberately resolve to the supplied low-poly plate so the removed
   // high-poly curved mesh can never re-enter the runtime cache.
@@ -195,8 +197,10 @@ const LOWPOLY_DESERT_IDS = Object.freeze([
   'desert_medium_1', 'desert_medium_2', 'desert_medium_3',
   'desert_small_1', 'desert_small_2', 'desert_small_3', 'desert_small_4', 'desert_small_5',
 ]);
+const LOWPOLY_ENVIRONMENT_IDS = Object.freeze(['arena_stands', 'arena_low_barrier', 'industrial_container', 'industrial_barrier']);
 const LEGACY_COMBAT_PATH_PATTERN = /assets_v(?:2|3|7)\/(?:new_(?:wheel|saw)|wheel_|track_|bar_spinner|drum_spinner|armor_)/i;
 const LEGACY_DESERT_PATH_PATTERN = /assets_v(?:2|3|4|5|6|7)\/(?:desert|canyon|rock|cliff|ridge|sand|obstacle)/i;
+const LEGACY_ENVIRONMENT_PATH_PATTERN = /assets_v(?:2|3|4|5|6|7|8|9)\/(?:arena_(?:stands|fence|bumper|concrete)|industrial_(?:container|barrier)|ramp|obstacle)/i;
 const MODEL_TRANSFORMS = {
   new_wheel: { scale: [1, 1, 1], rotation: [0, Math.PI / 2, 0], targetMax: 0.92 },
   wheel_light: { scale: [1, 1, 1], rotation: [0, Math.PI / 2, 0], targetMax: 0.76 },
@@ -977,9 +981,9 @@ const DASH_KEY_STORAGE_KEY = 'battlebot-dash-key-v1';
 const FRAME_RATE_STORAGE_KEY = 'battlebot-frame-rate-v2';
 const DASH_KEYS = new Set(['ControlLeft', 'AltLeft', 'KeyF']);
 const QUALITY_PRESETS = Object.freeze({
-  low: { label: '낮음', pixelRatio: 1.2, renderScale: 0.82, minimumAdaptiveScale: 0.9, anisotropy: 2, shadows: false, sparkScale: 0.42, sparkLimit: 150, fragmentScale: 0.42, fragmentBursts: 8, debrisLimit: 52, uiHz: 6 },
-  medium: { label: '중간', pixelRatio: 1.55, renderScale: 0.9, minimumAdaptiveScale: 0.92, anisotropy: 6, shadows: false, sparkScale: 0.68, sparkLimit: 250, fragmentScale: 0.64, fragmentBursts: 14, debrisLimit: 82, uiHz: 8 },
-  high: { label: '높음', pixelRatio: 1.85, renderScale: 1, minimumAdaptiveScale: 0.95, anisotropy: 8, shadows: true, sparkScale: 0.9, sparkLimit: 360, fragmentScale: 0.86, fragmentBursts: 20, debrisLimit: 112, uiHz: 10 },
+  low: { label: '낮음', pixelRatio: 1.25, renderScale: 0.85, minimumAdaptiveScale: 0.94, anisotropy: 2, shadows: false, sparkScale: 0.38, sparkLimit: 132, fragmentScale: 0.38, fragmentBursts: 7, debrisLimit: 44, uiHz: 6 },
+  medium: { label: '중간', pixelRatio: 1.4, renderScale: 0.9, minimumAdaptiveScale: 0.95, anisotropy: 4, shadows: false, sparkScale: 0.62, sparkLimit: 220, fragmentScale: 0.58, fragmentBursts: 12, debrisLimit: 68, uiHz: 8 },
+  high: { label: '높음', pixelRatio: 1.5, renderScale: 1, minimumAdaptiveScale: 0.97, anisotropy: 6, shadows: true, sparkScale: 0.82, sparkLimit: 300, fragmentScale: 0.74, fragmentBursts: 16, debrisLimit: 88, uiHz: 10 },
 });
 
 function loadQualityPreset() {
@@ -1001,6 +1005,9 @@ const storedFrameRate = Number(localStorage.getItem(FRAME_RATE_STORAGE_KEY));
 let frameRateLimit = [30, 45, 60].includes(storedFrameRate)
   ? storedFrameRate
   : 60;
+let thermalFrameRateLimit = frameRateLimit;
+let thermalOverloadSeconds = 0;
+const effectiveFrameRateLimit = () => Math.min(frameRateLimit, thermalFrameRateLimit);
 
 function populationBudgetScale() {
   const count = robots.length || 1;
@@ -1706,7 +1713,7 @@ const arenaStats = {
   fenceModules: { north: 0, south: 0, east: 0, west: 0, total: 0, uniformScale: true, spacingError: 0 },
   stands: { north: 4, south: 4, east: 3, west: 3, total: 14, uniformScale: true },
   ramps: { arena_ramp_1: 0, arena_ramp_2: 0, total: 0, removedFromArena01: true },
-  bumpers: 0,
+  bumpers: 8,
   outerWalls: 0,
   floatingObjects: 0,
   centralClearFraction: 0.66,
@@ -1717,7 +1724,7 @@ const arenaStats = {
   },
   symmetric: true,
   scaleReferences: { robotHeight: 1.6, fenceHeight: 0, audienceHeight: 0, fenceRobotRatio: 0, audienceRobotRatio: 0 },
-  visualHierarchy: ['bright-combat-floor', 'solid-concrete-boundary', 'dim-audience'],
+  visualHierarchy: ['bright-combat-floor', 'sparse-low-steel-obstacles', 'dim-audience'],
 };
 const industrialStats = {
   name: INDUSTRIAL_LAYOUT.name,
@@ -1726,12 +1733,12 @@ const industrialStats = {
   scaleFromPreviousIndustrial: { width: Number((INDUSTRIAL_LAYOUT.halfWidth / 112).toFixed(2)), length: Number((INDUSTRIAL_LAYOUT.halfLength / 88).toFixed(2)), area: Number(((INDUSTRIAL_LAYOUT.halfWidth * INDUSTRIAL_LAYOUT.halfLength) / (112 * 88)).toFixed(2)) },
   scaleFromV99: { width: INDUSTRIAL_SPACE_SCALE, length: INDUSTRIAL_SPACE_SCALE, area: Number((INDUSTRIAL_SPACE_SCALE ** 2).toFixed(2)), objectScale: 1 },
   floor: { source: '맵 타일.png', visualTiles: INDUSTRIAL_LAYOUT.visualTiles, physicsColliderCount: 1, gaps: 0, stretched: false, topY: PHYSICS_FLOOR_TOP, thickness: PHYSICS_FLOOR_THICKNESS.industrial01, collisionMode: 'continuous-swept', solverHz: 90 },
-  assets: { containers: 0, barriers: 0, fenceModules: 0 },
-  zones: ['central-plaza', 'open-combat-field', 'concrete-boundary'],
+  assets: { containers: 12, barriers: 12, lowSteelBarriers: 8, fenceModules: 0 },
+  zones: ['central-plaza', 'container-lanes', 'outer-barrier-approaches'],
   centralPlaza: { width: 112, length: 78.4, simultaneousRobotCapacity: 8, obstacleCount: 0 },
   spawnPointsPerTeam: 8,
   navigation: { nodes: 0, links: 0, obstacleAware: true, directLineOfSight: true, repathSeconds: 0.45 },
-  performance: { gpuInstancing: ['concrete-boundary'], staticBoxColliders: true, distanceShadowLOD: true, debrisLimit: MAX_ACTIVE_DEBRIS },
+  performance: { gpuInstancing: ['container', 'concrete-barrier', 'low-steel-barrier'], staticBoxColliders: true, distanceShadowLOD: true, debrisLimit: MAX_ACTIVE_DEBRIS },
   tests: { soloRoute: 'pending', straightCrossing: 'pending', ffa4: 'pending', ffa8: 'pending', team4v4: 'pending', team6v6: 'pending', team8v8: 'pending', aiAvoidance: 'pending', debrisFloor: 'pending', robotFloorDrops: 'pending', obstacleContact: 'pending', obstacleBounce: 'pending', groundSeating: 'pending' },
 };
 const desertStats = {
@@ -1950,6 +1957,21 @@ function recordPerformanceFrame(frameMs, updateMs, renderMs) {
     if (performanceFrameSpikeLog.length > 24) performanceFrameSpikeLog.shift();
   }
   updateAdaptiveQualityFromFrame(frameMs);
+  updateThermalFrameBudget(frameMs);
+}
+
+function updateThermalFrameBudget(frameMs) {
+  if (!mobilePerformanceProfile() || mode !== 'battle' || robots.length < 12 || !Number.isFinite(frameMs) || frameMs <= 0 || frameMs > 250) return;
+  const target = effectiveFrameRateLimit();
+  const overloadThreshold = target >= 60 ? 20.5 : target >= 45 ? 28 : 38;
+  if (frameMs > overloadThreshold) thermalOverloadSeconds += Math.min(frameMs, 50) / 1000;
+  else thermalOverloadSeconds = Math.max(0, thermalOverloadSeconds - frameMs / 2000);
+  if (thermalOverloadSeconds < 7.5) return;
+  thermalOverloadSeconds = 0;
+  if (thermalFrameRateLimit > 45) thermalFrameRateLimit = 45;
+  else if (thermalFrameRateLimit > 30) thermalFrameRateLimit = 30;
+  adaptiveQualityCooldown = 180;
+  console.info(`[THERMAL FRAME LOCK] ${thermalFrameRateLimit} FPS; sustained frame time ${frameMs.toFixed(1)} ms`);
 }
 
 function updateAdaptiveQualityFromFrame(frameMs) {
@@ -1957,7 +1979,7 @@ function updateAdaptiveQualityFromFrame(frameMs) {
   adaptiveFrameMsEMA = lerp(adaptiveFrameMsEMA, frameMs, 0.045);
   adaptiveQualityCooldown = Math.max(0, adaptiveQualityCooldown - 1);
   if (adaptiveQualityCooldown > 0) return;
-  const targetFrameMs = 1000 / Math.max(30, frameRateLimit);
+  const targetFrameMs = 1000 / Math.max(30, effectiveFrameRateLimit());
   const preset = QUALITY_PRESETS[qualityPreset] ?? QUALITY_PRESETS.medium;
   // A deliberate 30 FPS cap produces ~33.3 ms rendered frames. The old fixed
   // 25/34 ms thresholds treated that expected cadence as overload and drove
@@ -2000,7 +2022,9 @@ function performanceProfileSnapshot() {
   const measuredFrames = Math.max(1, renderPerformanceStats.frames - performanceProfile.frameStart);
   return {
     qualityPreset,
-    targetFps: frameRateLimit,
+    targetFps: effectiveFrameRateLimit(),
+    requestedTargetFps: frameRateLimit,
+    thermalLockFps: thermalFrameRateLimit,
     solverHz: performanceProfile.physicsHz,
     samples: count,
     medianFrameMs: Number(medianFrameMs.toFixed(2)),
@@ -2523,132 +2547,6 @@ function addInstancedArenaModules(id, placements, targetLength, name, appearance
   return instances;
 }
 
-function concreteBoundaryPlacements(halfWidth, halfLength, preferredLength = 6.5) {
-  const horizontalCount = Math.ceil((halfWidth * 2) / preferredLength);
-  const verticalCount = Math.ceil((halfLength * 2) / preferredLength);
-  const horizontalLength = halfWidth * 2 / horizontalCount;
-  const verticalLength = halfLength * 2 / verticalCount;
-  const horizontal = [];
-  const vertical = [];
-  for (let index = 0; index < horizontalCount; index++) {
-    const x = -halfWidth + horizontalLength / 2 + index * horizontalLength;
-    horizontal.push({ x, z: -halfLength, rotationY: 0 }, { x, z: halfLength, rotationY: Math.PI });
-  }
-  for (let index = 0; index < verticalCount; index++) {
-    const z = -halfLength + verticalLength / 2 + index * verticalLength;
-    vertical.push({ x: halfWidth, z, rotationY: -Math.PI / 2 }, { x: -halfWidth, z, rotationY: Math.PI / 2 });
-  }
-  return { horizontal, vertical, horizontalLength, verticalLength };
-}
-
-let mobileConcreteBoundaryMaterials = null;
-function getMobileConcreteBoundaryMaterials() {
-  if (mobileConcreteBoundaryMaterials) return mobileConcreteBoundaryMaterials;
-  const stripeCanvas = document.createElement('canvas');
-  stripeCanvas.width = 128;
-  stripeCanvas.height = 16;
-  const context = stripeCanvas.getContext('2d');
-  context.fillStyle = '#17191a';
-  context.fillRect(0, 0, 128, 16);
-  context.fillStyle = '#d6a62a';
-  for (let x = -16; x < 144; x += 32) {
-    context.beginPath();
-    context.moveTo(x, 16);
-    context.lineTo(x + 12, 16);
-    context.lineTo(x + 28, 0);
-    context.lineTo(x + 16, 0);
-    context.closePath();
-    context.fill();
-  }
-  const stripeTexture = new THREE.CanvasTexture(stripeCanvas);
-  stripeTexture.wrapS = THREE.RepeatWrapping;
-  stripeTexture.wrapT = THREE.RepeatWrapping;
-  stripeTexture.repeat.set(4.8, 1);
-  registerQualityTexture(stripeTexture);
-  mobileConcreteBoundaryMaterials = {
-    concrete: new THREE.MeshStandardMaterial({ color: 0x8f8b82, metalness: 0.03, roughness: 0.93 }),
-    stripe: new THREE.MeshStandardMaterial({ map: stripeTexture, color: 0xffffff, metalness: 0.04, roughness: 0.82 }),
-  };
-  return mobileConcreteBoundaryMaterials;
-}
-
-function addMobileConcreteBoundarySet(placements, targetLength, name, mapId) {
-  const { size } = getArenaAssetMetrics('arena_concrete_boundary');
-  const uniformScale = targetLength / Math.max(0.001, size.x);
-  const height = Math.max(0.78, size.y * uniformScale);
-  const depth = Math.max(0.52, size.z * uniformScale);
-  const materials = getMobileConcreteBoundaryMaterials();
-  const base = new THREE.InstancedMesh(
-    new THREE.BoxGeometry(targetLength, height, depth), materials.concrete, placements.length,
-  );
-  const stripe = new THREE.InstancedMesh(
-    new THREE.BoxGeometry(targetLength * 0.985, Math.min(0.2, height * 0.2), depth * 1.025), materials.stripe, placements.length,
-  );
-  base.name = `${name}_MobileConcreteBase`;
-  stripe.name = `${name}_MobileHazardBand`;
-  base.castShadow = false;
-  stripe.castShadow = false;
-  base.receiveShadow = true;
-  stripe.receiveShadow = true;
-  const quaternion = new THREE.Quaternion();
-  const baseMatrix = new THREE.Matrix4();
-  const stripeMatrix = new THREE.Matrix4();
-  placements.forEach((placement, index) => {
-    quaternion.setFromAxisAngle(Y_AXIS, placement.rotationY ?? 0);
-    baseMatrix.compose(
-      new THREE.Vector3(placement.x, height / 2 - 0.004, placement.z), quaternion, new THREE.Vector3(1, 1, 1),
-    );
-    stripeMatrix.compose(
-      new THREE.Vector3(placement.x, Math.min(height - 0.12, height * 0.68), placement.z), quaternion, new THREE.Vector3(1, 1, 1),
-    );
-    base.setMatrixAt(index, baseMatrix);
-    stripe.setMatrixAt(index, stripeMatrix);
-    const obstacle = {
-      kind: 'box', obstacleType: 'concrete-boundary', x: placement.x, z: placement.z,
-      rotationY: placement.rotationY ?? 0, halfX: targetLength / 2 - 0.012,
-      halfZ: depth / 2 - 0.012, radius: Math.hypot(targetLength / 2, depth / 2),
-      colliderHeight: height - 0.012, colliderBottom: PHYSICS_FLOOR_TOP - 0.004,
-      groundGap: -0.004, colliderInset: 0.012, mesh: base, static: true,
-    };
-    obstacles.push(obstacle);
-    addEnvironmentColliderDebug({
-      name: `${name}_MobileCollider`, mapId, x: obstacle.x,
-      y: obstacle.colliderBottom + obstacle.colliderHeight / 2, z: obstacle.z,
-      width: obstacle.halfX * 2, height: obstacle.colliderHeight, depth: obstacle.halfZ * 2,
-      rotationY: obstacle.rotationY, color: 0xffd45a,
-    });
-  });
-  base.instanceMatrix.needsUpdate = true;
-  stripe.instanceMatrix.needsUpdate = true;
-  base.userData = {
-    sourceAsset: 'procedural-mobile-concrete-boundary', uniformScale, moduleLength: targetLength,
-    groundGap: -0.004, groundEmbed: 0.004, scaledSize: { x: targetLength, y: height, z: depth },
-    mobileOptimized: true, sourceTrianglesPerModule: 12, sharedMaterials: true,
-  };
-  stripe.userData = { mobileOptimized: true, sharedHazardMaterial: true };
-  scene.add(base, stripe);
-  return base;
-}
-
-function addConcreteArenaBoundary(mapId, halfWidth, halfLength) {
-  const layout = concreteBoundaryPlacements(halfWidth, halfLength);
-  const appearance = { tint: 0xc8c3b7, metalness: 0.03, roughness: 0.93, groundEmbed: 0.004 };
-  const addBoundarySet = mobilePerformanceProfile()
-    ? (placements, targetLength, name) => addMobileConcreteBoundarySet(placements, targetLength, name, mapId)
-    : (placements, targetLength, name) => addIndustrialObstacleSet(
-      'arena_concrete_boundary', placements, targetLength, name, appearance, 'concrete-boundary', mapId,
-    );
-  const horizontal = addBoundarySet(layout.horizontal, layout.horizontalLength, `${mapId}_ConcreteBoundaryNorthSouth`);
-  const vertical = addBoundarySet(layout.vertical, layout.verticalLength, `${mapId}_ConcreteBoundaryEastWest`);
-  return {
-    horizontal,
-    vertical,
-    moduleCount: layout.horizontal.length + layout.vertical.length,
-    sourceAsset: ASSET_PATHS.arena_concrete_boundary,
-    oldWallAssetsLoaded: ['arena_fence', 'arena_bumper'].filter((id) => Boolean(models[id])),
-  };
-}
-
 function createArena01() {
   const width = ARENA_X * 2;
   const length = ARENA_Z * 2;
@@ -2740,10 +2638,20 @@ function createArena01() {
     scene.add(ring);
   }
 
-  // The previous inner wall, steel fence, transparent-wall experiment and
-  // low bumper set are intentionally absent. The user's final instruction is
-  // one solid modular concrete boundary for Arena01 and BattleZone01.
-  const arenaConcreteBoundary = addConcreteArenaBoundary('arena01', ARENA_X, ARENA_Z);
+  // Arena01 deliberately uses only the newly supplied low steel obstacle.
+  // The centre and spawn lanes stay open; the logical arena extents provide
+  // the non-rendered world boundary without loading a legacy wall mesh.
+  const arenaLowSteelPlacements = [
+    { x: -39, z: -31, rotationY: 0.08 }, { x: 39, z: -31, rotationY: -0.08 },
+    { x: -39, z: 31, rotationY: -0.08 }, { x: 39, z: 31, rotationY: 0.08 },
+    { x: -47, z: -17, rotationY: Math.PI / 2 }, { x: -47, z: 17, rotationY: Math.PI / 2 },
+    { x: 47, z: -17, rotationY: Math.PI / 2 }, { x: 47, z: 17, rotationY: Math.PI / 2 },
+  ];
+  const arenaLowSteel = addIndustrialObstacleSet(
+    'arena_low_barrier', arenaLowSteelPlacements, 7.4, 'Arena01_LowSteelObstacles_8',
+    { tint: 0xadb4b8, metalness: 0.68, roughness: 0.5, groundEmbed: 0.006 },
+    'low-steel-barrier', 'arena01',
+  );
 
   const safetyMaterial = createMaterial(0xe0a12f, 0.42, 0.5);
   const safetyStrips = [[0, ARENA_Z - 1.15, width - 4, 0.3], [0, -ARENA_Z + 1.15, width - 4, 0.3], [ARENA_X - 1.15, 0, 0.3, length - 4], [-ARENA_X + 1.15, 0, 0.3, length - 4]];
@@ -2771,8 +2679,8 @@ function createArena01() {
   const outerZ = ARENA_LAYOUT.outerWallHalfLength;
 
   arenaStats.dimensions = { width, length, outerWidth: outerX * 2, outerLength: outerZ * 2 };
-  arenaStats.assets = ['관중석.glb', 'Meshy_AI_concrete_barrier_lowp_0828114955_texture.glb', 'arena_floor_tile.png'];
-  arenaStats.layoutOrder = ['combat-floor', 'modular-concrete-boundary', 'audience-stands'];
+  arenaStats.assets = ['stands.glb', 'low_steel_barrier.glb', 'arena_floor_tile.png'];
+  arenaStats.layoutOrder = ['combat-floor', 'sparse-low-steel-obstacles', 'audience-stands'];
   arenaStats.noCeilingGeometry = true;
   arenaStats.lightColor = 'focused-warm-key-with-cool-fill';
   arenaStats.scaleReferences.fenceHeight = 0;
@@ -2780,7 +2688,13 @@ function createArena01() {
   arenaStats.scaleReferences.fenceRobotRatio = 0;
   arenaStats.scaleReferences.audienceRobotRatio = Number((arenaStats.scaleReferences.audienceHeight / arenaStats.scaleReferences.robotHeight).toFixed(2));
   arenaStats.safetyGap = Number((ARENA_LAYOUT.audienceDistance - audienceInstances.userData.scaledSize.z / 2).toFixed(3));
-  arenaStats.boundary = { type: 'concrete-obstacle-only', moduleCount: arenaConcreteBoundary.moduleCount, sourceAsset: arenaConcreteBoundary.sourceAsset, oldWallAssetsLoaded: arenaConcreteBoundary.oldWallAssetsLoaded };
+  arenaStats.boundary = {
+    type: 'logical-world-bounds-plus-sparse-low-steel',
+    moduleCount: arenaLowSteelPlacements.length,
+    sourceAsset: ASSET_PATHS.arena_low_barrier,
+    scaledSize: arenaLowSteel.userData.scaledSize,
+    oldWallAssetsLoaded: [],
+  };
 }
 
 function addIndustrialObstacleSet(id, placements, targetLength, name, appearance, obstacleType, mapId = 'industrial01') {
@@ -2887,83 +2801,43 @@ function createIndustrialBattleZone() {
     scene.add(route);
   }
 
-  const industrialConcreteBoundary = addConcreteArenaBoundary('industrial01', INDUSTRIAL_LAYOUT.halfWidth, INDUSTRIAL_LAYOUT.halfLength);
-
-  /* Removed runtime set: old containers, interior barriers, steel fence and
-     corner posts. The final map instruction allows only the new modular
-     concrete obstacle boundary in BattleZone01. Keeping this authored layout
-     below as inert migration history makes it explicit that it is not loaded. 
+  // BattleZone01 now loads only the supplied low-poly environment pack. The
+  // central 104 m plaza stays unobstructed while containers form broad lanes
+  // and the two smaller barrier types shape outer approaches.
   const containerPlacements = [
-    { x: -178, z: 88, rotationY: 0 }, { x: -154, z: 88, rotationY: 0 },
-    { x: -88, z: 88, rotationY: 0 }, { x: -64, z: 88, rotationY: 0 },
-    { x: 64, z: 88, rotationY: 0 }, { x: 88, z: 88, rotationY: 0 },
-    { x: 154, z: 88, rotationY: 0 }, { x: 178, z: 88, rotationY: 0 },
-    { x: -178, z: 132, rotationY: 0 }, { x: -154, z: 132, rotationY: 0 },
-    { x: -88, z: 132, rotationY: 0 }, { x: -64, z: 132, rotationY: 0 },
-    { x: 64, z: 132, rotationY: 0 }, { x: 88, z: 132, rotationY: 0 },
-    { x: 154, z: 132, rotationY: 0 }, { x: 178, z: 132, rotationY: 0 },
-    { x: -218, z: 72, rotationY: Math.PI / 2 }, { x: -218, z: 100, rotationY: Math.PI / 2 }, { x: -218, z: 128, rotationY: Math.PI / 2 },
-    { x: 218, z: 72, rotationY: Math.PI / 2 }, { x: 218, z: 100, rotationY: Math.PI / 2 }, { x: 218, z: 128, rotationY: Math.PI / 2 },
-    { x: -182, z: -18, rotationY: Math.PI / 2 }, { x: 182, z: 18, rotationY: Math.PI / 2 },
-    { x: -205, z: -112, rotationY: 0 }, { x: 205, z: -112, rotationY: 0 },
-  ].map((placement) => ({ ...placement, x: placement.x * INDUSTRIAL_SPACE_SCALE, z: placement.z * INDUSTRIAL_SPACE_SCALE }));
+    { x: -132, z: -84, rotationY: 0 }, { x: -104, z: -84, rotationY: 0 },
+    { x: 104, z: -84, rotationY: 0 }, { x: 132, z: -84, rotationY: 0 },
+    { x: -132, z: 84, rotationY: 0 }, { x: -104, z: 84, rotationY: 0 },
+    { x: 104, z: 84, rotationY: 0 }, { x: 132, z: 84, rotationY: 0 },
+    { x: -150, z: -18, rotationY: Math.PI / 2 }, { x: -150, z: 18, rotationY: Math.PI / 2 },
+    { x: 150, z: -18, rotationY: Math.PI / 2 }, { x: 150, z: 18, rotationY: Math.PI / 2 },
+  ];
   const containerInstances = addIndustrialObstacleSet(
-    'industrial_container', containerPlacements, 18, 'Industrial01_Containers_26',
-    { tint: 0xd3d8d4, metalness: 0.64, roughness: 0.52, groundEmbed: 0.006 }, 'container',
+    'industrial_container', containerPlacements, 18, 'Industrial01_LowPolyContainers_12',
+    { tint: 0xd3d8d4, metalness: 0.56, roughness: 0.58, groundEmbed: 0.006 }, 'container',
   );
-
   const barrierPlacements = [
-    { x: -202, z: -108, rotationY: 0.08 }, { x: -188, z: -107, rotationY: -0.04 },
-    { x: -146, z: -102, rotationY: 0.18 }, { x: -132, z: -98, rotationY: 0.28 },
-    { x: -84, z: -106, rotationY: -0.12 }, { x: -70, z: -108, rotationY: 0.04 },
-    { x: -24, z: -101, rotationY: 0.16 }, { x: -10, z: -98, rotationY: 0.24 },
-    { x: 38, z: -106, rotationY: -0.08 }, { x: 52, z: -108, rotationY: 0.03 },
-    { x: 103, z: -102, rotationY: -0.2 }, { x: 117, z: -98, rotationY: -0.28 },
-    { x: 166, z: -107, rotationY: 0.09 }, { x: 180, z: -106, rotationY: -0.03 },
-    { x: -178, z: -70, rotationY: Math.PI / 2 }, { x: -178, z: -56, rotationY: Math.PI / 2 },
-    { x: -112, z: -76, rotationY: 0 }, { x: -98, z: -76, rotationY: 0 },
-    { x: -46, z: -70, rotationY: Math.PI / 2 }, { x: -46, z: -56, rotationY: Math.PI / 2 },
-    { x: 28, z: -76, rotationY: 0 }, { x: 42, z: -76, rotationY: 0 },
-    { x: 102, z: -70, rotationY: Math.PI / 2 }, { x: 102, z: -56, rotationY: Math.PI / 2 },
-    { x: 170, z: -76, rotationY: 0 }, { x: 184, z: -76, rotationY: 0 },
-    { x: -142, z: -34, rotationY: 0.45 }, { x: -132, z: -24, rotationY: Math.PI / 2 },
-    { x: 142, z: -34, rotationY: -0.45 }, { x: 132, z: -24, rotationY: Math.PI / 2 },
-  ].map((placement) => ({ ...placement, x: placement.x * INDUSTRIAL_SPACE_SCALE, z: placement.z * INDUSTRIAL_SPACE_SCALE }));
+    { x: -112, z: -51, rotationY: 0.22 }, { x: -86, z: -56, rotationY: -0.2 },
+    { x: 86, z: -56, rotationY: 0.2 }, { x: 112, z: -51, rotationY: -0.22 },
+    { x: -112, z: 51, rotationY: -0.22 }, { x: -86, z: 56, rotationY: 0.2 },
+    { x: 86, z: 56, rotationY: -0.2 }, { x: 112, z: 51, rotationY: 0.22 },
+    { x: -78, z: -105, rotationY: Math.PI / 2 }, { x: 78, z: -105, rotationY: Math.PI / 2 },
+    { x: -78, z: 105, rotationY: Math.PI / 2 }, { x: 78, z: 105, rotationY: Math.PI / 2 },
+  ];
   const barrierInstances = addIndustrialObstacleSet(
-    'industrial_barrier', barrierPlacements, 7.8, 'Industrial01_ConcreteBarriers_30',
-    { tint: 0xbfc0b9, metalness: 0.06, roughness: 0.9, scaleYFactor: 0.48, scaleZFactor: 1.12, groundEmbed: 0.006 }, 'concrete-barrier',
+    'industrial_barrier', barrierPlacements, 8.2, 'Industrial01_LowPolyConcreteBarriers_12',
+    { tint: 0xc8c5bd, metalness: 0.04, roughness: 0.9, groundEmbed: 0.006 }, 'concrete-barrier',
   );
-
-  const fenceModule = ARENA_LAYOUT.fenceModuleLength;
-  const horizontalCount = Math.ceil((INDUSTRIAL_LAYOUT.fenceHalfWidth * 2) / fenceModule);
-  const verticalCount = Math.ceil((INDUSTRIAL_LAYOUT.fenceHalfLength * 2) / fenceModule);
-  const horizontalLength = INDUSTRIAL_LAYOUT.fenceHalfWidth * 2 / horizontalCount;
-  const verticalLength = INDUSTRIAL_LAYOUT.fenceHalfLength * 2 / verticalCount;
-  const horizontalFence = [];
-  const verticalFence = [];
-  for (let index = 0; index < horizontalCount; index++) {
-    const x = -INDUSTRIAL_LAYOUT.fenceHalfWidth + horizontalLength / 2 + index * horizontalLength;
-    horizontalFence.push({ x, z: -INDUSTRIAL_LAYOUT.fenceHalfLength, rotationY: 0 }, { x, z: INDUSTRIAL_LAYOUT.fenceHalfLength, rotationY: Math.PI });
-  }
-  for (let index = 0; index < verticalCount; index++) {
-    const z = -INDUSTRIAL_LAYOUT.fenceHalfLength + verticalLength / 2 + index * verticalLength;
-    verticalFence.push({ x: INDUSTRIAL_LAYOUT.fenceHalfWidth, z, rotationY: -Math.PI / 2 }, { x: -INDUSTRIAL_LAYOUT.fenceHalfWidth, z, rotationY: Math.PI / 2 });
-  }
-  const fenceA = addInstancedArenaModules('arena_fence', horizontalFence, horizontalLength, 'Industrial01_FenceNorthSouth', { tint: 0x89959c, metalness: 0.75, roughness: 0.46, groundEmbed: 0.006 });
-  const fenceB = addInstancedArenaModules('arena_fence', verticalFence, verticalLength, 'Industrial01_FenceEastWest', { tint: 0x89959c, metalness: 0.75, roughness: 0.46, groundEmbed: 0.006 });
-  const fenceHeight = Math.max(fenceA.userData.scaledSize.y, fenceB.userData.scaledSize.y);
-  const fenceDepth = Math.max(0.18, Math.min(fenceA.userData.scaledSize.z, fenceB.userData.scaledSize.z));
-  addEnvironmentColliderDebug({ name: 'Industrial01_FenceNorth_Collider', mapId: 'industrial01', x: 0, y: fenceHeight / 2 - 0.006, z: INDUSTRIAL_LAYOUT.halfLength + fenceDepth / 2, width, height: fenceHeight, depth: fenceDepth, color: 0xb58aff });
-  addEnvironmentColliderDebug({ name: 'Industrial01_FenceSouth_Collider', mapId: 'industrial01', x: 0, y: fenceHeight / 2 - 0.006, z: -INDUSTRIAL_LAYOUT.halfLength - fenceDepth / 2, width, height: fenceHeight, depth: fenceDepth, color: 0xb58aff });
-  addEnvironmentColliderDebug({ name: 'Industrial01_FenceEast_Collider', mapId: 'industrial01', x: INDUSTRIAL_LAYOUT.halfWidth + fenceDepth / 2, y: fenceHeight / 2 - 0.006, z: 0, width: fenceDepth, height: fenceHeight, depth: length, color: 0xb58aff });
-  addEnvironmentColliderDebug({ name: 'Industrial01_FenceWest_Collider', mapId: 'industrial01', x: -INDUSTRIAL_LAYOUT.halfWidth - fenceDepth / 2, y: fenceHeight / 2 - 0.006, z: 0, width: fenceDepth, height: fenceHeight, depth: length, color: 0xb58aff });
-  const postMaterial = createMaterial(0x555f64, 0.72, 0.4);
-  for (const x of [-INDUSTRIAL_LAYOUT.fenceHalfWidth, INDUSTRIAL_LAYOUT.fenceHalfWidth]) for (const z of [-INDUSTRIAL_LAYOUT.fenceHalfLength, INDUSTRIAL_LAYOUT.fenceHalfLength]) {
-    const post = new THREE.Mesh(new THREE.BoxGeometry(0.95, fenceHeight, 0.95), postMaterial);
-    post.position.set(x, fenceHeight / 2, z);
-    scene.add(post);
-  }
-  */
+  const lowSteelPlacements = [
+    { x: -132, z: -116, rotationY: 0 }, { x: 132, z: -116, rotationY: 0 },
+    { x: -132, z: 116, rotationY: 0 }, { x: 132, z: 116, rotationY: 0 },
+    { x: -162, z: -62, rotationY: Math.PI / 2 }, { x: -162, z: 62, rotationY: Math.PI / 2 },
+    { x: 162, z: -62, rotationY: Math.PI / 2 }, { x: 162, z: 62, rotationY: Math.PI / 2 },
+  ];
+  const lowSteelInstances = addIndustrialObstacleSet(
+    'arena_low_barrier', lowSteelPlacements, 7.4, 'Industrial01_LowSteelBarriers_8',
+    { tint: 0xaeb5b8, metalness: 0.68, roughness: 0.5, groundEmbed: 0.006 }, 'low-steel-barrier',
+  );
 
   const silhouetteMaterial = createMaterial(0x434b4f, 0.28, 0.82);
   const silhouetteGeometry = new THREE.BoxGeometry(1, 1, 1);
@@ -2979,19 +2853,22 @@ function createIndustrialBattleZone() {
   silhouettes.receiveShadow = true;
   scene.add(silhouettes);
 
-  industrialStats.assets.containers = 0;
-  industrialStats.assets.barriers = industrialConcreteBoundary.moduleCount;
+  industrialStats.assets.containers = containerPlacements.length;
+  industrialStats.assets.barriers = barrierPlacements.length;
+  industrialStats.assets.lowSteelBarriers = lowSteelPlacements.length;
   industrialStats.assets.fenceModules = 0;
-  industrialStats.assets.containerSource = null;
-  industrialStats.assets.barrierSource = industrialConcreteBoundary.sourceAsset;
+  industrialStats.assets.containerSource = ASSET_PATHS.industrial_container;
+  industrialStats.assets.barrierSource = ASSET_PATHS.industrial_barrier;
+  industrialStats.assets.lowSteelSource = ASSET_PATHS.arena_low_barrier;
   industrialStats.assets.fenceSource = null;
-  industrialStats.assets.containerTrianglesPerInstance = 0;
-  industrialStats.assets.barrierTrianglesPerInstance = industrialConcreteBoundary.horizontal.geometry.index ? industrialConcreteBoundary.horizontal.geometry.index.count / 3 : 0;
-  industrialStats.assets.containerWorldSize = null;
-  industrialStats.assets.barrierWorldSize = Object.fromEntries(Object.entries(industrialConcreteBoundary.horizontal.userData.scaledSize).map(([key, value]) => [key, Number(value.toFixed(2))]));
-  industrialStats.assets.containerRole = 'removed';
-  industrialStats.assets.barrierRole = 'solid-perimeter-boundary';
-  industrialStats.assets.oldWallAssetsLoaded = industrialConcreteBoundary.oldWallAssetsLoaded;
+  industrialStats.assets.containerTrianglesPerInstance = containerInstances.geometry.index ? containerInstances.geometry.index.count / 3 : 0;
+  industrialStats.assets.barrierTrianglesPerInstance = barrierInstances.geometry.index ? barrierInstances.geometry.index.count / 3 : 0;
+  industrialStats.assets.lowSteelTrianglesPerInstance = lowSteelInstances.geometry.index ? lowSteelInstances.geometry.index.count / 3 : 0;
+  industrialStats.assets.containerWorldSize = Object.fromEntries(Object.entries(containerInstances.userData.scaledSize).map(([key, value]) => [key, Number(value.toFixed(2))]));
+  industrialStats.assets.barrierWorldSize = Object.fromEntries(Object.entries(barrierInstances.userData.scaledSize).map(([key, value]) => [key, Number(value.toFixed(2))]));
+  industrialStats.assets.containerRole = 'line-of-sight-and-wide-lane';
+  industrialStats.assets.barrierRole = 'outer-approach-shaping';
+  industrialStats.assets.oldWallAssetsLoaded = [];
 }
 
 function createDesertSandTextures() {
@@ -7961,7 +7838,7 @@ class Robot {
       const away = this.root.position.clone().sub(target.root.position).setY(0).normalize();
       desiredPoint = this.root.position.clone().addScaledVector(away, 22);
       const cover = obstacles
-        .filter((obstacle) => obstacle.obstacleType === 'container' || obstacle.obstacleType === 'concrete-barrier')
+        .filter((obstacle) => ['container', 'concrete-barrier', 'low-steel-barrier'].includes(obstacle.obstacleType))
         .map((obstacle) => ({ obstacle, distance: Math.hypot(obstacle.x - this.root.position.x, obstacle.z - this.root.position.z) }))
         .filter((entry) => entry.distance < 42)
         .sort((a, b) => a.distance - b.distance)[0]?.obstacle;
@@ -9238,11 +9115,32 @@ class Robot {
       const situational = clamp((intensityScore - 35) / 185, 0, 1);
       const targetStructureDamage = maximumStructureHp * lerp(minimumFraction, maximumFraction, clamp(situational * 0.72 + Math.random() * 0.28, 0, 1));
       const tunedDamage = Math.max(damage * damageScale, targetStructureDamage);
-      if (part?.type === 'block') blockDamageResult = this.applyBlockDamageAtImpact(part, tunedDamage, scaledImpulse, point, attacker, tier, intensityScore, true, targetStructureDamage);
-      else this.damagePart(part, damage * damageScale, scaledImpulse, point, attacker, tier);
       const survivalTierScale = { weak: 0.72, medium: 0.92, strong: 1.12, veryStrong: 1.34, critical: 1.62 }[tier] ?? 1;
       const survivalDamage = clamp(damage * survivalTierScale + intensityScore * 0.035, 0.5, tier === 'critical' ? 96 : 68);
-      survivalDamageResult = this.applySurvivalDamage(survivalDamage, tier);
+      survivalDamageResult = this.applySurvivalDamage(survivalDamage, tier, {
+        directCoreHit: Boolean(part?.isCore),
+        remainingBlockRatio: this.remainingBlockRatio(),
+      });
+      // The survival layers are strict: class armour absorbs the hit first.
+      // Only the part of an impact left after armour depletion may reach block
+      // structure. This prevents HP=0 with untouched blocks, while still
+      // allowing the same hit that breaks the last armour point to damage the
+      // real exterior block underneath it.
+      const structureFactor = survivalDamageResult.incoming > 0
+        ? clamp(survivalDamageResult.residual / survivalDamageResult.incoming, 0, 1)
+        : 0;
+      if (part?.type === 'armor') this.damagePart(part, damage * damageScale, scaledImpulse, point, attacker, tier);
+      if (structureFactor > 0.001) {
+        const directBlock = part?.type === 'block' ? part : this.nearestActiveBlockToPoint(point);
+        if (directBlock) {
+          blockDamageResult = this.applyBlockDamageAtImpact(
+            directBlock, tunedDamage * structureFactor, scaledImpulse, point, attacker,
+            tier, intensityScore * structureFactor, true, targetStructureDamage * structureFactor,
+          );
+        } else if (part?.type !== 'armor') {
+          this.damagePart(part, damage * damageScale * structureFactor, scaledImpulse, point, attacker, tier);
+        }
+      }
     }
     const sparkRanges = { weak: [2, 5], medium: [6, 15], strong: [20, 40], veryStrong: [35, 60], critical: [50, 90] };
     const [sparkMin, sparkMax] = sparkRanges[tier];
@@ -9306,6 +9204,19 @@ class Robot {
     return [];
   }
 
+  nearestActiveBlockToPoint(point) {
+    let nearest = null;
+    let nearestDistance = Infinity;
+    for (const part of this.activeBlockParts()) {
+      const distance = this.partWorldCentre(part).distanceToSquared(point);
+      if (distance < nearestDistance) {
+        nearest = part;
+        nearestDistance = distance;
+      }
+    }
+    return nearest;
+  }
+
   applyWeaponReactionWear(weapon, amount, impulse, point, tier = 'medium') {
     const moving = weapon.blade ?? weapon.moving ?? weapon.plate;
     const mounts = weapon.mounts ?? (weapon.mount ? [weapon.mount] : []);
@@ -9329,6 +9240,14 @@ class Robot {
     }
     part.hp -= applied;
     if (part.hp > 0) return;
+    if (part.type === 'armor') {
+      // Armour plates are the first physical layer. Once their own HP reaches
+      // zero they must detach immediately; retaining an invisible 1 HP plate
+      // caused player impacts to be intercepted forever.
+      part.hp = 0;
+      if (part.detachable) this.detachPart(part, impulse, point);
+      return;
+    }
     if (part.type === 'weapon') {
       const liveMounts = this.weaponMountsForPart(part).filter((mount) => !mount.detached);
       if (liveMounts.length) {
@@ -9409,6 +9328,9 @@ class Robot {
       return false;
     }
     this.dead = true;
+    this.hp = 0;
+    this.armor = 0;
+    this.armorBroken = true;
     // A destroyed chassis is no longer a Combat Robot. Individual detached
     // debris may remain, but the unmarked complete body is hidden immediately
     // so it cannot be mistaken for an unassigned/ghost participant.
@@ -9428,18 +9350,18 @@ class Robot {
     return true;
   }
 
-  applySurvivalDamage(amount, tier = 'weak') {
+  applySurvivalDamage(amount, tier = 'weak', context = {}) {
     const incoming = Math.max(0, Number(amount) || 0);
-    if (incoming <= 0 || this.dead) return { incoming: 0, hpDamage: 0, armorDamage: 0 };
-    const armorRatio = this.maxArmor > 0 ? clamp(this.armor / this.maxArmor, 0, 1) : 0;
-    // Armour always leaks a small amount into HP. As armour is stripped the HP
-    // share rises smoothly, so late combat becomes more lethal without using a
-    // second all-or-nothing health gate.
-    const hpShare = lerp(0.2, 0.92, 1 - armorRatio);
-    const hpDamage = Math.min(this.hp, incoming * hpShare);
-    const armorDamage = Math.min(this.armor, incoming * lerp(1.08, 0.34, hpShare));
-    this.hp = Math.max(0, this.hp - hpDamage);
+    if (incoming <= 0 || this.dead) return { incoming: 0, residual: 0, hpDamage: 0, armorDamage: 0 };
+    const armorDamage = Math.min(this.armor, incoming);
     this.armor = Math.max(0, this.armor - armorDamage);
+    const residual = Math.max(0, incoming - armorDamage);
+    const remainingBlockRatio = clamp(Number(context.remainingBlockRatio ?? this.remainingBlockRatio()), 0, 1);
+    const exposure = context.directCoreHit
+      ? 1
+      : clamp((0.74 - remainingBlockRatio) / 0.54, 0, 1);
+    const hpDamage = Math.min(this.hp, residual * exposure);
+    this.hp = Math.max(0, this.hp - hpDamage);
     this.lastDamageTakenAt = worldTime;
     this.lastDamageTakenAmount = hpDamage + armorDamage;
     if (!this.armorBroken && this.armor <= 0.001) {
@@ -9448,7 +9370,7 @@ class Robot {
       if (this.isPlayer) showMessage('ARMOR BREAK — HP 피해 증가', 0.8);
       spawnMetalSparks(this.root.position.clone().add(new THREE.Vector3(0, 0.45, 0)), new THREE.Vector3(0, 45, 0), tier === 'critical' ? 16 : 8, 'medium', null, 'impact', Y_AXIS);
     }
-    return { incoming, hpDamage, armorDamage, hp: this.hp, armor: this.armor };
+    return { incoming, residual, exposure, hpDamage, armorDamage, hp: this.hp, armor: this.armor };
   }
 
   durability() {
@@ -13451,7 +13373,7 @@ function sampleRuntimeFrames(seconds = 5) {
         actualRenderedFps: Number((renderedFrames / elapsedSeconds).toFixed(1)), medianFrameMs: Number(percentile(0.5).toFixed(2)),
         p95FrameMs: Number(percentile(0.95).toFixed(2)), onePercentLowFps: Number((1000 / Math.max(0.001, percentile(0.99))).toFixed(1)),
         pixelRatio: Number(renderer.getPixelRatio().toFixed(3)), shadows: renderer.shadowMap.enabled,
-        targetFps: frameRateLimit, qualityPreset, averageUpdateCpuMs: profile.averageUpdateCpuMs,
+        targetFps: effectiveFrameRateLimit(), requestedTargetFps: frameRateLimit, qualityPreset, averageUpdateCpuMs: profile.averageUpdateCpuMs,
         averageRenderCpuMs: profile.averageRenderCpuMs, cpuStageTotalsMs: profile.stageTotalsMs,
         topCpuStages, renderer: profile.renderer, active: profile.active,
       });
@@ -14143,6 +14065,8 @@ function resetGame(testOnly = mode === 'test', playerAssembly = workingAssembly)
   clearCombatants();
   collisionEventCache.clear();
   worldTime = 0;
+  thermalFrameRateLimit = frameRateLimit;
+  thermalOverloadSeconds = 0;
   hitStopTimer = 0;
   Object.assign(teamMarkerStats, { updates: 0, visible: 0, ffaNameplates: 0, ffaClassIcons: 0, ffaHpBars: 0, hiddenDead: 0, hiddenOccluded: 0, minimumWidth: 0, maximumWidth: 0, maximumFollowErrorPixels: 0, playerMarkers: 0, overlapAdjustments: 0 });
   Object.assign(impactStats, { weak: 0, medium: 0, strong: 0, veryStrong: 0, critical: 0, criticalEligible: 0, criticalRolls: 0, maxCriticalChance: 0, minCriticalScore: null, maxCriticalScore: 0, maxImpulse: 0, maxSparks: 0, maxSingleDamage: 0, firstImpactTime: null });
@@ -15279,12 +15203,13 @@ function updateSelfTest(dt) {
       qa.result.arena01 = cloneData(arenaStats);
       qa.result.arenaRectanglePass = ARENA_X === 52 && ARENA_Z === 38 && arenaStats.innerWalls === 0 && arenaStats.wallCornerGaps === 0;
       qa.result.arenaAssetPass = arenaStats.assets.length === 3
-        && ['arena_stands', 'arena_concrete_boundary'].every((id) => Boolean(models[id]))
+        && ['arena_stands', 'arena_low_barrier'].every((id) => Boolean(models[id]))
         && !models.arena_bumper && !models.arena_fence
         && !models.arena_ramp_1 && !models.arena_ramp_2 && ramps.length === 0;
       qa.result.arenaStructurePass = arenaStats.fenceModules.total === 0
         && arenaStats.stands.total === 14 && arenaStats.outerWalls === 0
-        && arenaStats.boundary?.type === 'concrete-obstacle-only'
+        && arenaStats.boundary?.type === 'logical-world-bounds-plus-sparse-low-steel'
+        && arenaStats.boundary?.moduleCount === 8
         && arenaStats.boundary?.oldWallAssetsLoaded?.length === 0;
       qa.result.arenaGroundingPass = arenaStats.floatingObjects === 0
         && ramps.every((ramp) => ramp.groundGap <= 0.004)
@@ -15686,17 +15611,18 @@ function updateUIDetailed(refreshTelemetry = false) {
       topView: arenaTopView,
       active: selectedMapId === 'arena01',
       boundary: { minX: -activeHalfWidth(), maxX: activeHalfWidth(), minZ: -activeHalfLength(), maxZ: activeHalfLength(), rectangular: true, cornerAngles: [90, 90, 90, 90] },
-      loadedSourceModels: ['arena_stands', 'arena_concrete_boundary'].filter((id) => Boolean(models[id])),
+      loadedSourceModels: ['arena_stands', 'arena_low_barrier'].filter((id) => Boolean(models[id])),
       runtimeRamps: ramps.map((ramp) => ({ asset: ramp.asset, x: ramp.x, z: ramp.z, rotationDegrees: Number(THREE.MathUtils.radToDeg(ramp.rotationY).toFixed(1)), groundGap: ramp.groundGap })),
       runtimeBumpers: obstacles.filter((obstacle) => obstacle.kind === 'box').map((obstacle) => ({ x: obstacle.x, z: obstacle.z, rotationDegrees: Number(THREE.MathUtils.radToDeg(obstacle.rotationY).toFixed(1)), groundGap: obstacle.groundGap })),
     },
     industrialMap: {
       ...industrialStats,
       active: selectedMapId === 'industrial01',
-      loadedSourceModels: ['arena_concrete_boundary'].filter((id) => Boolean(models[id])),
+      loadedSourceModels: ['industrial_container', 'industrial_barrier', 'arena_low_barrier'].filter((id) => Boolean(models[id])),
       runtimeObstacles: {
         containers: obstacles.filter((obstacle) => obstacle.obstacleType === 'container').length,
-        barriers: obstacles.filter((obstacle) => obstacle.obstacleType === 'concrete-boundary').length,
+        barriers: obstacles.filter((obstacle) => obstacle.obstacleType === 'concrete-barrier').length,
+        lowSteel: obstacles.filter((obstacle) => obstacle.obstacleType === 'low-steel-barrier').length,
         colliderMode: 'mesh-bounds-fitted-obb',
         colliderInsetMetres: 0.012,
         visualGroundEmbedMetres: 0.006,
@@ -17104,6 +17030,8 @@ ui.qualityPreset?.addEventListener('change', (event) => {
 ui.frameRateLimit?.addEventListener('change', (event) => {
   const requested = Number(event.currentTarget.value);
   frameRateLimit = [30, 45, 60].includes(requested) ? requested : 60;
+  thermalFrameRateLimit = frameRateLimit;
+  thermalOverloadSeconds = 0;
   localStorage.setItem(FRAME_RATE_STORAGE_KEY, String(frameRateLimit));
   previous = performance.now();
   showMessage(`프레임 제한 ${frameRateLimit} FPS`, 1.2);
@@ -17203,6 +17131,10 @@ async function loadAssets() {
   const oldHighPolyLoads = Object.entries(combatSources).filter(([, path]) => LEGACY_COMBAT_PATH_PATTERN.test(path)).map(([id, path]) => ({ id, path }));
   const desertSources = Object.fromEntries(LOWPOLY_DESERT_IDS.map((id) => [id, ASSET_PATHS[id]]));
   const oldDesertLoads = Object.entries(desertSources).filter(([id, path]) => LEGACY_DESERT_PATH_PATTERN.test(path) || !path.includes('/assets_lowpoly/')).map(([id, path]) => ({ id, path }));
+  const environmentSources = Object.fromEntries(LOWPOLY_ENVIRONMENT_IDS.map((id) => [id, ASSET_PATHS[id]]));
+  const oldEnvironmentLoads = Object.entries(environmentSources)
+    .filter(([, path]) => LEGACY_ENVIRONMENT_PATH_PATTERN.test(path) || !path.includes('/assets_lowpoly_environment/'))
+    .map(([id, path]) => ({ id, path }));
   window.__battlebotAssetLoadAudit = {
     revision: LOWPOLY_REVISION,
     total: ASSETS.length,
@@ -17216,11 +17148,16 @@ async function loadAssets() {
     oldDesertLoadCount: oldDesertLoads.length,
     oldDesertLoads,
     allDesertAssetsUseLowPolyRegistry: oldDesertLoads.length === 0,
+    environmentSources,
+    oldEnvironmentLoadCount: oldEnvironmentLoads.length,
+    oldEnvironmentLoads,
+    allEnvironmentAssetsUseLowPolyRegistry: oldEnvironmentLoads.length === 0,
     cacheInvalidated: true,
   };
   for (const [id, source] of Object.entries(combatSources)) console.info(`[LOW-POLY SOURCE] ${id}: ${source}`);
   console.info(`[LOW-POLY AUDIT] old high-poly combat loads: ${oldHighPolyLoads.length}`);
   console.info(`[LOW-POLY AUDIT] old desert obstacle loads: ${oldDesertLoads.length}`);
+  console.info(`[LOW-POLY AUDIT] old environment obstacle loads: ${oldEnvironmentLoads.length}`);
 }
 
 let mobileFpsMeterActive = false;
@@ -17254,7 +17191,9 @@ function updateMobileFpsMeter(now) {
   const shownFps = Math.round(mobileFpsEMA);
   ui.mobileFpsMeter.textContent = `FPS ${shownFps} · ${frameMs.toFixed(1)} ms`;
   ui.mobileFpsMeter.setAttribute('aria-label', `실시간 ${shownFps} FPS, 프레임 시간 ${frameMs.toFixed(1)} 밀리초`);
-  const ratio = mobileFpsEMA / Math.max(1, frameRateLimit);
+  const activeLimit = effectiveFrameRateLimit();
+  if (activeLimit < frameRateLimit) ui.mobileFpsMeter.textContent += ` · LOCK ${activeLimit}`;
+  const ratio = mobileFpsEMA / Math.max(1, activeLimit);
   ui.mobileFpsMeter.dataset.level = ratio >= 0.82 ? 'good' : ratio >= 0.55 ? 'warn' : 'bad';
   mobileFpsWindowStart = now;
   mobileFpsRenderedFrames = 0;
@@ -17262,7 +17201,7 @@ function updateMobileFpsMeter(now) {
 
 let previous = performance.now();
 function frame(now) {
-  const frameIntervalMs = 1000 / frameRateLimit;
+  const frameIntervalMs = 1000 / effectiveFrameRateLimit();
   if (!qa && now - previous < frameIntervalMs - 0.75) {
     requestAnimationFrame(frame);
     return;
@@ -17417,6 +17356,37 @@ window.__battlebotSurvivalQA = {
     updateUIDetailed();
     return this.playerSnapshot();
   },
+  playerBlockDestruction() {
+    if (!player || player.dead) return { passed: false, reason: 'live-player-unavailable' };
+    player.spawnProtectionUntil = 0;
+    player.armor = 0;
+    player.armorBroken = true;
+    const part = player.activeBlockParts().find((candidate) => !candidate.isCore) ?? player.corePart;
+    if (!part) return { passed: false, reason: 'active-player-block-unavailable' };
+    const before = {
+      hp: part.hp,
+      blocks: player.activeBlockParts().length,
+      detached: player.stats.blocksDestroyed,
+      renderBatchVisible: part.renderBatch?.visible ?? false,
+    };
+    const point = player.partWorldCentre(part);
+    const result = player.applyImpactAtPoint(
+      new THREE.Vector3(1500, 150, 320), point, 190, 'bar', null,
+      { contactSpeed: 64, weaponMass: 46, forceTier: 'critical', suppressCritical: true, suppressFeedback: true, suppressAudio: true, suppressSparks: true },
+    );
+    const after = {
+      hp: part.hp,
+      blocks: player.activeBlockParts().length,
+      detached: player.stats.blocksDestroyed,
+      partDetached: part.detached,
+      originalDebrisVisible: part.object.visible,
+    };
+    return {
+      passed: after.partDetached && after.blocks < before.blocks && after.detached > before.detached,
+      strictLayerOrder: 'Armor -> Block -> Core/HP',
+      before, after, impact: result ? { tier: result.tier, hitBlockId: result.hitBlockId, survivalDamage: result.survivalDamage } : null,
+    };
+  },
 };
 
 window.__battlebotHealerQA = {
@@ -17475,6 +17445,7 @@ if (new URLSearchParams(location.search).get('qa') === 'isolated') {
   addRuntimeQAButton('AI SNAP', () => window.__battlebotAIBehaviorQA.snapshot());
   addRuntimeQAButton('HP/ARMOR', () => ({ config: window.__battlebotSurvivalQA.classConfig(), player: window.__battlebotSurvivalQA.playerSnapshot() }));
   addRuntimeQAButton('HIT 100', () => window.__battlebotSurvivalQA.hit(100));
+  addRuntimeQAButton('PLAYER BLOCK', () => window.__battlebotSurvivalQA.playerBlockDestruction());
   addRuntimeQAButton('HEALER TEST', () => window.__battlebotHealerQA.run());
   runtimePanel.append(runtimeOutput);
   document.body.append(runtimePanel);
@@ -18444,11 +18415,15 @@ function runEnvironmentPhysicsQA() {
       ?? obstacles.find((obstacle) => obstacle.obstacleType === 'container');
     const impacts = [3, 9, 24].map((speed) => obstacleImpact(barrier, speed));
     impacts.push(obstacleImpact(container, 12));
-    const seatedObjects = scene.children.filter((object) => ['Industrial01_Containers_26', 'Industrial01_ConcreteBarriers_30', 'Industrial01_FenceNorthSouth', 'Industrial01_FenceEastWest'].includes(object.name));
+    const seatedObjects = scene.children.filter((object) => [
+      'Industrial01_LowPolyContainers_12',
+      'Industrial01_LowPolyConcreteBarriers_12',
+      'Industrial01_LowSteelBarriers_8',
+    ].includes(object.name));
     const groundSeating = seatedObjects.map((object) => ({ name: object.name, groundGap: object.userData.groundGap, pass: object.userData.groundGap <= 0 && object.userData.groundGap >= -0.01 }));
     const dropsPass = drops.every((entry) => entry.pass);
     const impactsPass = impacts.every((entry) => entry.pass);
-    const seatingPass = groundSeating.length === 4 && groundSeating.every((entry) => entry.pass);
+    const seatingPass = groundSeating.length === 3 && groundSeating.every((entry) => entry.pass);
     result = {
       generatedAtWorldTime: Number(worldTime.toFixed(3)),
       physicsFloor: { topY: PHYSICS_FLOOR_TOP, thickness: PHYSICS_FLOOR_THICKNESS.industrial01, solverHz: 240, source: 'production Robot.updatePhysics' },
@@ -19486,7 +19461,9 @@ function runBuildFloorQA() {
       solverIterations: robot.solverIterations,
     };
   });
-  const loadedOldWallAssets = ['arena_fence', 'arena_bumper', 'industrial_container', 'industrial_barrier'].filter((id) => Boolean(models[id]));
+  const loadedOldWallAssets = Object.entries(ASSET_PATHS)
+    .filter(([, path]) => LEGACY_ENVIRONMENT_PATH_PATTERN.test(path))
+    .map(([id, path]) => ({ id, path }));
   const robotPresets = auditEditableRobotPresets();
   const result = {
     buildFloorRule: 'rotated-scaled-world-bounds.minY >= lowest-chassis-block.bottomY',
@@ -19495,8 +19472,8 @@ function runBuildFloorQA() {
     runtimeAssemblyAudits: assemblyAudits.slice(1),
     runtimeSeating,
     walls: {
-      finalPolicy: 'concrete-obstacle-only',
-      sourceAsset: ASSET_PATHS.arena_concrete_boundary,
+      finalPolicy: 'arena-sparse-low-steel; industrial-lowpoly-container-concrete-lowsteel',
+      sourceAssets: Object.fromEntries(LOWPOLY_ENVIRONMENT_IDS.map((id) => [id, ASSET_PATHS[id]])),
       loadedOldWallAssets,
       arenaBoundaryModules: arenaStats.boundary?.moduleCount ?? 0,
       industrialBoundaryModules: industrialStats.assets.barriers ?? 0,
@@ -19521,8 +19498,8 @@ function runBuildFloorQA() {
     && result.savedRobotIdentity.exact
     && result.requestedSystems.sawContactLoopRemoved
     && robotPresets.passed
-    && result.walls.arenaBoundaryModules > 0
-    && result.walls.industrialBoundaryModules > 0;
+    && result.walls.arenaBoundaryModules === 8
+    && result.walls.industrialBoundaryModules >= 12;
   return result;
 }
 
